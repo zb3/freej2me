@@ -32,7 +32,31 @@ public abstract class Layer
 
 	protected Image image;
 
-	protected boolean visible;
+	protected boolean visible = true;
+
+	Layer(int width, int height)
+	{
+		setWidthImpl(width);
+		setHeightImpl(height);
+	}
+	
+	void setWidthImpl(int width)
+	{
+		if (width < 0)
+		{
+			throw new IllegalArgumentException();
+		}
+		this.width = width;
+	}
+
+	void setHeightImpl(int height)
+	{
+		if (height < 0)
+		{
+			throw new IllegalArgumentException();
+		}
+		this.height = height;
+	}
 
 
 	public int getHeight() { return height; }

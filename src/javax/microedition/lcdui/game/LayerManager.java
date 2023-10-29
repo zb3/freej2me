@@ -1,91 +1,172 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright 2017-2018 Nikita Shakarun
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.lcdui.game;
 
-import java.util.ArrayList;
-
-import java.awt.Shape;
-
-import javax.microedition.lcdui.Image;
 import javax.microedition.lcdui.Graphics;
-
-import org.recompile.mobile.Mobile;
-import org.recompile.mobile.PlatformGraphics;
-
 
 public class LayerManager
 {
-
-	protected ArrayList<Layer> layers;
-
-	protected Image canvas;
-	protected PlatformGraphics gc;
-	protected Shape clip;
-
-	protected int x;
-	protected int y;
-	protected int width;
-	protected int height;
-
+	private int nlayers;
+	private Layer component[] = new Layer[4];
+	private int viewX, viewY, viewWidth, viewHeight;
 
 	public LayerManager()
 	{
-		layers = new ArrayList<Layer>();
-
-		width = Mobile.getPlatform().lcdWidth;
-		height = Mobile.getPlatform().lcdHeight;
-
-		canvas = Image.createImage(width, height);
-		gc = canvas.platformImage.getGraphics();
+		setViewWindow(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
 	}
 
-	public void append(Layer l) { layers.add(l); }
-
-	public Layer getLayerAt(int index) { return layers.get(index); }
-
-	public int getSize() { return layers.size(); }
-
-	public void insert(Layer l, int index) { layers.add(index, l); }
-
-	public void paint(Graphics g, int xdest, int ydest)
+	public void append(Layer l)
 	{
-		for(int i=0; i<layers.size(); i++)
+		// remove the Layer if it is already present
+		// will throw NullPointerException if the Layer is null
+		removeImpl(l);
+		addImpl(l, nlayers);
+	}
+
+	public void insert(Layer l, int index)
+	{
+		if ((index < 0) || (index > nlayers) || (exist(l) && (index >= nlayers)))
 		{
-			drawLayer(g, xdest, ydest, layers.get(i));
+			throw new IndexOutOfBoundsException();
+		}
+		removeImpl(l);
+		addImpl(l, index);
+	}
+
+	public Layer getLayerAt(int index)
+	{
+		if ((index < 0) || (index >= nlayers))
+		{
+			throw new IndexOutOfBoundsException();
+		}
+		return component[index];
+	}
+
+	public int getSize()
+	{
+		return nlayers;
+	}
+
+	public void remove(Layer l)
+	{
+		removeImpl(l);
+	}
+
+	public void paint(Graphics g, int x, int y)
+	{
+		// if g == null g.getClipX will throw NullPointerException;
+
+		// save the original clip
+		int clipX = g.getClipX();
+		int clipY = g.getClipY();
+		int clipW = g.getClipWidth();
+		int clipH = g.getClipHeight();
+
+		// translate the LayerManager co-ordinates to Screen co-ordinates
+		g.translate(x - viewX, y - viewY);
+		// set the clip to view window
+		g.clipRect(viewX, viewY, viewWidth, viewHeight);
+
+		// draw last to first
+		for (int i = nlayers; --i >= 0; )
+		{
+			Layer comp = component[i];
+			if (comp.visible)
+			{
+				comp.paint(g);
+			}
+		}
+
+		g.translate(-x + viewX, -y + viewY);
+		g.setClip(clipX, clipY, clipW, clipH);
+	}
+
+	public void setViewWindow(int x, int y, int width, int height)
+	{
+		if (width < 0 || height < 0)
+		{
+			throw new IllegalArgumentException();
+		}
+
+		viewX = x;
+		viewY = y;
+		viewWidth = width;
+		viewHeight = height;
+	}
+
+	private void addImpl(Layer layer, int index)
+	{
+		if (nlayers == component.length)
+		{
+			Layer newcomponents[] = new Layer[nlayers + 4];
+			System.arraycopy(component, 0, newcomponents, 0, nlayers);
+			System.arraycopy(component, index, newcomponents,
+					index + 1, nlayers - index);
+			component = newcomponents;
+		}
+		else
+		{
+			System.arraycopy(component, index, component,
+					index + 1, nlayers - index);
+		}
+
+		component[index] = layer;
+		nlayers++;
+	}
+
+	private void removeImpl(Layer l)
+	{
+		if (l == null)
+		{
+			throw new NullPointerException();
+		}
+
+		for (int i = nlayers; --i >= 0; )
+		{
+			if (component[i] == l)
+			{
+				remove(i);
+			}
 		}
 	}
 
-	private void drawLayer(Graphics g, int dx, int dy, Layer l)
+	private boolean exist(Layer l)
 	{
-		if(l.isVisible())
+		if (l == null)
 		{
-			l.render();
-			g.drawRegion(l.getLayerImage(), 0, 0, l.getLayerImage().getWidth(), l.getLayerImage().getHeight(), 0, dx+x+l.getX(), dy+y+l.getY(), Graphics.TOP|Graphics.LEFT);
+			return false;
 		}
+
+		for (int i = nlayers; --i >= 0; )
+		{
+			if (component[i] == l)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
-	public void remove(Layer l) { layers.remove(l); }
-
-	public void setViewWindow(int wx, int wy, int wwidth, int wheight)
+	private void remove(int index)
 	{
-		x = wx;
-		y = wy;
-		width = wwidth;
-		height = wheight;
+		System.arraycopy(component, index + 1,
+				component, index,
+				nlayers - index - 1);
+		component[--nlayers] = null;
 	}
 
 }

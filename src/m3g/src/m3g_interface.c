@@ -189,7 +189,7 @@ typedef struct
 #else /* !M3G_DEBUG */
 
 /*@notfunction@*/
-#   define INSTRUMENTATED_SIZE(bytes)   ((M3Gpointer)(bytes))
+#   define INSTRUMENTATED_SIZE(bytes)   ((M3Gsizet)(bytes))
 /*@notfunction@*/
 #   define PAYLOAD_BLOCK(ptr)           (ptr)
 /*@notfunction@*/

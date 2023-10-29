@@ -266,8 +266,6 @@ static void m3gBindTextureObject(Image *img, M3Gbool mipmap)
     M3G_ASSERT_NO_LOCK(m3g);
     M3G_ASSERT_GL;
 
-    static int fn_idx = 0;
-
     /* Bind the next available texture object; create a new one if it
      * doesn't exist yet. */
     {

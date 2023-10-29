@@ -272,8 +272,15 @@ public class PlatformGraphics extends javax.microedition.lcdui.Graphics implemen
 		if(str!=null)
 		{
 			x = AnchorX(x, gc.getFontMetrics().stringWidth(str), anchor);
-			y = y + gc.getFontMetrics().getAscent() - 1;
-			y = AnchorY(y, gc.getFontMetrics().getHeight(), anchor);
+			int ascent = gc.getFontMetrics().getAscent();
+			int height = gc.getFontMetrics().getHeight();
+
+			y += ascent;
+			
+			if((anchor & VCENTER)>0) { y = y+height/2; }
+			if((anchor & BOTTOM)>0) { y = y-height; }
+			if((anchor & BASELINE)>0) { y = y-ascent; }
+
 			gc.drawString(str, x, y);
 		}
 	}

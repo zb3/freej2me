@@ -27,6 +27,8 @@ public class List extends Screen implements Choice
 
 	public static Command SELECT_COMMAND = new Command("Select", Command.SCREEN, 0);
 
+	protected int currentItem = -1;
+
 	private int fitPolicy = Choice.TEXT_WRAP_ON;
 
 	private int type;
@@ -204,5 +206,51 @@ public class List extends Screen implements Choice
 	public void notifySetCurrent()
 	{
 		render();
+	}
+
+	public String renderItems(int x, int y, int width, int height)
+	{		
+		PlatformGraphics gc = platformImage.getGraphics();
+
+		if(items.size()>0)
+		{
+			if(currentItem<0) { currentItem = 0; }
+			// Draw list items //
+			int ah = height - 10; // allowed height
+			int max = (int)Math.floor(ah / 15); // max items per page
+			if(items.size()<max) { max = items.size(); }
+		
+			int page = 0;
+			page = (int)Math.floor(currentItem/max); // current page
+			int first = page * max; // first item to show
+			int last = first + max - 1;
+
+			if(last>=items.size()) { last = items.size()-1; }
+			
+			y += 5;
+			for(int i=first; i<=last; i++)
+			{	
+				if(currentItem == i)
+				{
+					gc.fillRect(x,y,width,15);
+					gc.setColor(0xFFFFFF);
+				}
+				gc.drawString(items.get(i).getLabel(), width/2, y, Graphics.HCENTER);
+				if(items.get(i) instanceof StringItem)
+				{
+					gc.drawString(((StringItem)items.get(i)).getText(), x+width/2, y, Graphics.HCENTER);
+				}
+
+				gc.setColor(0x000000);
+				if(items.get(i) instanceof ImageItem)
+				{
+					gc.drawImage(((ImageItem)items.get(i)).getImage(), x+width/2, y, Graphics.HCENTER);
+				}
+				
+				y+=15;
+			}
+		}
+
+		return ""+(currentItem+1)+" of "+items.size();
 	}
 }

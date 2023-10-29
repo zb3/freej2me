@@ -16,6 +16,10 @@
 */
 package javax.microedition.lcdui;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.awt.FontMetrics;
+
 
 public class StringItem extends Item
 {
@@ -23,6 +27,10 @@ public class StringItem extends Item
 	private String text;
 	private int appearance;
 	private Font font;
+	protected List<String> lines;
+	protected int lineHeight;
+	protected int lineSpacing;
+	protected int height;
 
 
 	public StringItem(String label, String textvalue)
@@ -49,5 +57,40 @@ public class StringItem extends Item
 	public void setFont(Font newfont) { font = newfont; }
 
 	public void setText(String textvalue) { text = textvalue; }
+
+	protected void generateLayout(FontMetrics fm, int width) {
+		lines = wrapText(fm, this.getText(), width);
+		lineHeight = fm.getHeight();
+		lineSpacing = 1;
+
+		height = lines.size() > 0 ? (lines.size()*lineHeight + (lines.size()-1)*lineSpacing) : 0;
+
+	}
+
+	private List<String> wrapText(FontMetrics fm, String text, int width) {
+		String[] lines = text.split("\n");
+		List<String> wrappedLines = new ArrayList<>();
+	
+		for (String line : lines) {
+			String[] words = line.split(" ");
+			String wrappedLine = "";
+	
+			for (String word : words) {
+				String candidate = wrappedLine.isEmpty() ? word : wrappedLine + " " + word;
+				int candidateWidth = fm.stringWidth(candidate);
+	
+				if (candidateWidth > width) {
+					wrappedLines.add(wrappedLine);
+					wrappedLine = word;
+				} else {
+					wrappedLine = candidate;
+				}
+			}
+	
+			wrappedLines.add(wrappedLine);
+		}
+	
+		return wrappedLines;
+	  }
 
 }

@@ -45,8 +45,6 @@ public abstract class Displayable
 	
 	protected int currentCommand = 0;
 
-	protected int currentItem = -1;
-
 	public Ticker ticker;
 
 	public Displayable()
@@ -105,101 +103,57 @@ public abstract class Displayable
 
 	protected void render()
 	{
-		if(listCommands==true)
-		{
-			renderCommands();
-		}
-		else
-		{
-			renderItems();
-		}
-	}
-
-	public void renderItems()
-	{
 		PlatformGraphics gc = platformImage.getGraphics();
+
 		// Draw Background:
 		gc.setColor(0xFFFFFF);
 		gc.fillRect(0,0,width,height);
 		gc.setColor(0x000000);
+
+		String currentTitle = listCommands ? "Options" : title;
 		
 		// Draw Title:
-		gc.drawString(title, width/2, 2, Graphics.HCENTER);
+		gc.drawString(currentTitle, width/2, 1, Graphics.HCENTER);
 		gc.drawLine(0, 20, width, 20);
 		gc.drawLine(0, height-20, width, height-20);
 
-		if(items.size()>0)
+		if (listCommands)
 		{
-			if(currentItem<0) { currentItem = 0; }
-			// Draw list items //
-			int ah = height - 50; // allowed height
-			int max = (int)Math.floor(ah / 15); // max items per page
-			if(items.size()<max) { max = items.size(); }
-		
-			int page = 0;
-			page = (int)Math.floor(currentItem/max); // current page
-			int first = page * max; // first item to show
-			int last = first + max - 1;
+			renderCommands(gc);
+		}
+		else
+		{
+			String status = renderItems(0, 21, width, height-41);
 
-			if(last>=items.size()) { last = items.size()-1; }
-			
-			int y = 25;
-			for(int i=first; i<=last; i++)
-			{	
-				if(currentItem == i)
-				{
-					gc.fillRect(0,y,width,15);
-					gc.setColor(0xFFFFFF);
-				}
-				gc.drawString(items.get(i).getLabel(), width/2, y, Graphics.HCENTER);
-				if(items.get(i) instanceof StringItem)
-				{
-					gc.drawString(((StringItem)items.get(i)).getText(), width/2, y, Graphics.HCENTER);
-				}
-				gc.setColor(0x000000);
-				if(items.get(i) instanceof ImageItem)
-				{
-					gc.drawImage(((ImageItem)items.get(i)).getImage(), width/2, y, Graphics.HCENTER);
-				}
-				y+=15;
+			// Draw Commands
+			switch(commands.size())
+			{
+				case 0: break;
+				case 1:
+					gc.drawString(commands.get(0).getLabel(), 3, height-17, Graphics.LEFT);
+					if (status != null)
+					{
+						gc.drawString(status, width-3, height-17, Graphics.RIGHT);
+					}
+					
+					break;
+				case 2:
+					gc.drawString(commands.get(0).getLabel(), 3, height-17, Graphics.LEFT);
+					gc.drawString(commands.get(1).getLabel(), width-3, height-17, Graphics.RIGHT);
+					break;
+				default:
+					gc.drawString("Options", 3, height-17, Graphics.LEFT);
 			}
 		}
-		// Draw Commands
-		switch(commands.size())
-		{
-			case 0: break;
-			case 1:
-				gc.drawString(commands.get(0).getLabel(), 3, height-17, Graphics.LEFT);
-				gc.drawString(""+(currentItem+1)+" of "+items.size(), width-3, height-17, Graphics.RIGHT);
-				break;
-			case 2:
-				gc.drawString(commands.get(0).getLabel(), 3, height-17, Graphics.LEFT);
-				gc.drawString(commands.get(1).getLabel(), width-3, height-17, Graphics.RIGHT);
-				break;
-			default:
-				gc.drawString("Options", 3, height-17, Graphics.LEFT);
-		}
-
+	
 		if(this.getDisplay().getCurrent() == this)
 		{
 			Mobile.getPlatform().repaint(platformImage, 0, 0, width, height);
 		}
 	}
 
-	protected void renderCommands()
+	protected void renderCommands(PlatformGraphics gc)
 	{
-		PlatformGraphics gc = platformImage.getGraphics();
-
-		// Draw Background:
-		gc.setColor(0xFFFFFF);
-		gc.fillRect(0,0,width,height);
-		gc.setColor(0x000000);
-		
-		// Draw Title:
-		gc.drawString("Options", width/2, 2, Graphics.HCENTER);
-		gc.drawLine(0, 20, width, 20);
-		gc.drawLine(0, height-20, width, height-20);
-
 		if(commands.size()>0)
 		{
 			if(currentCommand<0) { currentCommand = 0; }
@@ -232,11 +186,10 @@ public abstract class Displayable
 		}
 		gc.drawString("Okay", 3, height-17, Graphics.LEFT);
 		gc.drawString("Back", width-3, height-17, Graphics.RIGHT);
+	}
 
-		if(this.getDisplay().getCurrent() == this)
-		{
-			Mobile.getPlatform().repaint(platformImage, 0, 0, width, height);
-		}
+	protected String renderItems(int x, int y, int width, int height) {
+		return null;
 	}
 
 	protected void keyPressedCommands(int key)
@@ -253,7 +206,7 @@ public abstract class Displayable
 		}
 		if(currentCommand>=commands.size()) { currentCommand = 0; }
 		if(currentCommand<0) { currentCommand = commands.size()-1; }
-		if(listCommands==true) { renderCommands(); }
+		if(listCommands==true) { render(); }
 	}
 
 	protected void doCommand(int index)

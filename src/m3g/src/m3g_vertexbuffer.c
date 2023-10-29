@@ -126,20 +126,14 @@ static void m3gLockVertexBuffer(const VertexBuffer *buffer,
         m3gLockColorArray(buffer->colors, alphaFactor);
     }
     else {
-        GLfixed r = buffer->defaultColor.r;
-        GLfixed g = buffer->defaultColor.g;
-        GLfixed b = buffer->defaultColor.b;
-        GLfixed a = buffer->defaultColor.a * alphaFactor;
-
-        r = (r << 8) + r + (r >> 7);
-        g = (g << 8) + g + (g >> 7);
-        b = (b << 8) + b + (b >> 7);
-        a = (a >> (NODE_ALPHA_FACTOR_BITS - 8))
-            + (a >> NODE_ALPHA_FACTOR_BITS)
-            + (a >> (NODE_ALPHA_FACTOR_BITS + 7));
-
+        // zb3: conversion here
+        GLuint r = buffer->defaultColor.r / 255.0;
+        GLuint g = buffer->defaultColor.g / 255.0;
+        GLuint b = buffer->defaultColor.b / 255.0;
+        GLuint a = buffer->defaultColor.a * alphaFactor / 65536.0;
+        
         glDisableClientState(GL_COLOR_ARRAY);
-        glColor4x(r, g, b, a);
+        glColor4f(r, g, b, a);
     }
 
     if (buffer->normals != NULL) {

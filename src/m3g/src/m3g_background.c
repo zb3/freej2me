@@ -62,7 +62,7 @@ static void m3gDestroyBackground(Object *obj)
 static void m3gApplyBackground(RenderContext *ctx, Background *background)
 {
     GLbitfield glBits = 0;
-    GLfixed temp[4];
+    GLfloat temp[4];
     
     if (background->depthClearEnable) {
         glBits |= GL_DEPTH_BUFFER_BIT;
@@ -81,8 +81,8 @@ static void m3gApplyBackground(RenderContext *ctx, Background *background)
             background->modeY == M3G_BORDER)
         {
             glBits |= GL_COLOR_BUFFER_BIT;
-            m3gGLColor(background->color, temp);
-            glClearColorx(temp[0], temp[1], temp[2], temp[3]);
+            m3gFloatColor(background->color, 1.0f, temp);
+            glClearColor(temp[0], temp[1], temp[2], temp[3]);
         }
     }
     
@@ -100,11 +100,12 @@ static void m3gApplyBackground(RenderContext *ctx, Background *background)
         {
             /* Texture coordinates */
             M3Gshort texvert[4 * 2];
+            // zb3: conversion from glfixed happened there
             /* Quad that fills the viewport */
-            M3Gint vert[4 * 3]   = { -65536,  65536, 0,
-                                     -65536, -65536, 0,
-                                      65536,  65536, 0,
-                                      65536, -65536, 0 };
+            M3Gfloat vert[4 * 3]   = { -1,  1, 0,
+                                     -1, -1, 0,
+                                      1,  1, 0,
+                                      1, -1, 0 };
             Rect rImage, rIntersection;
             M3Gbool intersects;
             Image *imagePow2;
@@ -137,9 +138,9 @@ static void m3gApplyBackground(RenderContext *ctx, Background *background)
                 texvert[2 * 2 + 0] = (M3Gshort) (rIntersection.x + rIntersection.width);
                 texvert[3 * 2 + 0] = (M3Gshort) (rIntersection.x + rIntersection.width);
 
-                vert[0 * 3 + 0] = -65536 + 2 * 65536 * (rIntersection.x - background->crop.x) / background->crop.width;
+                vert[0 * 3 + 0] = -1 + 2.0 * (rIntersection.x - background->crop.x) / background->crop.width;
                 vert[1 * 3 + 0] = vert[0 * 3 + 0];
-                vert[2 * 3 + 0] = vert[0 * 3 + 0] + 2 * 65536 * rIntersection.width / background->crop.width;
+                vert[2 * 3 + 0] = vert[0 * 3 + 0] + 2.0 * rIntersection.width / background->crop.width;
                 vert[3 * 3 + 0] = vert[2 * 3 + 0];
             }
             else {
@@ -158,8 +159,8 @@ static void m3gApplyBackground(RenderContext *ctx, Background *background)
                 texvert[3 * 2 + 1] = (M3Gshort) (rIntersection.y + rIntersection.height);
 
 
-                vert[0 * 3 + 1] =  65536 - 2 * 65536 * (rIntersection.y - background->crop.y) / background->crop.height;
-                vert[1 * 3 + 1] = vert[0 * 3 + 1] - 2 * 65536 * rIntersection.height / background->crop.height;
+                vert[0 * 3 + 1] =  1 - 2.0 * (rIntersection.y - background->crop.y) / background->crop.height;
+                vert[1 * 3 + 1] = vert[0 * 3 + 1] - 2.0 * rIntersection.height / background->crop.height;
                 vert[2 * 3 + 1] = vert[0 * 3 + 1];
                 vert[3 * 3 + 1] = vert[1 * 3 + 1];
             }
@@ -185,22 +186,22 @@ static void m3gApplyBackground(RenderContext *ctx, Background *background)
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
             glTexCoordPointer(2, GL_SHORT, 0, texvert);
             glEnable(GL_TEXTURE_2D);
-            glTexEnvx(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, (GLfixed) GL_REPLACE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
             m3gBindTextureImage(imagePow2, M3G_FILTER_BASE_LEVEL, M3G_FILTER_NEAREST);
 
             /* Set wrapping */
             if (background->modeX == M3G_REPEAT) {
-                glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             }
             else {
-                glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             }
     
             if (background->modeY == M3G_REPEAT) {
-                glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
             }
             else {
-                glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             }
 
             /* Texture matrix scale */
@@ -213,7 +214,7 @@ static void m3gApplyBackground(RenderContext *ctx, Background *background)
 
             /* Load vertices */
             glEnableClientState(GL_VERTEX_ARRAY);
-            glVertexPointer(3, GL_FIXED, 0, vert);
+            glVertexPointer(3, GL_FLOAT, 0, vert);
         
             /* Set up an identity modelview and projection */
             m3gPushScreenSpace(ctx, M3G_FALSE);

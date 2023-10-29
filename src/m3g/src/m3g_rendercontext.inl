@@ -28,6 +28,7 @@
 
 #include <EGL/egl.h>
 #include "m3g_image.h"
+ 
 
 /*----------------------------------------------------------------------
  * Private functions
@@ -87,7 +88,7 @@ static EGLConfig m3gQueryEGLConfig(M3Genum format,
     /* Set up the depth buffer */
     
     attribs[4].attrib = EGL_DEPTH_SIZE;
-    attribs[4].value = (bufferBits & M3G_DEPTH_BUFFER_BIT) ? 8 : 0;
+    attribs[4].value = (bufferBits & M3G_DEPTH_BUFFER_BIT) ? 24 : 0; // zb3: why 8?
     
     /* Set target surface type mask */
     
@@ -426,7 +427,7 @@ static void m3gBlitFrameBufferPixels2(RenderContext *ctx,
 #   define MAX_TEMP_TEXTURES    8
     GLuint glFormat;
     static const int MAX_TILE_SIZE = 256; /* -> 256 KB temp buffer(s) */
-    static const M3Gbyte tc[8] = { 0, 0, 0, 1, 1, 0, 1, 1 };
+    static const GLshort tc[8] = { 0, 0, 0, 1, 1, 0, 1, 1 };
     GLshort pos[8];
     int tileWidth = MAX_TILE_SIZE, tileHeight = MAX_TILE_SIZE;
     M3Gbool mustConvert = M3G_FALSE;
@@ -507,9 +508,9 @@ static void m3gBlitFrameBufferPixels2(RenderContext *ctx,
         
         for (ti = 0; ti < tempTexCount; ++ti) {
             glBindTexture(GL_TEXTURE_2D, tempTexObj[ti]);
-            glTexEnvx(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-            glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             M3G_ASSERT_GL;
             
             glTexImage2D(GL_TEXTURE_2D, 0,
@@ -537,7 +538,7 @@ static void m3gBlitFrameBufferPixels2(RenderContext *ctx,
     /* Set up texture and vertex coordinate arrays for the image tiles */
 
     glClientActiveTexture(GL_TEXTURE0);
-    glTexCoordPointer(2, GL_BYTE, 0, tc);
+    glTexCoordPointer(2, GL_SHORT, 0, tc);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glVertexPointer(2, GL_SHORT, 0, pos);
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -895,9 +896,12 @@ static void m3gBlitFrameBufferPixels(RenderContext *ctx,
     glViewport(0, 0, ctx->target.width, ctx->target.height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrthox(0, ctx->target.width << 16,
+    /*glOrthox(0, ctx->target.width << 16,
              0, ctx->target.height << 16,
-             -1 << 16, 1 << 16);
+             -1 << 16, 1 << 16);*/
+    glOrtho(0, ctx->target.width,
+                 0, ctx->target.height,
+                 -1, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
@@ -1205,11 +1209,11 @@ static EGLContext m3gSelectGLContext(RenderContext *ctx,
                             surface,//(EGLSurface) ctx->target.handle,
                             EGL_CONFIG_ID,
                             &configID);
-            eglBindAPI(EGL_OPENGL_ES_API);
+            eglBindAPI(EGL_OPENGL_API);
             // Create an EGL context
             EGLint contextAttribs[] = {
                 EGL_CONTEXT_CLIENT_VERSION, 1,
-                EGL_CONTEXT_MINOR_VERSION, 1,
+                EGL_CONTEXT_MINOR_VERSION, 5,
                 EGL_NONE
             };
             glrc = eglCreateContext(dpy, m3gEGLConfigForConfigID(dpy, configID), shareRc, contextAttribs);
@@ -1241,7 +1245,7 @@ static EGLContext m3gSelectGLContext(RenderContext *ctx,
         lru->modeBits = ctx->modeBits;
         {
             M3Gbool ok = eglMakeCurrent(eglGetDisplay(EGL_DEFAULT_DISPLAY),
-                                        surface, surface, glrc);        
+                                        surface, surface, glrc);    
             M3G_ASSERT(ok);
             if (!ok) {
                 return NULL;

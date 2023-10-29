@@ -699,7 +699,7 @@ static void m3gInitRender(M3GRenderContext context, M3Genum renderMode)
     
     glViewport(ctx->viewport.x, ctx->viewport.y,
                ctx->viewport.width, ctx->viewport.height);
-	glDepthRangef(ctx->depthNear, ctx->depthFar);
+	glDepthRange(ctx->depthNear, ctx->depthFar);
     glScissor(ctx->scissor.x, ctx->scissor.y,
               ctx->scissor.width, ctx->scissor.height);
     M3G_ASSERT_GL;
@@ -777,8 +777,8 @@ static void m3gUpdateColorMaskStatus(RenderContext *ctx,
         
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, 0);
-        glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         M3G_ASSERT_GL;
 
         glScissor(ctx->clip.x0, ctx->clip.y0,
@@ -786,9 +786,12 @@ static void m3gUpdateColorMaskStatus(RenderContext *ctx,
         m3gPushScreenSpace(ctx, M3G_FALSE);
         glViewport(0, 0, ctx->target.width, ctx->target.height);
         glMatrixMode(GL_PROJECTION);
-        glOrthox(0, ctx->target.width << 16,
-                 0, ctx->target.height << 16,
-                 -1 << 16, 1 << 16);
+        //glOrthox(0, ctx->target.width << 16,
+        //         0, ctx->target.height << 16,
+        //         -1 << 16, 1 << 16);
+        glOrtho(0, ctx->target.width,
+                 0, ctx->target.height,
+                 -1, 1);
         glMatrixMode(GL_MODELVIEW);
             
         /* Set up texture and vertex coordinate arrays */
@@ -803,14 +806,14 @@ static void m3gUpdateColorMaskStatus(RenderContext *ctx,
 
         /* Blend the texture with the frame buffer */
         {
-            static const M3Gbyte tc[8] = { 0, 0, 0, 1, 1, 0, 1, 1 };
+            static const GLshort tc[8] = { 0, 0, 0, 1, 1, 0, 1, 1 };
             GLshort pos[8];
 
-            GLfixed cm = (GLfixed)(ctx->currentColorWrite ? 0 : 1 << 16);
-            GLfixed am = (GLfixed)(ctx->currentAlphaWrite ? 0 : 1 << 16);
+            GLfloat cm = ctx->currentColorWrite ? 0 : 1;
+            GLfloat am = ctx->currentAlphaWrite ? 0 : 1;
 
             glVertexPointer(2, GL_SHORT, 0, pos);
-            glTexCoordPointer(2, GL_BYTE, 0, tc);
+            glTexCoordPointer(2, GL_SHORT, 0, tc);
                 
             pos[0] = (GLshort) ctx->clip.x0;
             pos[1] = (GLshort) ctx->clip.y0;
@@ -822,7 +825,7 @@ static void m3gUpdateColorMaskStatus(RenderContext *ctx,
             pos[7] = pos[3];
             
             glEnable(GL_BLEND);
-            glColor4x(cm, cm, cm, am);
+            glColor4f(cm, cm, cm, am);
 
             /* Zero the masked channels */
             
@@ -832,7 +835,7 @@ static void m3gUpdateColorMaskStatus(RenderContext *ctx,
             /* Add the masked channels from the stored texture */
             
             glEnable(GL_TEXTURE_2D);
-            glTexEnvx(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             glBlendFunc(GL_ONE, GL_ONE);
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         }
@@ -911,7 +914,7 @@ static void m3gPushScreenSpace(RenderContext *ctx, M3Gbool realPixels)
     if (realPixels) {
         int w = ctx->viewport.width;
         int h = ctx->viewport.height;
-        glOrthox(0, w << 16, 0, h << 16, -1 << 16, 1 << 16);
+        glOrtho(0, w, 0, h, -1, 1);
     }
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
@@ -959,7 +962,7 @@ static void m3gClearInternal(RenderContext *ctx, Background *bg)
 
     glDepthMask(GL_TRUE);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, m3gGetAlphaWrite(ctx));
-    glDepthRangef(ctx->depthNear, ctx->depthFar);
+    glDepthRange(ctx->depthNear, ctx->depthFar);
     glViewport(ctx->viewport.x, ctx->viewport.y,
                ctx->viewport.width, ctx->viewport.height);
     glScissor(ctx->scissor.x, ctx->scissor.y,
@@ -985,8 +988,8 @@ static void m3gClearInternal(RenderContext *ctx, Background *bg)
         }
     }
     else {
-        glClearColorx(0, 0, 0, 0);
-        glClearDepthx(1 << 16);
+        glClearColor(0, 0, 0, 0);
+        glClearDepth(1);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         if (ctx->target.buffered) {
             ctx->backBuffer.contentsValid = M3G_TRUE;

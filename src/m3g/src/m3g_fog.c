@@ -171,9 +171,9 @@ static void m3gInitFog(Interface *m3g, Fog *fog)
 static void m3gApplyFog(const Fog *self)
 {
 	if (self != NULL) {
-		GLfixed temp[4];
+		GLfloat temp[4];
 
-        m3gGLColor(self->color, temp);
+        m3gFloatColor(self->color, 1.0f, temp);
 
 		switch (self->mode) {
 		case M3G_LINEAR_FOG:
@@ -181,13 +181,13 @@ static void m3gApplyFog(const Fog *self)
 			glFogf(GL_FOG_MODE, GL_LINEAR);
 			glFogf(GL_FOG_START, self->start);
 			glFogf(GL_FOG_END, self->end);
-			glFogxv(GL_FOG_COLOR, temp);
+			glFogfv(GL_FOG_COLOR, temp);
 			break;
 		case M3G_EXPONENTIAL_FOG:
 			glEnable(GL_FOG);
 			glFogf(GL_FOG_MODE, GL_EXP);
 			glFogf(GL_FOG_DENSITY, self->density);
-			glFogxv(GL_FOG_COLOR, temp);
+			glFogfv(GL_FOG_COLOR, temp);
 			break;
 		}
 	}
@@ -210,7 +210,7 @@ static void m3gApplyFog(const Fog *self)
 static void m3gApplySpriteFog(const Fog *self, M3Gfloat eyeZ, M3Gfloat finalZ)
 {
     if(self != NULL) {
-		M3Gint temp[4];
+		M3Gfloat temp[4];
     	M3Gfloat fogValue = 1;
 
         /* Calculate fog value and use OpenGL linear fog
@@ -229,7 +229,7 @@ static void m3gApplySpriteFog(const Fog *self, M3Gfloat eyeZ, M3Gfloat finalZ)
             break;
     	}
 
-        m3gGLColor(self->color, temp);
+        m3gFloatColor(self->color, 1.0f, temp);
 
 		glEnable(GL_FOG);
 		glFogf(GL_FOG_MODE, GL_LINEAR);
@@ -237,7 +237,7 @@ static void m3gApplySpriteFog(const Fog *self, M3Gfloat eyeZ, M3Gfloat finalZ)
         /* NGL works differently in fog calculation */
 		glFogf(GL_FOG_START, -m3gDiv(finalZ, fogValue));
 		glFogf(GL_FOG_END, 0.f);
-		glFogxv(GL_FOG_COLOR, temp);
+		glFogfv(GL_FOG_COLOR, temp);
     }
     else {
 		glDisable(GL_FOG);

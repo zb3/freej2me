@@ -1,47 +1,148 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.m3g;
 
-public class VertexBuffer extends Object3D
-{
+public class VertexBuffer extends Object3D {
+	//------------------------------------------------------------------
+	// Instance data
+	//------------------------------------------------------------------
 
-	public VertexBuffer() {  }
+	private VertexArray positions;
+	private VertexArray normals;
+	private VertexArray colors;
+	private VertexArray[] texCoords;
 
+	//------------------------------------------------------------------
+	// Constructors
+	//------------------------------------------------------------------
 
-	public VertexArray getColors() { return new VertexArray(0,0,0); }
+	public VertexBuffer() {
+		super(_ctor(Interface.getHandle()));
+	}
 
-	public int getDefaultColor() { return 0; }
+	/**
+	 */
+	VertexBuffer(long handle) {
+		super(handle);
 
-	public VertexArray getNormals() { return new VertexArray(0,0,0); }
+		positions = (VertexArray) getInstance(_getArray(handle, Defs.GET_POSITIONS, null));
+		normals = (VertexArray) getInstance(_getArray(handle, Defs.GET_NORMALS, null));
+		colors = (VertexArray) getInstance(_getArray(handle, Defs.GET_COLORS, null));
 
-	public VertexArray getPositions(float[] scaleBias) { return new VertexArray(0,0,0); }
+		texCoords = new VertexArray[Defs.NUM_TEXTURE_UNITS];
+		for (int i = 0; i < Defs.NUM_TEXTURE_UNITS; ++i) {
+			texCoords[i] =
+					(VertexArray) getInstance(_getArray(handle, Defs.GET_TEXCOORDS0 + i, null));
+		}
+	}
 
-	public VertexArray getTexCoords(int index, float[] scaleBias) { return new VertexArray(0,0,0); }
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
 
-	public int getVertexCount() { return 0; }
+	public int getVertexCount() {
+		return _getVertexCount(handle);
+	}
 
-	public void setColors(VertexArray colors) {  }
+	public void setPositions(VertexArray positions, float scale, float[] bias) {
+		_setVertices(handle,
+				(positions != null) ? positions.handle : 0,
+				scale,
+				bias);
+		this.positions = positions;
+	}
 
-	public void setDefaultColor(int ARGB) {  }
+	public void setTexCoords(int index, VertexArray texCoords, float scale, float[] bias) {
+		_setTexCoords(handle,
+				index,
+				texCoords != null ? texCoords.handle : 0,
+				scale,
+				bias);
 
-	public void setNormals(VertexArray normals) {  }
+		if (this.texCoords == null) {
+			this.texCoords = new VertexArray[Defs.NUM_TEXTURE_UNITS];
+		}
+		this.texCoords[index] = texCoords;
+	}
 
-	public void setPositions(VertexArray positions, float scale, float[] bias) {  }
+	public void setNormals(VertexArray normals) {
+		_setNormals(handle, normals != null ? normals.handle : 0);
+		this.normals = normals;
+	}
 
-	public void setTexCoords(int index, VertexArray texCoords, float scale, float[] bias) {  }
+	public void setColors(VertexArray colors) {
+		_setColors(handle, colors != null ? colors.handle : 0);
+		this.colors = colors;
+	}
 
+	public VertexArray getPositions(float[] scaleBias) {
+		/* Get scale and bias with native getter */
+		_getArray(handle, Defs.GET_POSITIONS, scaleBias);
+		return positions;
+	}
+
+	public VertexArray getTexCoords(int index, float[] scaleBias) {
+		/* Index has to be checked here due to the native getter input params */
+		if (index < 0 || index >= Defs.NUM_TEXTURE_UNITS) {
+			throw new IndexOutOfBoundsException();
+		}
+
+		/* Get scale and bias with native getter */
+		_getArray(handle, Defs.GET_TEXCOORDS0 + index, scaleBias);
+		return texCoords != null ? texCoords[index] : null;
+	}
+
+	public VertexArray getNormals() {
+		return normals;
+	}
+
+	public VertexArray getColors() {
+		return colors;
+	}
+
+	public void setDefaultColor(int ARGB) {
+		_setDefaultColor(handle, ARGB);
+	}
+
+	public int getDefaultColor() {
+		return _getDefaultColor(handle);
+	}
+
+	//------------------------------------------------------------------
+	// Private methods
+	//------------------------------------------------------------------
+
+	// Native methods
+	private static native long _ctor(long hInterface);
+
+	private static native void _setColors(long hBuffer, long hArray);
+
+	private static native void _setNormals(long hBuffer, long hArray);
+
+	private static native void _setTexCoords(long hBuffer, int unit, long hArray, float scale, float[] bias);
+
+	private static native void _setVertices(long hBuffer, long hArray, float scale, float[] bias);
+
+	private static native void _setDefaultColor(long hBuffer, int ARGB);
+
+	private static native int _getDefaultColor(long hBuffer);
+
+	private static native long _getArray(long hBuffer, int which, float[] scaleBias);
+
+	private static native int _getVertexCount(long hBuffer);
 }

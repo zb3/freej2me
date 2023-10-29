@@ -1,48 +1,89 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.m3g;
 
-public class Material extends Object3D
-{
+public class Material extends Object3D {
+	//------------------------------------------------------------------
+	// Static data
+	//------------------------------------------------------------------
 
 	public static final int AMBIENT = 1024;
 	public static final int DIFFUSE = 2048;
 	public static final int EMISSIVE = 4096;
 	public static final int SPECULAR = 8192;
 
+	//------------------------------------------------------------------
+	// Constructor(s)
+	//------------------------------------------------------------------
 
-	private int color;
-	private float shine;
-	private boolean tracking;
+	public Material() {
+		super(_ctor(Interface.getHandle()));
+	}
 
+	/**
+	 */
+	Material(long handle) {
+		super(handle);
+	}
 
-	public Material() {  }
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
 
+	public void setColor(int target, int ARGB) {
+		_setColor(handle, target, ARGB);
+	}
 
-	public int getColor(int target) { return color; }
+	public int getColor(int target) {
+		return _getColor(handle, target);
+	}
 
-	public float getShininess() { return shine; }
+	public void setShininess(float shininess) {
+		_setShininess(handle, shininess);
+	}
 
-	public boolean isVertexColorTrackingEnabled() { return tracking; }
+	public float getShininess() {
+		return _getShininess(handle);
+	}
 
-	public void setColor(int target, int ARGB) { color=ARGB; }
+	public void setVertexColorTrackingEnable(boolean enable) {
+		_setVertexColorTrackingEnable(handle, enable);
+	}
 
-	public void setShininess(float shininess) { shine=shininess; }
+	public boolean isVertexColorTrackingEnabled() {
+		return _isVertexColorTrackingEnabled(handle);
+	}
 
-	public void setVertexColorTrackingEnable(boolean enable) { tracking = enable; }
+	//------------------------------------------------------------------
+	// Private methods
+	//------------------------------------------------------------------
 
+	private native static long _ctor(long hInstance);
+
+	private native static void _setColor(long handle, int target, int ARGB);
+
+	private native static int _getColor(long handle, int target);
+
+	private native static void _setShininess(long handle, float shininess);
+
+	private native static float _getShininess(long handle);
+
+	private native static void _setVertexColorTrackingEnable(long handle, boolean enable);
+
+	private native static boolean _isVertexColorTrackingEnabled(long handle);
 }

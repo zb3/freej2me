@@ -1,57 +1,151 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.m3g;
 
-public class Appearance extends Object3D
-{
+public class Appearance extends Object3D {
+	//------------------------------------------------------------------
+	// Instance data
+	//------------------------------------------------------------------
 
 	private CompositingMode compositingMode;
 	private Fog fog;
 	private Material material;
 	private PolygonMode polygonMode;
-	private int layer;
-	private Texture2D texture;
+	private Texture2D[] textures;
 
+	//------------------------------------------------------------------
+	// Constructor(s)
+	//------------------------------------------------------------------
 
-	public Appearance() {  }
+	public Appearance() {
+		super(_ctor(Interface.getHandle()));
+	}
 
+	/**
+	 */
+	Appearance(long handle) {
+		super(handle);
 
-	public CompositingMode getCompositingMode() { return compositingMode; }
+		compositingMode = (CompositingMode) getInstance(_getCompositingMode(handle));
+		fog = (Fog) getInstance(_getFog(handle));
+		material = (Material) getInstance(_getMaterial(handle));
+		polygonMode = (PolygonMode) getInstance(_getPolygonMode(handle));
 
-	public Fog getFog() { return fog; }
+		textures = new Texture2D[Defs.NUM_TEXTURE_UNITS];
 
-	public int getLayer() { return layer; }
+		for (int i = 0; i < Defs.NUM_TEXTURE_UNITS; ++i) {
+			textures[i] = (Texture2D) getInstance(_getTexture(handle, i));
+		}
+	}
 
-	public Material getMaterial() { return material; }
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
 
-	public PolygonMode getPolygonMode() { return polygonMode; }
+	public void setCompositingMode(CompositingMode compositingMode) {
+		_setCompositingMode(handle,
+				compositingMode != null
+						? compositingMode.handle
+						: 0);
+		this.compositingMode = compositingMode;
+	}
 
-	public Texture2D getTexture(int index) { return texture; }
+	public CompositingMode getCompositingMode() {
+		return compositingMode;
+	}
 
-	public void setCompositingMode(CompositingMode compMode) { compositingMode = compMode; }
+	public void setFog(Fog fog) {
+		_setFog(handle, fog != null ? fog.handle : 0);
+		this.fog = fog;
+	}
 
-	public void setFog(Fog f) { fog = f; }
+	public Fog getFog() {
+		return fog;
+	}
 
-	public void setLayer(int i) { layer = i; }
+	public void setPolygonMode(PolygonMode polygonMode) {
+		_setPolygonMode(handle, polygonMode != null ? polygonMode.handle : 0);
+		this.polygonMode = polygonMode;
+	}
 
-	public void setMaterial(Material mat) { material = mat; }
+	public PolygonMode getPolygonMode() {
+		return polygonMode;
+	}
 
-	public void setPolygonMode(PolygonMode mode) { polygonMode = mode; }
+	public void setLayer(int index) {
+		_setLayer(handle, index);
+	}
 
-	public void setTexture(int index, Texture2D tex) { texture = tex; }
+	public int getLayer() {
+		return _getLayer(handle);
+	}
 
+	public void setMaterial(Material material) {
+		_setMaterial(handle, material != null ? material.handle : 0);
+		this.material = material;
+	}
+
+	public Material getMaterial() {
+		return material;
+	}
+
+	public void setTexture(int unit, Texture2D texture) {
+		_setTexture(handle, unit, texture != null ? texture.handle : 0);
+
+		if (textures == null) {
+			textures = new Texture2D[Defs.NUM_TEXTURE_UNITS];
+		}
+		textures[unit] = texture;
+	}
+
+	public Texture2D getTexture(int unit) {
+		return (Texture2D) getInstance(_getTexture(handle, unit));
+	}
+
+	//------------------------------------------------------------------
+	// Private methods
+	//------------------------------------------------------------------
+
+	private static native long _ctor(long hInterface);
+
+	private static native long _getCompositingMode(long hApp);
+
+	private static native long _getFog(long hApp);
+
+	private static native int _getLayer(long hApp);
+
+	private static native long _getMaterial(long hApp);
+
+	private static native long _getPolygonMode(long hApp);
+
+	private static native long _getTexture(long hApp, int unit);
+
+	private static native void _setCompositingMode(long hApp, long hMode);
+
+	private static native void _setFog(long hApp, long hFog);
+
+	private static native void _setLayer(long hApp, int layer);
+
+	private static native void _setMaterial(long hApp, long hMaterial);
+
+	private static native void _setPolygonMode(long hApp, long hMode);
+
+	private static native void _setTexture(long hApp,
+										   int unit,
+										   long hTexture);
 }

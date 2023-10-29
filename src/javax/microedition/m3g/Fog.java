@@ -1,54 +1,88 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.m3g;
 
-public class Fog extends Object3D
-{
-
-	public static final int	EXPONENTIAL = 80;
+public class Fog extends Object3D {
+	public static final int EXPONENTIAL = 80;
 	public static final int LINEAR = 81;
 
+	public Fog() {
+		super(_ctor(Interface.getHandle()));
+	}
 
-	private float near;
-	private float far;
-	private int mode;
-	private int color;
-	private float density;
+	/**
+	 */
+	Fog(long handle) {
+		super(handle);
+	}
 
+	public void setMode(int mode) {
+		_setMode(handle, mode);
+	}
 
-	public Fog() {  }
+	public int getMode() {
+		return _getMode(handle);
+	}
 
+	public void setLinear(float near, float far) {
+		_setLinear(handle, near, far);
+	}
 
-	public int getColor() { return color; }
+	public float getNearDistance() {
+		return _getDistance(handle, Defs.GET_NEAR);
+	}
 
-	public float getDensity() { return density; }
+	public float getFarDistance() {
+		return _getDistance(handle, Defs.GET_FAR);
+	}
 
-	public float getFarDistance() { return far; }
+	public void setDensity(float density) {
+		_setDensity(handle, density);
+	}
 
-	public int getMode() { return mode; }
+	public float getDensity() {
+		return _getDensity(handle);
+	}
 
-	public float getNearDistance() { return near; }
+	public void setColor(int RGB) {
+		_setColor(handle, RGB);
+	}
 
-	public void setColor(int RGB) { color = RGB; }
+	public int getColor() {
+		return _getColor(handle);
+	}
 
-	public void setDensity(float value) { density = value; }
+	// Native methods
+	private static native long _ctor(long hInterface);
 
-	public void setLinear(float Near, float Far) { near=Near; far=Far; }
+	private static native void _setMode(long handle, int mode);
 
-	public void setMode(int value) { mode = value; }
+	private static native int _getMode(long handle);
 
+	private static native void _setLinear(long handle, float near, float far);
+
+	private static native float _getDistance(long handle, int which);
+
+	private static native void _setDensity(long handle, float density);
+
+	private static native float _getDensity(long handle);
+
+	private static native void _setColor(long handle, int RGB);
+
+	private static native int _getColor(long handle);
 }

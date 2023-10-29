@@ -1,26 +1,72 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.m3g;
 
-public class TriangleStripArray extends IndexBuffer
-{
+public class TriangleStripArray extends IndexBuffer {
+	//------------------------------------------------------------------
+	// Constructors
+	//------------------------------------------------------------------
 
-	public TriangleStripArray(int[] indices, int[] stripLengths) {  }
+	public TriangleStripArray(int firstIndex, final int[] stripLengths) {
+		super(_createImplicit(Interface.getHandle(),
+				firstIndex,
+				stripLengths));
+	}
 
-	public TriangleStripArray(int firstIndex, int[] stripLengths) {  }
+	public TriangleStripArray(final int[] indices, final int[] stripLengths) {
+		super(_createExplicit(Interface.getHandle(), indices, stripLengths));
+	}
+
+	TriangleStripArray(long handle) {
+		super(handle);
+	}
+
+	// M3G 1.1 Maintenance release getters
+
+	@Override
+	public int getIndexCount() {
+		return _getIndexCount(handle);
+	}
+
+	@Override
+	public void getIndices(int[] indices) {
+		if (indices.length < _getIndexCount(handle)) {
+			throw new IllegalArgumentException();
+		}
+		_getIndices(handle, indices);
+	}
+
+	//------------------------------------------------------------------
+	// Private methods
+	//------------------------------------------------------------------
+
+	// Native methods
+	private native static long _createImplicit(long hInterface,
+											  int first,
+											  final int[] lengths);
+
+	private native static long _createExplicit(long hInterface,
+											  final int[] indices,
+											  final int[] lengths);
+
+	// M3G 1.1 Maintenance release getters
+	private native static int _getIndexCount(long handle);
+
+	private native static void _getIndices(long handle, int[] indices);
 
 }

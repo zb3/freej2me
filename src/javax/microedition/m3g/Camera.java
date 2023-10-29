@@ -1,40 +1,83 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.m3g;
 
-public class Camera extends Node
-{
+public class Camera extends Node {
+	//------------------------------------------------------------------
+	// Static data
+	//------------------------------------------------------------------
 
 	public static final int GENERIC = 48;
 	public static final int PARALLEL = 49;
 	public static final int PERSPECTIVE = 50;
 
+	//------------------------------------------------------------------
+	// Constructors
+	//------------------------------------------------------------------
 
-	public Camera() {  }
+	public Camera() {
+		super(_ctor(Interface.getHandle()));
+	}
 
+	/**
+	 */
+	Camera(long handle) {
+		super(handle);
+	}
 
-	public int getProjection(float[] params) { return PERSPECTIVE; }
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
 
-	public int getProjection(Transform transform) { return PERSPECTIVE; }
+	public void setParallel(float height, float aspectRatio, float near, float far) {
+		_setParallel(handle, height, aspectRatio, near, far);
+	}
 
-	public void setGeneric(Transform transform) {  }
+	public void setPerspective(float fovy, float aspectRatio, float near, float far) {
+		_setPerspective(handle, fovy, aspectRatio, near, far);
+	}
 
-	public void setParallel(float fovy, float aspectRatio, float near, float far) {  }
+	public void setGeneric(Transform transform) {
+		_setGeneric(handle, transform.matrix);
+	}
 
-	public void setPerspective(float fovy, float aspectRatio, float near, float far) {  }
+	public int getProjection(Transform transform) {
+		return _getProjectionAsTransform(handle, transform != null ? transform.matrix : null);
+	}
 
+	public int getProjection(float[] params) {
+		return _getProjectionAsParams(handle, params);
+	}
+
+	//------------------------------------------------------------------
+	// Private methods
+	//------------------------------------------------------------------
+
+	// Native methods
+	private static native long _ctor(long hInterface);
+
+	private static native void _setParallel(long handle, float height, float aspectRatio, float near, float far);
+
+	private static native void _setPerspective(long handle, float fovy, float aspectRatio, float near, float far);
+
+	private static native void _setGeneric(long handle, byte[] transform);
+
+	private static native int _getProjectionAsTransform(long handle, byte[] transform);
+
+	private static native int _getProjectionAsParams(long handle, float[] params);
 }

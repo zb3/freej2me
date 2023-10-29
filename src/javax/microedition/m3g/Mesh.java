@@ -1,44 +1,211 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.m3g;
 
-public class Mesh extends Node
-{
+public class Mesh extends Node {
+	//------------------------------------------------------------------
+	// Instance data
+	//------------------------------------------------------------------
 
-	private Appearance appearance;
-	private IndexBuffer indexbuffer;
-	private VertexBuffer vertexbuffer;
+	private VertexBuffer vertices;
+	private Appearance[] appearances;
+	private IndexBuffer[] triangles;
+
+	static private IndexBuffer[] tempTrianglesArray;
+	static private Appearance[] tempAppearanceArray;
+
+	static private IndexBuffer tempTriangles;
+	static private Appearance tempAppearance;
+
+	//------------------------------------------------------------------
+	// Constructor(s)
+	//------------------------------------------------------------------
+
+	Mesh(long handle) {
+		super(handle);
+		updateReferences();
+	}
+
+	public Mesh(VertexBuffer vertices,
+				IndexBuffer[] triangles,
+				Appearance[] appearances) {
+		super(createHandle(vertices, triangles, appearances));
+		updateReferences();
+	}
+
+	public Mesh(VertexBuffer vertices,
+				IndexBuffer triangles,
+				Appearance appearance) {
+		super(createHandle(vertices, triangles, appearance));
+		updateReferences();
+	}
+
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
+
+	public void setAppearance(int index, Appearance appearance) {
+		_setAppearance(handle, index, appearance != null ? appearance.handle : 0);
+		appearances[index] = appearance;
+	}
+
+	public Appearance getAppearance(int index) {
+		return appearances[index];
+	}
+
+	public IndexBuffer getIndexBuffer(int index) {
+		return triangles[index];
+	}
+
+	public VertexBuffer getVertexBuffer() {
+		return vertices;
+	}
+
+	public int getSubmeshCount() {
+		return _getSubmeshCount(handle);
+	}
+
+	//------------------------------------------------------------------
+	// Private methods
+	//------------------------------------------------------------------
+
+	static void verifyParams(VertexBuffer vertices,
+							 IndexBuffer[] triangles,
+							 Appearance[] appearances) {
+		if (vertices == null || triangles == null) {
+			throw new NullPointerException();
+		}
+		if (triangles.length == 0
+				|| appearances != null && appearances.length < triangles.length) {
+			throw new IllegalArgumentException();
+		}
+		for (IndexBuffer triangle : triangles) {
+			if (triangle == null) {
+				throw new NullPointerException();
+			}
+		}
+	}
+
+	static void verifyParams(VertexBuffer vertices,
+							 IndexBuffer triangles) {
+		if (vertices == null || triangles == null) {
+			throw new NullPointerException();
+		}
+	}
+
+	void updateReferences() {
+		triangles = new IndexBuffer[_getSubmeshCount(handle)];
+		appearances = new Appearance[triangles.length];
+
+		vertices = (VertexBuffer) getInstance(_getVertexBuffer(handle));
+
+		for (int i = 0; i < triangles.length; i++) {
+			triangles[i] = (IndexBuffer) getInstance(_getIndexBuffer(handle, i));
+			appearances[i] = (Appearance) getInstance(_getAppearance(handle, i));
+		}
+	}
+
+	static long createHandle(VertexBuffer vertices,
+							IndexBuffer[] triangles,
+							Appearance[] appearances) {
+
+		tempTrianglesArray = triangles;
+		tempAppearanceArray = appearances;
+
+		// Verify parameters
+		verifyParams(vertices, triangles, appearances);
+
+		// Init the native side
+		long[] hTriangles = new long[triangles.length];
+		long[] hAppearances = null;
+
+		if (appearances != null) {
+			hAppearances = new long[appearances.length];
+		}
+
+		for (int i = 0; i < triangles.length; i++) {
+			hTriangles[i] = triangles[i].handle;
+
+			if (appearances != null) {
+				hAppearances[i] = appearances[i] != null ? appearances[i].handle : 0;
+			}
+		}
+
+		long ret = _ctor(Interface.getHandle(),
+				vertices.handle,
+				hTriangles,
+				hAppearances);
 
 
-	public Mesh() { /* DELETE THIS */ }
+		tempTrianglesArray = null;
+		tempAppearanceArray = null;
 
-	public Mesh(VertexBuffer vertices, IndexBuffer[] submeshes, Appearance[] appearances) {  }
+		return ret;
 
-	public Mesh(VertexBuffer vertices, IndexBuffer submesh, Appearance appearance) {  }
+	}
+
+	static long createHandle(VertexBuffer vertices,
+							IndexBuffer triangles,
+							Appearance appearance) {
+
+		tempTriangles = triangles;
+		tempAppearance = appearance;
+
+		verifyParams(vertices, triangles);
+
+		// Init the native side
+		long[] hTriangles = new long[1];
+		long[] hAppearances = null;
+
+		hTriangles[0] = triangles.handle;
+
+		if (appearance != null) {
+			hAppearances = new long[1];
+			hAppearances[0] = appearance.handle;
+		}
+
+		long ret = _ctor(Interface.getHandle(),
+				vertices.handle,
+				hTriangles,
+				hAppearances);
 
 
-	public Appearance getAppearance(int index) { return appearance; }
+		tempTriangles = null;
+		tempAppearance = null;
 
-	public IndexBuffer getIndexBuffer(int index) { return indexbuffer; }
 
-	public int getSubmeshCount() { return 0; }
+		return ret;
 
-	public VertexBuffer getVertexBuffer() { return vertexbuffer; }
+	}
 
-	public void setAppearance(int index, Appearance a) { appearance = a; }
+	// Native methods
+	private static native long _ctor(long hInstance,
+									long hVertices,
+									long[] hTriangles,
+									long[] hAppearances);
 
+	private static native void _setAppearance(long handle, int index, long hAppearance);
+
+	private static native long _getAppearance(long handle, int index);
+
+	private static native long _getIndexBuffer(long handle, int index);
+
+	private static native long _getVertexBuffer(long handle);
+
+	private static native int _getSubmeshCount(long handle);
 }

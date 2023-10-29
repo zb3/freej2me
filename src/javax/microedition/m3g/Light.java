@@ -1,74 +1,118 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.m3g;
 
-public class Light extends Node
-{
-
+public class Light extends Node {
 	public static final int AMBIENT = 128;
 	public static final int DIRECTIONAL = 129;
 	public static final int OMNI = 130;
 	public static final int SPOT = 131;
 
-
-	private int mode;
-	private int color;
-	private float intensity;
-	private float linear;
-	private float quadratic;
-	private float constant;
-	private float angle;
-	private float exponent;
-
-
-	public Light() {  }
-
-
-	public int getColor() { return color; }
-
-	public float getConstantAttenuation() { return constant; }
-
-	public float getIntensity() { return intensity; }
-
-	public float getLinearAttenuation() { return linear; }
-
-	public int getMode() { return mode; }
-
-	public float getQuadraticAttenuation() { return quadratic; }
-
-	public float getSpotAngle() { return angle; }
-
-	public float getSpotExponent() { return exponent; }
-
-	public void setAttenuation(float c, float l, float q)
-	{
-		constant = c;
-		linear = l;
-		quadratic = q;
+	public Light() {
+		super(_ctor(Interface.getHandle()));
 	}
 
-	public void setColor(int RGB) { color = RGB; }
+	/**
+	 */
+	Light(long handle) {
+		super(handle);
+	}
 
-	public void setIntensity(float value) { intensity = value; }
+	public void setIntensity(float intensity) {
+		_setIntensity(handle, intensity);
+	}
 
-	public void setMode(int value) { mode = value; }
+	public float getIntensity() {
+		return _getIntensity(handle);
+	}
 
-	public void setSpotAngle(float theta) { angle = theta; }
+	public void setColor(int RGB) {
+		_setColor(handle, RGB);
+	}
 
-	public void setSpotExponent(float exp) { exponent = exp; }
+	public int getColor() {
+		return _getColor(handle);
+	}
 
+	public void setMode(int mode) {
+		_setMode(handle, mode);
+	}
+
+	public int getMode() {
+		return _getMode(handle);
+	}
+
+	public void setSpotAngle(float angle) {
+		_setSpotAngle(handle, angle);
+	}
+
+	public float getSpotAngle() {
+		return _getSpotAngle(handle);
+	}
+
+	public void setSpotExponent(float exponent) {
+		_setSpotExponent(handle, exponent);
+	}
+
+	public float getSpotExponent() {
+		return _getSpotExponent(handle);
+	}
+
+	public void setAttenuation(float constant, float linear, float quadratic) {
+		_setAttenuation(handle, constant, linear, quadratic);
+	}
+
+	public float getConstantAttenuation() {
+		return _getAttenuation(handle, Defs.GET_CONSTANT);
+	}
+
+	public float getLinearAttenuation() {
+		return _getAttenuation(handle, Defs.GET_LINEAR);
+	}
+
+	public float getQuadraticAttenuation() {
+		return _getAttenuation(handle, Defs.GET_QUADRATIC);
+	}
+
+	// Native methods
+	private static native long _ctor(long hInterface);
+
+	private static native void _setIntensity(long handle, float intensity);
+
+	private static native float _getIntensity(long handle);
+
+	private static native void _setColor(long handle, int RGB);
+
+	private static native int _getColor(long handle);
+
+	private static native void _setMode(long handle, int mode);
+
+	private static native int _getMode(long handle);
+
+	private static native void _setSpotAngle(long handle, float angle);
+
+	private static native float _getSpotAngle(long handle);
+
+	private static native void _setSpotExponent(long handle, float exponent);
+
+	private static native float _getSpotExponent(long handle);
+
+	private static native void _setAttenuation(long handle, float constant, float linear, float quadratic);
+
+	private static native float _getAttenuation(long handle, int type);
 }

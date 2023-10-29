@@ -1,79 +1,144 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.m3g;
 
-public class Background extends Object3D
-{
+public class Background extends Object3D {
+	//------------------------------------------------------------------
+	// Static data
+	//------------------------------------------------------------------
 
 	public static final int BORDER = 32;
 	public static final int REPEAT = 33;
 
-	private int color;
-	private int modex;
-	private int modey;
-	private int cropw;
-	private int croph;
-	private int cropx;
-	private int cropy;
+	//------------------------------------------------------------------
+	// Instance data
+	//------------------------------------------------------------------
 
 	private Image2D image;
-	private boolean depthclear;
-	private boolean colorclear;
 
+	//------------------------------------------------------------------
+	// Constructors
+	//------------------------------------------------------------------
 
-	public Background() {  }
-
-
-	public int getColor() { return color; }
-
-	public int getCropHeight() { return croph; }
-
-	public int getCropWidth() { return cropw; }
-
-	public int getCropX() { return cropx; }
-
-	public int getCropY() { return cropy; }
-
-	public Image2D getImage() { return image; }
-
-	public int getImageModeX() { return modex; }
-
-	public int getImageModeY() { return modey; }
-
-	public boolean isColorClearEnabled() { return colorclear; }
-
-	public boolean isDepthClearEnabled() { return depthclear; }
-
-	public void setColor(int ARGB) { color = ARGB; }
-
-	public void setColorClearEnable(boolean enable) {  colorclear = enable; }
-
-	public void setCrop(int cropX, int cropY, int width, int height)
-	{
-		cropx=cropX;
-		cropy=cropY;
-		cropw=width;
-		croph=height;
+	public Background() {
+		super(_ctor(Interface.getHandle()));
 	}
 
-	public void setDepthClearEnable(boolean enable) { depthclear = enable; }
+	/**
+	 */
+	Background(long handle) {
+		super(handle);
+		image = (Image2D) getInstance(_getImage(handle));
+	}
 
-	public void setImage(Image2D img) { image = img; }
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
 
-	public void setImageMode(int modeX, int modeY) { modex=modeX; modey=modeY; }
+	public void setColor(int ARGB) {
+		_setColor(handle, ARGB);
+	}
 
+	public int getColor() {
+		return _getColor(handle);
+	}
+
+	public void setImage(Image2D image) {
+		_setImage(handle, image != null ? image.handle : 0);
+		this.image = image;
+	}
+
+	public Image2D getImage() {
+		return image;
+	}
+
+	public void setImageMode(int modeX, int modeY) {
+		_setImageMode(handle, modeX, modeY);
+	}
+
+	public int getImageModeX() {
+		return _getImageMode(handle, Defs.GET_MODEX);
+	}
+
+	public int getImageModeY() {
+		return _getImageMode(handle, Defs.GET_MODEY);
+	}
+
+	public void setColorClearEnable(boolean enable) {
+		_enable(handle, Defs.SETGET_COLORCLEAR, enable);
+	}
+
+	public void setDepthClearEnable(boolean enable) {
+		_enable(handle, Defs.SETGET_DEPTHCLEAR, enable);
+	}
+
+	public boolean isColorClearEnabled() {
+		return _isEnabled(handle, Defs.SETGET_COLORCLEAR);
+	}
+
+	public boolean isDepthClearEnabled() {
+		return _isEnabled(handle, Defs.SETGET_DEPTHCLEAR);
+	}
+
+	public void setCrop(int cropX, int cropY, int width, int height) {
+		_setCrop(handle, cropX, cropY, width, height);
+	}
+
+	public int getCropX() {
+		return _getCrop(handle, Defs.GET_CROPX);
+	}
+
+	public int getCropY() {
+		return _getCrop(handle, Defs.GET_CROPY);
+	}
+
+	public int getCropWidth() {
+		return _getCrop(handle, Defs.GET_CROPWIDTH);
+	}
+
+	public int getCropHeight() {
+		return _getCrop(handle, Defs.GET_CROPHEIGHT);
+	}
+
+	//------------------------------------------------------------------
+	// Private methods
+	//------------------------------------------------------------------
+
+	// Native functions
+	private static native long _ctor(long hInterface);
+
+	private static native void _setColor(long handle, int ARGB);
+
+	private static native int _getColor(long handle);
+
+	private static native void _setImage(long handle, long hImage);
+
+	private static native long _getImage(long handle);
+
+	private static native void _setImageMode(long handle, int modeX, int modeY);
+
+	private static native int _getImageMode(long handle, int which);
+
+	private static native void _enable(long handle, int which, boolean enable);
+
+	private static native boolean _isEnabled(long handle, int which);
+
+	private static native void _setCrop(long handle, int cropX, int cropY, int width, int height);
+
+	private static native int _getCrop(long handle, int which);
 }

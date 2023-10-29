@@ -1,67 +1,145 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.m3g;
 
-public class KeyframeSequence extends Object3D
-{
+public class KeyframeSequence extends Object3D {
+	//------------------------------------------------------------------
+	// Static data
+	//------------------------------------------------------------------
 
-	public static final int CONSTANT = 192;
 	public static final int LINEAR = 176;
-	public static final int LOOP = 193;
 	public static final int SLERP = 177;
 	public static final int SPLINE = 178;
 	public static final int SQUAD = 179;
 	public static final int STEP = 180;
 
+	public static final int CONSTANT = 192;
+	public static final int LOOP = 193;
 
-	private int duration;
-	private int intType;
-	private int keyframe;
-	private int keyframes;
-	private int repeat;
-	private int rangeFirst;
-	private int rangeLast;
+	//------------------------------------------------------------------
+	// Constructor
+	//------------------------------------------------------------------
+
+	public KeyframeSequence(int numKeyframes,
+							int numComponents,
+							int interpolation) {
+		super(_ctor(Interface.getHandle(),
+				numKeyframes,
+				numComponents,
+				interpolation));
+	}
+
+	/**
+	 */
+	KeyframeSequence(long handle) {
+		super(handle);
+	}
+
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
+
+	public void setKeyframe(int index, int time, float[] value) {
+		_setKeyframe(handle, index, time, value);
+	}
+
+	public void setValidRange(int first, int last) {
+		_setValidRange(handle, first, last);
+	}
+
+	public void setDuration(int duration) {
+		_setDuration(handle, duration);
+	}
+
+	public int getDuration() {
+		return _getDuration(handle);
+	}
+
+	/**
+	 */
+	public void setRepeatMode(int mode) {
+		_setRepeatMode(handle, mode);
+	}
+
+	/**
+	 */
+	public int getRepeatMode() {
+		return _getRepeatMode(handle);
+	}
+
+	// M3G 1.1 Maintenance release getters
+
+	public int getComponentCount() {
+		return _getComponentCount(handle);
+	}
+
+	public int getInterpolationType() {
+		return _getInterpolationType(handle);
+	}
+
+	public int getKeyframe(int index, float[] value) {
+		return _getKeyframe(handle, index, value);
+	}
+
+	public int getKeyframeCount() {
+		return _getKeyframeCount(handle);
+	}
+
+	public int getValidRangeFirst() {
+		return _getValidRangeFirst(handle);
+	}
+
+	public int getValidRangeLast() {
+		return _getValidRangeLast(handle);
+	}
 
 
-	public KeyframeSequence(int numKeyframes, int numComponents, int interpolation) {  }
+	//------------------------------------------------------------------
+	// Private methods
+	//------------------------------------------------------------------
 
+	private native static long _ctor(long hInterface,
+									int numKeyframes,
+									int numComponents,
+									int interpolation);
 
-	public int getComponentCount() { return 0; }
+	private native static void _setValidRange(long handle, int first, int last);
 
-	public int getDuration() { return duration; }
+	private native static void _setKeyframe(long handle, int index, int time, float[] value);
 
-	public int getInterpolationType() { return intType; }
+	private native static void _setDuration(long handle, int duration);
 
-	public int getKeyframe(int index, float[] value) { return keyframe; }
+	private native static int _getDuration(long handle);
 
-	public int getKeyframeCount() { return keyframes; }
+	private native static void _setRepeatMode(long handle, int mode);
 
-	public int getRepeatMode() { return repeat; }
+	private native static int _getRepeatMode(long handle);
 
-	public int getValidRangeFirst() { return rangeFirst; }
+	// M3G 1.1 Maintenance release getters
+	private native static int _getComponentCount(long handle);
 
-	public int getValidRangeLast() { return rangeLast; }
+	private native static int _getInterpolationType(long handle);
 
-	public void setDuration(int value) { duration = value; }
+	private native static int _getKeyframe(long handle, int index, float[] value);
 
-	public void setKeyframe(int index, int time, float[] value) { keyframe=index; }
+	private native static int _getKeyframeCount(long handle);
 
-	public void setRepeatMode(int mode) { repeat=mode; }
+	private native static int _getValidRangeFirst(long handle);
 
-	public void setValidRange(int first, int last) { rangeFirst=first; rangeLast=last; }
-
+	private native static int _getValidRangeLast(long handle);
 }

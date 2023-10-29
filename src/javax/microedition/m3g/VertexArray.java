@@ -1,39 +1,114 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.m3g;
 
-public class VertexArray extends Object3D
-{
+public class VertexArray extends Object3D {
+	//------------------------------------------------------------------
+	// Constructors
+	//------------------------------------------------------------------
 
-	public VertexArray(int numVertices, int numComponents, int componentSize) {  }
+	public VertexArray(int numVertices, int numComponents, int componentSize) {
+		super(createHandle(numVertices,
+				numComponents,
+				componentSize));
+	}
 
+	/**
+	 */
+	VertexArray(long handle) {
+		super(handle);
+	}
 
-	public void get(int firstVertex, int numVertices, byte[] values) {  }
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
 
-	public void get(int firstVertex, int numVertices, short[] values) {  }
+	public void set(int startIndex, int length, short[] values) {
+		_setShort(handle, startIndex, length, values);
+	}
 
-	public int getComponentCount() { return 0; }
+	public void set(int startIndex, int length, byte[] values) {
+		_setByte(handle, startIndex, length, values);
+	}
 
-	public int getComponentType() { return 0; }
+	// M3G 1.1 Maintenance release getters
+	public void get(int firstVertex, int numVertices, byte[] values) {
+		_getByte(handle, firstVertex, numVertices, values);
+	}
 
-	public int getVertexCount() { return 0; }
+	public void get(int firstVertex, int numVertices, short[] values) {
+		_getShort(handle, firstVertex, numVertices, values);
+	}
 
-	public void set(int firstVertex, int numVertices, byte[] values) {  }
+	public int getComponentCount() {
+		return _getComponentCount(handle);
+	}
 
-	public void set(int firstVertex, int numVertices, short[] values) {  }
+	public int getComponentType() {
+		return _getComponentType(handle);
+	}
 
+	public int getVertexCount() {
+		return _getVertexCount(handle);
+	}
+
+	//------------------------------------------------------------------
+	// Private methods
+	//------------------------------------------------------------------
+
+	private static long createHandle(int numVertices, int numComponents, int componentSize) {
+		Platform.heuristicGC();
+		return _ctor(Interface.getHandle(),
+				numVertices,
+				numComponents,
+				componentSize);
+	}
+
+	// Native methods
+	private native static long _ctor(long hInterface,
+									int numVertices,
+									int numComponents,
+									int componentSize);
+
+	private native static void _setByte(long handle,
+										int first,
+										int count,
+										byte[] src);
+
+	private native static void _setShort(long handle,
+										 int first,
+										 int count,
+										 short[] src);
+
+	// M3G 1.1 Maintenance release getters
+	private native static void _getByte(long handle,
+										int firstVertex,
+										int numVertices,
+										byte[] values);
+
+	private native static void _getShort(long handle,
+										 int firstVertex,
+										 int numVertices,
+										 short[] values);
+
+	private native static int _getComponentCount(long handle);
+
+	private native static int _getComponentType(long handle);
+
+	private native static int _getVertexCount(long handle);
 }

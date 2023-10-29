@@ -21,6 +21,15 @@
 	<compilerarg value="-Xlint:deprecation"/>
 	</javac>
 
+<!--
+****************************************************
+*    Natives
+****************************************************
+-->
+	<mkdir dir="natives/${os.name}/${os.arch}"/>
+
+	<exec executable="make" dir="src/m3g" failonerror="true"/>
+	<copy file="src/m3g/libjavam3g.so" todir="natives/${os.name}/${os.arch}" overwrite="true"/>
 
 <!--
 ****************************************************
@@ -33,6 +42,7 @@
 		destfile="build/freej2me.jar"
 		basedir="build/classes">
 		<fileset dir="resources" />
+		<fileset dir="." includes="natives/**" />
 		<metainf dir="META-INF" />
 		<manifest>
 			<!-- AWT Version -->

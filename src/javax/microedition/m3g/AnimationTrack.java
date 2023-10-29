@@ -1,23 +1,26 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.m3g;
 
-public class AnimationTrack extends Object3D
-{
+public class AnimationTrack extends Object3D {
+	//------------------------------------------------------------------
+	// Static data
+	//------------------------------------------------------------------
 
 	public static final int ALPHA = 256;
 	public static final int AMBIENT_COLOR = 257;
@@ -41,25 +44,63 @@ public class AnimationTrack extends Object3D
 	public static final int TRANSLATION = 275;
 	public static final int VISIBILITY = 276;
 
+	//------------------------------------------------------------------
+	// Instance data
+	//------------------------------------------------------------------
 
 	private AnimationController controller;
 	private KeyframeSequence sequence;
-	private int property;
 
+	//------------------------------------------------------------------
+	// Constructors
+	//------------------------------------------------------------------
 
-	public AnimationTrack(KeyframeSequence seq, int prop)
-	{
-		sequence = seq;
-		property = prop;
+	AnimationTrack(long handle) {
+		super(handle);
+		controller = (AnimationController) getInstance(_getController(handle));
+		sequence = (KeyframeSequence) getInstance(_getSequence(handle));
 	}
 
+	public AnimationTrack(KeyframeSequence sequence, int property) {
+		super(_ctor(Interface.getHandle(),
+				sequence != null ? sequence.handle : 0, property));
+		this.sequence = sequence;
+	}
 
-	public AnimationController getController() { return controller; }
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
 
-	public KeyframeSequence getKeyframeSequence() { return sequence; }
+	public void setController(AnimationController controller) {
+		_setController(handle, controller != null ? controller.handle : 0);
+		this.controller = controller;
+	}
 
-	public int getTargetProperty() { return property; }
+	public AnimationController getController() {
+		return controller;
+	}
 
-	public void setController(AnimationController ac) { controller = ac; }
+	public KeyframeSequence getKeyframeSequence() {
+		return sequence;
+	}
 
+	public int getTargetProperty() {
+		return _getTargetProperty(handle);
+	}
+
+	//------------------------------------------------------------------
+	// Private methods
+	//------------------------------------------------------------------
+
+	private native static long _ctor(long hInterface,
+									long hSequence,
+									int property);
+
+	private native static long _getController(long handle);
+
+	private native static long _getSequence(long handle);
+
+	private native static int _getTargetProperty(long handle);
+
+	private native static void _setController(long handle, long hController);
 }

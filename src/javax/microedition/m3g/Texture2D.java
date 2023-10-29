@@ -1,23 +1,26 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.m3g;
 
-public class Texture2D extends Transformable
-{
+public class Texture2D extends Transformable {
+	//------------------------------------------------------------------
+	// Static data
+	//------------------------------------------------------------------
 
 	public static final int FILTER_BASE_LEVEL = 208;
 	public static final int FILTER_LINEAR = 209;
@@ -30,41 +33,108 @@ public class Texture2D extends Transformable
 	public static final int WRAP_CLAMP = 240;
 	public static final int WRAP_REPEAT = 241;
 
+	//------------------------------------------------------------------
+	// Instance data
+	//------------------------------------------------------------------
 
-	private int blending = FUNC_ADD;
-	private int blendcolor = 0;
-	private int filter = FILTER_LINEAR;
-	private int filterlevel = FILTER_BASE_LEVEL;
-	private int wraps = WRAP_CLAMP;
-	private int wrapt = WRAP_CLAMP;
+	private Image2D image;
 
-	private Image2D texImage;
+	//------------------------------------------------------------------
+	// Constructor(s)
+	//------------------------------------------------------------------
 
-	public Texture2D(Image2D image) {  }
+	public Texture2D(final Image2D image) {
+		super(_ctor(Interface.getHandle(), image != null ? image.handle : 0));
+		this.image = image;
+	}
 
+	/**
+	 */
+	Texture2D(long handle) {
+		super(handle);
+		image = (Image2D) getInstance(_getImage(handle));
+	}
 
-	public int getBlendColor() { return blendcolor; }
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
 
-	public int getBlending() { return blending; }
+	public void setImage(final Image2D image) {
+		_setImage(handle, image != null ? image.handle : 0);
+		this.image = image;
+	}
 
-	public Image2D getImage() { return texImage; }
+	public Image2D getImage() {
+		return image;
+	}
 
-	public int getImageFilter() { return filter; }
+	public void setFiltering(int levelFilter, int imageFilter) {
+		_setFiltering(handle, levelFilter, imageFilter);
+	}
 
-	public int getLevelFilter() { return filterlevel; }
+	public void setWrapping(int wrapS, int wrapT) {
+		_setWrapping(handle, wrapS, wrapT);
+	}
 
-	public int getWrappingS() { return wraps; }
+	public int getWrappingS() {
+		return _getWrappingS(handle);
+	}
 
-	public int getWrappingT() { return wrapt; }
+	public int getWrappingT() {
+		return _getWrappingT(handle);
+	}
 
-	public void setBlendColor(int RGB) {  }
+	public void setBlending(int func) {
+		_setBlending(handle, func);
+	}
 
-	public void setBlending(int func) { blending = func; }
+	public int getBlending() {
+		return _getBlending(handle);
+	}
 
-	public void setFiltering(int levelFilter, int imageFilter) { filterlevel = levelFilter; filter = imageFilter; }
+	public void setBlendColor(int RGB) {
+		_setBlendColor(handle, RGB);
+	}
 
-	public void setImage(Image2D image) { texImage = image; }
+	public int getBlendColor() {
+		return _getBlendColor(handle);
+	}
 
-	public void setWrapping(int wrapS, int wrapT) { wraps = wrapS; wrapt = wrapT; }
+	// M3G 1.1 Maintenance release getters
 
+	public int getImageFilter() {
+		return _getImageFilter(handle);
+	}
+
+	public int getLevelFilter() {
+		return _getLevelFilter(handle);
+	}
+
+	// Native methods
+	private native static long _ctor(long hInterface, long imageHandle);
+
+	private native static void _setImage(long handle, long imageHandle);
+
+	private native static long _getImage(long handle);
+
+	private native static void _setFiltering(long handle, int levelFilter, int imageFilter);
+
+	private native static void _setWrapping(long handle, int wrapS, int wrapT);
+
+	private native static int _getWrappingS(long handle);
+
+	private native static int _getWrappingT(long handle);
+
+	private native static void _setBlending(long handle, int func);
+
+	private native static int _getBlending(long handle);
+
+	private native static void _setBlendColor(long handle, int RGB);
+
+	private native static int _getBlendColor(long handle);
+
+	// M3G 1.1 Maintenance release getters
+	private native static int _getImageFilter(long handle);
+
+	private native static int _getLevelFilter(long handle);
 }

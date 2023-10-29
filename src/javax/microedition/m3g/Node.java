@@ -1,64 +1,176 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.m3g;
 
-public abstract class Node extends Transformable
-{
+public abstract class Node extends Transformable {
+	//------------------------------------------------------------------
+	// Static data
+	//------------------------------------------------------------------
 
-	public static final int NONE  = 144;
-	public static final int ORIGIN  = 145;
-	public static final int X_AXIS  = 146;
-	public static final int Y_AXIS  = 147;
-	public static final int Z_AXIS  = 148;
+	public static final int NONE = 144;
+	public static final int ORIGIN = 145;
+	public static final int X_AXIS = 146;
+	public static final int Y_AXIS = 147;
+	public static final int Z_AXIS = 148;
+
+	//------------------------------------------------------------------
+	// Instance data
+	//------------------------------------------------------------------
+
+	// The node references are kept on the Java side to avoid having
+	// to replicate garbage collection in the native implementation.
+	// Instead, we let Java manage Node reachability detection and
+	// deletion.
+
+	private Node parent;
+	private Node zRef, yRef;
+
+	//------------------------------------------------------------------
+	// Constructor(s)
+	//------------------------------------------------------------------
+
+	/**
+	 * There is only a package private constructor. Applications can not extend
+	 * this class directly.</p>
+	 */
+	Node(long handle) {
+		super(handle);
+		parent = (Node) getInstance(_getParent(handle));
+		zRef = (Node) getInstance(_getZRef(handle));
+		yRef = (Node) getInstance(_getYRef(handle));
+	}
+
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
+
+	public Node getParent() {
+		return parent;
+	}
+
+	public boolean getTransformTo(Node target, Transform transform) {
+		return _getTransformTo(handle,
+				target.handle,
+				transform != null ? transform.matrix : null);
+	}
+
+	public void setAlignment(Node zReference, int zTarget,
+							 Node yReference, int yTarget) {
+		_setAlignment(handle,
+				zReference != null ? zReference.handle : 0, zTarget,
+				yReference != null ? yReference.handle : 0, yTarget);
+		zRef = zReference;
+		yRef = yReference;
+	}
+
+	public void setAlphaFactor(float alphaFactor) {
+		_setAlphaFactor(handle, alphaFactor);
+	}
+
+	public float getAlphaFactor() {
+		return _getAlphaFactor(handle);
+	}
+
+	public void setRenderingEnable(boolean enable) {
+		_enable(handle, Defs.SETGET_RENDERING, enable);
+	}
+
+	public boolean isRenderingEnabled() {
+		return _isEnabled(handle, Defs.SETGET_RENDERING);
+	}
+
+	public void setPickingEnable(boolean enable) {
+		_enable(handle, Defs.SETGET_PICKING, enable);
+	}
+
+	public boolean isPickingEnabled() {
+		return _isEnabled(handle, Defs.SETGET_PICKING);
+	}
+
+	public void setScope(int id) {
+		_setScope(handle, id);
+	}
+
+	public int getScope() {
+		return _getScope(handle);
+	}
+
+	public final void align(Node reference) {
+		_align(handle, reference != null ? reference.handle : 0);
+	}
+
+	// M3G 1.1 Maintenance release getters
+
+	public Node getAlignmentReference(int axis) {
+		switch (axis) {
+			case Y_AXIS:
+				return yRef;
+			case Z_AXIS:
+				return zRef;
+			default:
+				throw new IllegalArgumentException();
+		}
+	}
+
+	public int getAlignmentTarget(int axis) {
+		return _getAlignmentTarget(handle, axis);
+	}
 
 
-	private Node alignRef;
-	private float alphaFactor;
-	private boolean picking = false;
-	private boolean rendering = false;
-	private int scope;
+	//------------------------------------------------------------------
+	// Private methods
+	//------------------------------------------------------------------
 
+	void setParent(Node parent) {
+		this.parent = parent;
+	}
 
-	public void align(Node reference) {  }
+	// Native methods
+	private static native boolean _getTransformTo(long handle,
+												  long hTarget,
+												  byte[] transform);
 
-	public Node getAlignmentReference(int axis) { return alignRef; }
+	private static native void _align(long handle, long refHandle);
 
-	public int getAlignmentTarget(int axis) { return 0; }
+	private static native void _setAlignment(long handle,
+											 long hZReference, int zTarget,
+											 long hYReference, int yTarget);
 
-	public float getAlphaFactor() { return alphaFactor; }
+	private static native void _setAlphaFactor(long handle, float alphaFactor);
 
-	public Node getParent() { return this; }
+	private static native float _getAlphaFactor(long handle);
 
-	public int getScope() { return scope; }
+	private static native void _enable(long handle, int which, boolean enable);
 
-	public boolean getTransformTo(Node target, Transform transform) { return false; }
+	private static native boolean _isEnabled(long handle, int which);
 
-	public boolean isPickingEnabled() { return picking; }
+	private static native void _setScope(long handle, int id);
 
-	public boolean isRenderingEnabled() { return rendering; }
+	private static native int _getScope(long handle);
 
-	public void setAlignment(Node zRef, int zTarget, Node yRef, int yTarget) {  }
+	private static native long _getParent(long handle);
 
-	public void setAlphaFactor(float value) { alphaFactor = value; }
+	private static native long _getZRef(long handle);
 
-	public void setPickingEnable(boolean enable) { picking = enable; }
+	private static native long _getYRef(long handle);
 
-	public void setRenderingEnable(boolean enable) { rendering = enable; }
+	static native int _getSubtreeSize(long handle);
 
-	public void setScope(int value) { scope = value; }
-
+	// M3G 1.1 Maintenance release getters
+	private static native int _getAlignmentTarget(long handle, int axis);
 }

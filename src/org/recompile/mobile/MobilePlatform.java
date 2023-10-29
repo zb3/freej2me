@@ -60,7 +60,7 @@ public class MobilePlatform
 		lcd = new PlatformImage(width, height);
 		gc = lcd.getGraphics();
 
-		Mobile.setGraphics3D(new Graphics3D());
+		Mobile.setGraphics3D(Graphics3D.getInstance());
 
 		painter = new Runnable()
 		{

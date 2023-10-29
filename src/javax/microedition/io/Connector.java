@@ -53,20 +53,25 @@ public class Connector
 		return new DataInputStream(new fakeIS());
 	}
 
-/*
+	private static class DummyConnection implements Connection
+	{
+		public void close() {}
+	}
 
-	public static Connection open(String name) {  }
+	private static class DummyOutputStream extends OutputStream
+	{
+		public void write(int a) {}
+	}
 
-	public static Connection open(String name, int mode) {  }
+	public static Connection open(String name) { return new DummyConnection(); }
 
-	public static Connection open(String name, int mode, boolean timeouts) {  }
+	public static Connection open(String name, int mode) { return new DummyConnection(); }
 
-	public static DataOutputStream openDataOutputStream(String name) { return new DataOutputStream(new OutputStream()); }
+	public static Connection open(String name, int mode, boolean timeouts) { return new DummyConnection(); }
 
-	public static OutputStream openOutputStream(String name) { return new OutputStream(); }
+	public static DataOutputStream openDataOutputStream(String name) { return new DataOutputStream(new DummyOutputStream()); }
 
-*/
-
+	public static OutputStream openOutputStream(String name) { return new DummyOutputStream(); }
 
 	// fake inputstream 
 	private static class fakeIS extends InputStream

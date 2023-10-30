@@ -105,7 +105,7 @@ public class MIDletLoader extends URLClassLoader
 
 		try
 		{
-			mainClass = loadClass(className, true);
+			mainClass = loadClass(className);
 
 			Constructor constructor;
 			constructor = mainClass.getConstructor();
@@ -140,7 +140,7 @@ public class MIDletLoader extends URLClassLoader
 						throw e;
 					}
 
-					mainClass = loadClass(mainClass.getName(), true);
+					mainClass = loadClass(mainClass.getName());
 				}
 			}
 		}

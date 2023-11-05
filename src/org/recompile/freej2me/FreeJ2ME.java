@@ -85,6 +85,9 @@ public class FreeJ2ME
 		if(args.length>=1)
 		{
 			jarfile = args[0];
+			if (!jarfile.contains("://")) {
+				jarfile = new File(jarfile).toURI().toString();
+			}
 		}
 		if(args.length>=3)
 		{

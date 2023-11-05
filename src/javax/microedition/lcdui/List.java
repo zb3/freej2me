@@ -211,7 +211,10 @@ public class List extends Screen implements Choice
 	{
 		if(commandlistener!=null)
 		{
-			commandlistener.commandAction(SELECT_COMMAND, this);
+			synchronized (Display.calloutLock)
+			{
+				commandlistener.commandAction(SELECT_COMMAND, this);
+			}
 		}
 	}
 

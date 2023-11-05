@@ -140,7 +140,7 @@ public class MIDletLoader extends URLClassLoader
 						throw e;
 					}
 
-					mainClass = loadClass(mainClass.getName());
+					mainClass = loadClass(mainClass.getName(), true);
 				}
 			}
 		}

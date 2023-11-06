@@ -25,7 +25,6 @@ import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.game.GameCanvas;
 import javax.microedition.lcdui.Image;
-import javax.microedition.m3g.Graphics3D;
 
 import java.awt.image.BufferedImage;
 
@@ -59,8 +58,6 @@ public class MobilePlatform
 
 		lcd = new PlatformImage(width, height);
 		gc = lcd.getGraphics();
-
-		Mobile.setGraphics3D(Graphics3D.getInstance());
 
 		painter = new Runnable()
 		{

@@ -22,17 +22,18 @@ import javax.microedition.lcdui.Graphics;
 
 public abstract class Layer
 {
-	protected int x;
-
-	protected int y;
+	protected int x = 0;
+	protected int y = 0;
 	
-	protected int height;
+	protected int height = 0;
 	
-	protected int width;
+	protected int width = 0;
 
 	protected Image image;
 
 	protected boolean visible = true;
+
+	public Layer() {}
 
 	Layer(int width, int height)
 	{

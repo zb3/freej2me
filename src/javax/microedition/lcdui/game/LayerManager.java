@@ -22,7 +22,7 @@ public class LayerManager
 {
 	private int nlayers;
 	private Layer component[] = new Layer[4];
-	private int viewX, viewY, viewWidth, viewHeight;
+	protected int viewX, viewY, viewWidth, viewHeight;
 
 	public LayerManager()
 	{

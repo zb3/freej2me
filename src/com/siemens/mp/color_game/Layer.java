@@ -21,10 +21,9 @@ import javax.microedition.lcdui.Image;
 
 public abstract class Layer extends javax.microedition.lcdui.game.Layer
 {
+	public Layer() { }
 
-	public Layer() { x = 0;  y = 0; }
-
-	public Layer(int w, int h) { x = 0;  y = 0; width = w; height = h; }
+	public Layer(int w, int h) { width = w; height = h; }
 
 	public Layer(Image i) { setLayerImage(i); }
 

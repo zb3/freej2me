@@ -34,11 +34,8 @@ public class LayerManager extends javax.microedition.lcdui.game.LayerManager
 	{
 		layers = new Vector<Layer>();
 
-		width = Mobile.getPlatform().lcdWidth;
-		height = Mobile.getPlatform().lcdHeight;
-
-		canvas = Image.createImage(width, height);
-		gc = canvas.platformImage.getGraphics();
+		viewWidth = Mobile.getPlatform().lcdWidth;
+		viewHeight = Mobile.getPlatform().lcdHeight;
 	}
 
 	public void paint(Graphics g, int xdest, int ydest)
@@ -53,7 +50,7 @@ public class LayerManager extends javax.microedition.lcdui.game.LayerManager
 	{
 		if(l.isVisible())
 		{
-			g.drawRegion(l.getLayerImage(), 0, 0, l.getLayerImage().getWidth(), l.getLayerImage().getHeight(), 0, dx+x+l.getX(), dy+y+l.getY(), Graphics.TOP|Graphics.LEFT);
+			g.drawRegion(l.getLayerImage(), 0, 0, l.getLayerImage().getWidth(), l.getLayerImage().getHeight(), 0, dx+viewX+l.getX(), dy+viewY+l.getY(), Graphics.TOP|Graphics.LEFT);
 		}
 	}
 

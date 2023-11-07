@@ -90,7 +90,7 @@ public class MobilePlatform
 	public void keyPressed(int keycode)
 	{
 		updateKeyState(keycode, 1);
-		synchronized (Display.calloutLock)
+		synchronized (Display.LCDUILock)
 		{
 			Mobile.getDisplay().getCurrent().keyPressed(keycode);
 		}
@@ -100,7 +100,7 @@ public class MobilePlatform
 	public void keyReleased(int keycode)
 	{
 		updateKeyState(keycode, 0);
-		synchronized (Display.calloutLock)
+		synchronized (Display.LCDUILock)
 		{
 			Mobile.getDisplay().getCurrent().keyReleased(keycode);
 		}
@@ -108,7 +108,7 @@ public class MobilePlatform
 
 	public void keyRepeated(int keycode)
 	{
-		synchronized (Display.calloutLock)
+		synchronized (Display.LCDUILock)
 		{
 			Mobile.getDisplay().getCurrent().keyRepeated(keycode);
 		}
@@ -116,7 +116,7 @@ public class MobilePlatform
 
 	public void pointerDragged(int x, int y)
 	{
-		synchronized (Display.calloutLock)
+		synchronized (Display.LCDUILock)
 		{
 			Mobile.getDisplay().getCurrent().pointerDragged(x, y);
 		}
@@ -124,7 +124,7 @@ public class MobilePlatform
 
 	public void pointerPressed(int x, int y)
 	{
-		synchronized (Display.calloutLock)
+		synchronized (Display.LCDUILock)
 		{
 			Mobile.getDisplay().getCurrent().pointerPressed(x, y);
 		}
@@ -132,7 +132,7 @@ public class MobilePlatform
 
 	public void pointerReleased(int x, int y)
 	{
-		synchronized (Display.calloutLock)
+		synchronized (Display.LCDUILock)
 		{
 			Mobile.getDisplay().getCurrent().pointerReleased(x, y);
 		}

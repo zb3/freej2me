@@ -44,7 +44,7 @@ public class DirectUtils
 	public static DirectGraphics getDirectGraphics(javax.microedition.lcdui.Graphics g)
 	{
 		//System.out.println("Nokia DirectGraphics");
-		return (PlatformGraphics)g;
+		return new DirectGraphicsImp((PlatformGraphics) g);
 	}
 
 }

@@ -22,14 +22,12 @@ import javax.microedition.lcdui.Font;
 import javax.microedition.lcdui.game.GameCanvas;
 import javax.microedition.lcdui.game.Sprite;
 
-import com.nokia.mid.ui.DirectGraphics;
-
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.geom.AffineTransform;
 
-public class PlatformGraphics extends javax.microedition.lcdui.Graphics implements DirectGraphics
+public class PlatformGraphics extends javax.microedition.lcdui.Graphics
 {
 	protected BufferedImage canvas;
 	protected Graphics2D gc;
@@ -354,119 +352,12 @@ public class PlatformGraphics extends javax.microedition.lcdui.Graphics implemen
 		gc.setColor(new Color(ARGB, true));
 	}
 
-	/*
-		****************************
-			Nokia Direct Graphics
-		****************************
-	*/
-	// http://www.j2megame.org/j2meapi/Nokia_UI_API_1_1/com/nokia/mid/ui/DirectGraphics.html
+	// Nokia Direct Graphics helper functions (others are in DirectGraphicsImp.java)
 
-	private int colorAlpha;
-
-	public int getNativePixelFormat() { return DirectGraphics.TYPE_INT_8888_ARGB; }
-
-	public int getAlphaComponent() { return colorAlpha; }
-
-	public void setARGBColor(int argbColor)
+	public void drawPolygon(int[] xPoints, int xOffset, int[] yPoints, int yOffset, int nPoints)
 	{
-		colorAlpha = (argbColor>>>24) & 0xFF;
-		setColor(argbColor);
-	}
-
-	public void drawImage(javax.microedition.lcdui.Image img, int x, int y, int anchor, int manipulation)
-	{
-		//System.out.println("Nokia drawImage");
-		BufferedImage image = manipulateImage(img.platformImage.getCanvas(), manipulation);
-		x = AnchorX(x, image.getWidth(), anchor);
-		y = AnchorY(y, image.getHeight(), anchor);
-		drawImage2(image, x, y);
-	}
-
-	public void drawPixels(byte[] pixels, byte[] transparencyMask, int offset, int scanlength, int x, int y, int width, int height, int manipulation, int format)
-	{
-		//System.out.println("drawPixels A "+format); // Found In Use
-		int[] Type1 = {0xFFFFFFFF, 0xFF000000, 0x00FFFFFF, 0x00000000};
-		int c = 0;
-		int[] data;
-		BufferedImage temp;
-		switch(format)
-		{
-			case -1: // TYPE_BYTE_1_GRAY_VERTICAL // used by Monkiki's Castles
-				data = new int[width*height];
-				int ods = offset / scanlength;
-				int oms = offset % scanlength;
-				int b = ods % 8; //Bit offset in a byte
-				for (int yj = 0; yj < height; yj++)
-				{
-					int ypos = yj * width;
-					int tmp = (ods + yj) / 8 * scanlength+oms;
-					for (int xj = 0; xj < width; xj++)
-					{
-						c = ((pixels[tmp + xj]>>b)&1);
-						if(transparencyMask!=null) { c |= (((transparencyMask[tmp + xj]>>b)&1)^1)<<1; }
-						data[(yj*width)+xj] = Type1[c];
-					}
-					b++;
-					if(b>7) b=0;
-				}
-
-				temp = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-				temp.setRGB(0, 0, width, height, data, 0, width);
-				gc.drawImage(manipulateImage(temp, manipulation), x, y, null);
-			break;
-
-			case 1: // TYPE_BYTE_1_GRAY // used by Monkiki's Castles
-				data = new int[pixels.length*8];
-
-				for(int i=(offset/8); i<pixels.length; i++)
-				{
-					for(int j=7; j>=0; j--)
-					{
-						c = ((pixels[i]>>j)&1);
-						if(transparencyMask!=null) { c |= (((transparencyMask[i]>>j)&1)^1)<<1; }
-						data[(i*8)+(7-j)] = Type1[c];
-					}
-				}
-				temp = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-				temp.setRGB(0, 0, width, height, data, 0, scanlength);
-				gc.drawImage(manipulateImage(temp, manipulation), x, y, null);
-			break;
-
-			default: System.out.println("drawPixels A : Format " + format + " Not Implemented");
-		}
-	}
-
-	public void drawPixels(int[] pixels, boolean transparency, int offset, int scanlength, int x, int y, int width, int height, int manipulation, int format)
-	{
-		//System.out.println("drawPixels B "+format+" "+transparency); // Found In Use
-		BufferedImage temp = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		temp.setRGB(0, 0, width, height, pixels, offset, scanlength);
-		BufferedImage temp2 = manipulateImage(temp, manipulation);
-		gc.drawImage(temp2, x, y, null);
-	}
-
-	public void drawPixels(short[] pixels, boolean transparency, int offset, int scanlength, int x, int y, int width, int height, int manipulation, int format)
-	{
-		//System.out.println("drawPixels C "+format+" "+transparency); // Found In Use
-		int[] data = new int[pixels.length];
-		for(int i=0; i<pixels.length; i++)
-		{
-			data[i] = pixelToColor(pixels[i], format);
-			if(!transparency) { data[i] &=0x00FFFFFF; }
-		}
-
-		BufferedImage temp = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		temp.setRGB(0, 0, width, height, data, offset, scanlength);
-		gc.drawImage(manipulateImage(temp, manipulation), x, y, null);
-	}
-
-	public void drawPolygon(int[] xPoints, int xOffset, int[] yPoints, int yOffset, int nPoints, int argbColor)
-	{
-		int temp = color;
 		int[] x = new int[nPoints];
 		int[] y = new int[nPoints];
-
-		setAlphaRGB(argbColor);
 
 		for(int i=0; i<nPoints; i++)
 		{
@@ -474,25 +365,12 @@ public class PlatformGraphics extends javax.microedition.lcdui.Graphics implemen
 			y[i] = yPoints[yOffset+i];
 		}
 		gc.drawPolygon(x, y, nPoints);
-		setColor(temp);
 	}
 
-	public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, int argbColor)
+	public void fillPolygon(int[] xPoints, int xOffset, int[] yPoints, int yOffset, int nPoints)
 	{
-		//System.out.println("drawTriange");
-		int temp = color;
-		setAlphaRGB(argbColor);
-		gc.drawPolygon(new int[]{x1,x2,x3}, new int[]{y1,y2,y3}, 3);
-		setColor(temp);
-	}
-
-	public void fillPolygon(int[] xPoints, int xOffset, int[] yPoints, int yOffset, int nPoints, int argbColor)
-	{
-		int temp = color;
 		int[] x = new int[nPoints];
 		int[] y = new int[nPoints];
-
-		setAlphaRGB(argbColor);
 
 		for(int i=0; i<nPoints; i++)
 		{
@@ -500,202 +378,11 @@ public class PlatformGraphics extends javax.microedition.lcdui.Graphics implemen
 			y[i] = yPoints[yOffset+i];
 		}
 		gc.fillPolygon(x, y, nPoints);
-		setColor(temp);
 	}
 
-	public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3)
-	{
-		//System.out.println("fillTriangle"); // Found In Use
-		gc.fillPolygon(new int[]{x1,x2,x3}, new int[]{y1,y2,y3}, 3);
-	}
-
-	public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3, int argbColor)
-	{
-		//System.out.println("fillTriangle"); // Found In Use
-		int temp = color;
-		setAlphaRGB(argbColor);
-		gc.fillPolygon(new int[]{x1,x2,x3}, new int[]{y1,y2,y3}, 3);
-		setColor(temp);
-	}
-
-	public void getPixels(byte[] pixels, byte[] transparencyMask, int offset, int scanlength, int x, int y, int width, int height, int format)
-	{
-		System.out.println("getPixels A");
-	}
-
-	public void getPixels(int[] pixels, int offset, int scanlength, int x, int y, int width, int height, int format)
+	public void getPixels(int[] pixels, int offset, int scanlength, int x, int y, int width, int height)
 	{
 		//System.out.println("getPixels B");
 		canvas.getRGB(x, y, width, height, pixels, offset, scanlength);
 	}
-
-	public void getPixels(short[] pixels, int offset, int scanlength, int x, int y, int width, int height, int format)
-	{
-		//System.out.println("getPixels C"); // Found In Use
-		int i = offset;
-		for(int row=0; row<height; row++)
-		{
-			for (int col=0; col<width; col++)
-			{
-				pixels[i] = colorToShortPixel(canvas.getRGB(col+x, row+y), format);
-				i++;
-			}
-		}
-	}
-
-	private int pixelToColor(short c, int format)
-	{
-		int a = 0xFF;
-		int r = 0;
-		int g = 0;
-		int b = 0;
-		switch(format)
-		{
-			case DirectGraphics.TYPE_USHORT_1555_ARGB:
-				a = ((c>>15) & 0x01)*0xFF;
-				r = (c>>10) & 0x1F; g = (c>>5) & 0x1F; b = c & 0x1F;
-				r = (r<<3)|(r>>2); g = (g<<3)|(g>>2); b = (b<<3)|(b>>2);
-				break;
-			case DirectGraphics.TYPE_USHORT_444_RGB:
-				r = (c>>8) & 0xF; g = (c>>4) & 0xF; b = c & 0xF;
-				r = (r<<4)|r; g = (g<<4)|g; b = (b<<4)|b;
-				break;
-			case DirectGraphics.TYPE_USHORT_4444_ARGB:
-				a = (c>>12) & 0xF; r = (c>>8) & 0xF; g = (c>>4) & 0xF; b = c & 0xF;
-				a = (a<<4)|a; r = (r<<4)|r; g = (g<<4)|g; b = (b<<4)|b;
-				break;
-			case DirectGraphics.TYPE_USHORT_555_RGB:
-				r = (c>>10) & 0x1F; g = (c>>5) & 0x1F; b = c & 0x1F;
-				r = (r<<3)|(r>>2); g = (g<<3)|(g>>2); b = (b<<3)|(b>>2);
-				break;
-			case DirectGraphics.TYPE_USHORT_565_RGB:
-				r = (c>>11) & 0x1F; g = (c>>5) & 0x3F; b = c & 0x1F;
-				r = (r<<3)|(r>>2); g = (g<<2)|(g>>4); b = (b<<3)|(b>>2);
-				break;
-		}
-		return (a<<24) | (r<<16) | (g<<8) | b;
-	}
-
-	private short colorToShortPixel(int c, int format)
-	{
-		int a = 0;
-		int r = 0;
-		int g = 0;
-		int b = 0;
-		int out = 0;
-		switch(format)
-		{
-			case DirectGraphics.TYPE_USHORT_1555_ARGB:
-				a=c>>>31; r=((c>>19)&0x1F); g=((c>>11)&0x1F); b=((c>>3)&0x1F);
-				out=(a<<15)|(r<<10)|(g<<5)|b;
-				break;
-			case DirectGraphics.TYPE_USHORT_444_RGB:
-				r=((c>>20)&0xF); g=((c>>12)&0xF); b=((c>>4)&0xF);
-				out=(r<<8)|(g<<4)|b;
-				break;
-			case DirectGraphics.TYPE_USHORT_4444_ARGB:
-				a=((c>>>28)&0xF); r=((c>>20)&0xF); g=((c>>12)&0xF); b=((c>>4)&0xF);
-				out=(a<<12)|(r<<8)|(g<<4)|b;
-				break;
-			case DirectGraphics.TYPE_USHORT_555_RGB:
-				r=((c>>19)&0x1F); g=((c>>11)&0x1F); b=((c>>3)&0x1F);
-				out=(r<<10)|(g<<5)|b;
-				break;
-			case DirectGraphics.TYPE_USHORT_565_RGB:
-				r=((c>>19)&0x1F); g=((c>>10)&0x3F); b=((c>>3)&0x1F);
-				out=(r<<11)|(g<<5)|b;
-				break;
-		}
-		return (short)out;
-	}
-
-	// from J2ME-Loader
-	private static int getTransformation(int manipulation) {
-		// manipulations are C-CW and sprite rotations are CW
-		int ret = -1;
-		int rotation = manipulation & 0x0FFF;
-		if ((manipulation & FLIP_HORIZONTAL) != 0) {
-			if ((manipulation & FLIP_VERTICAL) != 0) {
-				// horiz and vertical flipping
-				switch (rotation) {
-					case 0:
-						ret = Sprite.TRANS_ROT180;
-						break;
-					case ROTATE_90:
-						ret = Sprite.TRANS_ROT90;
-						break;
-					case ROTATE_180:
-						ret = Sprite.TRANS_NONE;
-						break;
-					case ROTATE_270:
-						ret = Sprite.TRANS_ROT270;
-						break;
-					default:
-				}
-			} else {
-				// horizontal flipping
-				switch (rotation) {
-					case 0:
-						ret = Sprite.TRANS_MIRROR;
-						break;
-					case ROTATE_90:
-						ret = Sprite.TRANS_MIRROR_ROT90;
-						break;
-					case ROTATE_180:
-						ret = Sprite.TRANS_MIRROR_ROT180;
-						break;
-					case ROTATE_270:
-						ret = Sprite.TRANS_MIRROR_ROT270;
-						break;
-					default:
-				}
-			}
-		} else {
-			if ((manipulation & FLIP_VERTICAL) != 0) {
-				// vertical flipping
-				switch (rotation) {
-					case 0:
-						ret = Sprite.TRANS_MIRROR_ROT180;
-						break;
-					case ROTATE_90:
-						ret = Sprite.TRANS_MIRROR_ROT270;
-						break;
-					case ROTATE_180:
-						ret = Sprite.TRANS_MIRROR;
-						break;
-					case ROTATE_270:
-						ret = Sprite.TRANS_MIRROR_ROT90;
-						break;
-					default:
-				}
-			} else {
-				// no flipping
-				switch (rotation) {
-					case 0:
-						ret = Sprite.TRANS_NONE;
-						break;
-					case ROTATE_90:
-						ret = Sprite.TRANS_ROT270;
-						break;
-					case ROTATE_180:
-						ret = Sprite.TRANS_ROT180;
-						break;
-					case ROTATE_270:
-						ret = Sprite.TRANS_ROT90;
-						break;
-					default:
-				}
-			}
-		}
-		return ret;
-	}
-
-	private BufferedImage manipulateImage(BufferedImage image, int manipulation)
-	{
-		if (manipulation == 0)
-		return image;
-		
-		return PlatformImage.transformImage(image, getTransformation(manipulation));
-	}
-
 }

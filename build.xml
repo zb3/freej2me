@@ -4,11 +4,11 @@
 
 <!--
 ****************************************************
-*    AWT, Libretro, SDL
+*    AWT
 ****************************************************
 -->
 
-	<echo message="FreeJ2ME - AWT | Libretro | SDL" />
+	<echo message="FreeJ2ME - AWT" />
 	<mkdir dir="build/classes"/>
 	<javac
 		srcdir="src"
@@ -50,32 +50,4 @@
 			<attribute name="Implementation-Title" value="FreeJ2ME"/>
 		</manifest>
 	</jar>
-
-	<echo message="Building JAR - Libretro" />
-	<jar
-		destfile="build/freej2me-lr.jar"
-		basedir="build/classes">
-		<fileset dir="resources" />
-		<metainf dir="META-INF" />
-		<manifest>
-			<!-- Libretro Version -->
-			<attribute name="Main-Class" value="org.recompile.freej2me.Libretro"/>
-			<attribute name="Implementation-Title" value="FreeJ2ME"/>
-		</manifest>
-	</jar>
-
-	<echo message="Building JAR - SDL" />
-	<jar
-		destfile="build/freej2me-sdl.jar"
-		basedir="build/classes">
-		<fileset dir="resources" />
-		<metainf dir="META-INF" />
-		<manifest>
-			<!-- Libretro Version -->
-			<attribute name="Main-Class" value="org.recompile.freej2me.Anbu"/>
-			<attribute name="Implementation-Title" value="FreeJ2ME"/>
-		</manifest>
-	</jar>
-
-
 </project>

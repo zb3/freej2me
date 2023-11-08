@@ -116,6 +116,8 @@ public class FreeJ2ME
 			}
 		});
 
+		Mobile.getPlatform().startEventQueue();		
+
 		lcd.addKeyListener(new KeyListener()
 		{
 			public void keyPressed(KeyEvent e)
@@ -126,6 +128,12 @@ public class FreeJ2ME
 				
 				switch(keycode) // Handle emulator control keys
 				{
+					// Config //
+					case KeyEvent.VK_ESCAPE:
+						Mobile.getPlatform().dropQueuedEvents();
+						config.start();
+						break;
+
 					case KeyEvent.VK_PLUS:
 					case KeyEvent.VK_ADD:
 						scaleFactor++;
@@ -443,9 +451,6 @@ public class FreeJ2ME
 
 			case KeyEvent.VK_A: return -1;
 			case KeyEvent.VK_Z: return -2;
-
-			// Config //
-			case KeyEvent.VK_ESCAPE: config.start();
 		}
 		return 0;
 	}
@@ -526,6 +531,7 @@ public class FreeJ2ME
 
 					if(limitFPS>0)
 					{
+						// this is of course a simplification
 						Thread.sleep(limitFPS);
 					}
 				}

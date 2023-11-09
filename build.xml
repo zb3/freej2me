@@ -31,6 +31,9 @@
 	<exec executable="make" dir="src/m3g" failonerror="true"/>
 	<copy file="src/m3g/libjavam3g.so" todir="natives/${os.name}/${os.arch}" overwrite="true"/>
 
+	<exec executable="make" dir="src/micro3d" failonerror="true"/>
+	<copy file="src/micro3d/libmicro3d.so" todir="natives/${os.name}/${os.arch}" overwrite="true"/>
+
 <!--
 ****************************************************
 *    Jar Files
@@ -50,4 +53,5 @@
 			<attribute name="Implementation-Title" value="FreeJ2ME"/>
 		</manifest>
 	</jar>
+
 </project>

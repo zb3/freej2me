@@ -20,7 +20,10 @@ import org.recompile.mobile.Mobile;
 import org.recompile.mobile.PlatformImage;
 import org.recompile.mobile.PlatformGraphics;
 
-public class Graphics
+public class Graphics implements
+	com.vodafone.v10.graphics.j3d.Graphics3D,
+	com.motorola.graphics.j3d.Graphics3D,
+	com.jblend.graphics.j3d.Graphics3D
 {
 	public static final int BASELINE = 64;
 	public static final int BOTTOM = 32;
@@ -149,4 +152,27 @@ public class Graphics
 		strokeStyle = style;
 	}
 
+	@Override
+	public synchronized void drawFigure(com.vodafone.v10.graphics.j3d.Figure figure,
+										int x, int y,
+										com.vodafone.v10.graphics.j3d.FigureLayout layout,
+										com.vodafone.v10.graphics.j3d.Effect3D effect) {
+		com.vodafone.v10.graphics.j3d.RenderProxy.drawFigure(this, figure, x, y, layout, effect);
+	}
+
+	@Override
+	public synchronized void drawFigure(com.motorola.graphics.j3d.Figure figure,
+										int x, int y,
+										com.motorola.graphics.j3d.FigureLayout layout,
+										com.motorola.graphics.j3d.Effect3D effect) {
+		com.motorola.graphics.j3d.RenderProxy.drawFigure(this, figure, x, y, layout, effect);
+	}
+
+	@Override
+	public synchronized void drawFigure(com.jblend.graphics.j3d.Figure figure,
+										int x, int y,
+										com.jblend.graphics.j3d.FigureLayout layout,
+										com.jblend.graphics.j3d.Effect3D effect) {
+		com.jblend.graphics.j3d.RenderProxy.drawFigure(this, figure, x, y, layout, effect);
+	}
 }

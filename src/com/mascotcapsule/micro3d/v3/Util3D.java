@@ -1,42 +1,35 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright 2020 Yury Kharchenko
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package com.mascotcapsule.micro3d.v3;
 
-public class Util3D
-{
-	private Util3D() {  }
+import ru.woesss.j2me.micro3d.MathUtil;
 
-	public static final int sqrt(int p)
-	{
-		//if(p>0) { return (int)Math.sqrt(p); }
-		long n = p & 0x00000000FFFFFFFFL;
-		return (int)Math.sqrt(n);
+@SuppressWarnings({"unused", "WeakerAccess"})
+public class Util3D {
+
+	public static int sqrt(int p) {
+		return MathUtil.uSqrt(p);
 	}
 
-	// angle p ranges from 0 to 4096
-	public static final int sin(int p)
-	{
-		double n = (((double)p)/4096) * Math.PI*2;
-		return (int)(Math.sin(n)*4096);
+	public static int sin(int p) {
+		return MathUtil.iSin(p);
 	}
 
-	public static final int cos(int p)
-	{
-		double n = (((double)p)/4096) * Math.PI*2;
-		return (int)(Math.cos(n)*4096);
+	public static int cos(int p) {
+		return MathUtil.iCos(p);
 	}
 }

@@ -1,97 +1,150 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright 2020 Yury Kharchenko
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package com.mascotcapsule.micro3d.v3;
 
-import java.util.ArrayList;
+@SuppressWarnings({"unused", "WeakerAccess"})
+public class FigureLayout {
+	AffineTrans[] affineArray;
+	AffineTrans affine;
+	int scaleX;
+	int scaleY;
+	int centerX;
+	int centerY;
+	int parallelWidth;
+	int parallelHeight;
+	int near;
+	int far;
+	int angle;
+	int perspectiveWidth;
+	int perspectiveHeight;
+	int projection;
 
-public class FigureLayout
-{
-	private int scalex=1;
-	private int scaley=1;
-	private int centerx=1;
-	private int centery=1;
-
-	private int pwidth=1;
-	private int pheight=1;
-
-	private int selected = 0;
-
-	private ArrayList<AffineTrans> trans = new ArrayList<AffineTrans>();
-
-
-	public FigureLayout() {  }
-
-	public FigureLayout(AffineTrans atrans, int sx, int sy, int cx, int cy)
-	{
-		scalex = sx;
-		scaley = sy;
-		centerx = cx;
-		centery = cy;
-		trans.add(atrans);
+	public FigureLayout() {
+		this(null, 512, 512, 0, 0);
 	}
 
-
-	public final AffineTrans getAffineTrans() { return trans.get(selected); }
-
-	public final void setAffineTrans(AffineTrans atrans)
-	{
-		if(trans.size()==0)
-		{
-			trans.add(atrans);
-		}
-		else
-		{
-			trans.set(selected, atrans);
-		}
+	public FigureLayout(AffineTrans trans, int sx, int sy, int cx, int cy) {
+		setAffineTrans(trans);
+		centerX = cx;
+		centerY = cy;
+		setScale(sx, sy);
 	}
 
-	public final void setAffineTransArray(AffineTrans[] atrans)
-	{
-		for(int i=0; i<atrans.length; i++)
-		{
-			trans.add(atrans[i]);
-		}
+	public final AffineTrans getAffineTrans() {
+		return affine;
 	}
 
-	public final void setAffineTrans(AffineTrans[] atrans) { setAffineTransArray(atrans); }
+	public final int getCenterX() {
+		return centerX;
+	}
 
-	public final void selectAffineTrans(int i) { selected = i; }
+	public final int getCenterY() {
+		return centerY;
+	}
 
-	public final int getScaleX() { return scalex; }
+	public final int getParallelHeight() {
+		return parallelHeight;
+	}
 
-	public final int getScaleY() { return scaley; }
+	public final int getParallelWidth() {
+		return parallelWidth;
+	}
 
-	public final void setScale(int x, int y) { scalex=x; scaley=y; }
+	public final int getScaleX() {
+		return scaleX;
+	}
 
+	public final int getScaleY() {
+		return scaleY;
+	}
 
-	public final int getParallelWidth() { return pwidth; }
+	public final void selectAffineTrans(int idx) {
+		if (affineArray == null || idx < 0 || idx >= affineArray.length) {
+			throw new IllegalArgumentException();
+		}
+		affine = affineArray[idx];
+	}
 
-	public final int getParallelHeight() { return pheight; }
+	public final void setAffineTrans(AffineTrans trans) {
+		if (trans == null) {
+			trans = new AffineTrans(4096, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 4096, 0);
+		}
+		if (affineArray == null) {
+			affineArray = new AffineTrans[1];
+			affineArray[0] = trans;
+		}
+		affine = trans;
+	}
 
-	public final void setParallelSize(int w, int h) { pwidth=w; pheight=h; }
+	public final void setAffineTrans(AffineTrans[] trans) {
+		if (trans == null) {
+			throw new NullPointerException();
+		}
+		for (AffineTrans tran : trans) {
+			if (tran == null) {
+				throw new NullPointerException();
+			}
+		}
+		affineArray = trans;
+	}
 
+	@Deprecated
+	public final void setAffineTransArray(AffineTrans[] trans) {
+		setAffineTrans(trans);
+	}
 
-	public final int getCenterX() { return centerx; }
+	public final void setCenter(int cx, int cy) {
+		centerX = cx;
+		centerY = cy;
+	}
 
-	public final int getCenterY() { return centery; }
+	public final void setParallelSize(int w, int h) {
+		if (w < 0 || h < 0) {
+			throw new IllegalArgumentException();
+		}
+		parallelWidth = w;
+		parallelHeight = h;
+		projection = Graphics3D.COMMAND_PARALLEL_SIZE;
+	}
 
-	public final void setCenter(int x, int y) { centerx=x; centery=y; }
+	public final void setPerspective(int zNear, int zFar, int angle) {
+		if (zNear >= zFar || zNear < 1 || zFar > 32767 || angle < 1 || angle > 2047) {
+			throw new IllegalArgumentException();
+		}
+		near = zNear;
+		far = zFar;
+		this.angle = angle;
+		projection = Graphics3D.COMMAND_PERSPECTIVE_FOV;
+	}
 
-	public final void setPerspective(int x, int y, int z) {  }
+	public final void setPerspective(int zNear, int zFar, int width, int height) {
+		if (zNear >= zFar || zNear < 1 || zFar > 32767 || width < 0 || height < 0) {
+			throw new IllegalArgumentException();
+		}
+		near = zNear;
+		far = zFar;
+		perspectiveWidth = width;
+		perspectiveHeight = height;
+		projection = Graphics3D.COMMAND_PERSPECTIVE_WH;
+	}
 
-	public final void setPerspective(int x, int y, int z, int w) {  }
+	public final void setScale(int sx, int sy) {
+		scaleX = sx;
+		scaleY = sy;
+		projection = Graphics3D.COMMAND_PARALLEL_SCALE;
+	}
 }

@@ -1,75 +1,112 @@
 /*
-	This file is part of FreeJ2ME.
+ * Copyright 2020 Yury Kharchenko
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package com.mascotcapsule.micro3d.v3;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.io.InputStream;
-import java.io.ByteArrayOutputStream;
 
-import org.recompile.mobile.Mobile;
+import ru.woesss.j2me.micro3d.FigureImpl;
 
-public class Figure
-{
+public class Figure {
+	Texture[] textures;
+	int textureIndex = -1;
+	final FigureImpl impl;
 
-	private byte[] figure;
-
-	private ArrayList<Texture> textures = new ArrayList<Texture>();
-
-	private int selected = 0;
-
-	private int pattern = 0;
-
-	public Figure(byte[] fig) { figure = fig; }
-
-	public Figure(String name) throws IOException
-	{
-		InputStream stream = Mobile.getPlatform().loader.getResourceAsStream(name);
-		try
-		{
-			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-			int count=0;
-			byte[] data = new byte[4096];
-			while (count!=-1)
-			{
-				count = stream.read(data);
-				if(count!=-1) { buffer.write(data, 0, count); }
-			}
-			figure = buffer.toByteArray();
-		}
-		catch (Exception e) {  }
+	@SuppressWarnings("unused")
+	public Figure(byte[] b) {
+		impl = new FigureImpl(b);
 	}
 
+	@SuppressWarnings("unused")
+	public Figure(String name) throws IOException {
+		impl = new FigureImpl(name);
+	}
 
-	public final void dispose() {  }
+	@SuppressWarnings("unused")
+	public final void dispose() {
+		impl.dispose();
+	}
 
-	public final void setPosture(ActionTable actiontable, int i, int j) {  }
+	@SuppressWarnings("unused")
+	public final int getNumPattern() {
+		return impl.getNumPattern();
+	}
 
-	public final Texture getTexture() { return null; }
+	@SuppressWarnings("unused")
+	public final int getNumTextures() {
+		if (textures == null) {
+			return 0;
+		}
+		return textures.length;
+	}
 
-	public final void setTexture(Texture texture) {  }
+	public final Texture getTexture() {
+		if (textureIndex < 0) {
+			return null;
+		}
+		return textures[textureIndex];
+	}
 
-	public final void setTexture(Texture[] atexture) {  }
+	@SuppressWarnings("unused")
+	public final void selectTexture(int idx) {
+		if (idx < 0 || idx >= getNumTextures()) {
+			throw new IllegalArgumentException();
+		}
+		textureIndex = idx;
+	}
 
-	public final int getNumTextures() { return textures.size(); }
+	@SuppressWarnings("unused")
+	public final void setPattern(int idx) {
+		impl.setPattern(idx);
+	}
 
-	public final void selectTexture(int i) { selected = i; }
+	@SuppressWarnings("unused")
+	public final void setPosture(ActionTable actionTable, int action, int frame) {
+		if (actionTable == null) {
+			throw new NullPointerException();
+		}
+		impl.setPosture(actionTable.impl, action, frame);
+	}
 
-	public final int getNumPattern() { return pattern; }
+	public final void setTexture(Texture tex) {
+		if (tex == null)
+			throw new NullPointerException();
+		if (!tex.isForModel)
+			throw new IllegalArgumentException();
 
-	public final void setPattern(int value) { pattern = value; }
+		textures = new Texture[]{tex};
+		textureIndex = 0;
+	}
+
+	public final void setTexture(Texture[] t) {
+		if (t == null) {
+			throw new NullPointerException();
+		}
+		if (t.length == 0) {
+			throw new IllegalArgumentException();
+		}
+		for (Texture texture : t) {
+			if (texture == null) {
+				throw new NullPointerException();
+			}
+			if (!texture.isForModel) {
+				throw new IllegalArgumentException();
+			}
+		}
+		textures = t;
+		textureIndex = -1;
+	}
 }

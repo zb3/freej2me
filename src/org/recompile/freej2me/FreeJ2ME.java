@@ -451,6 +451,12 @@ public class FreeJ2ME
 
 			case KeyEvent.VK_A: return -1;
 			case KeyEvent.VK_Z: return -2;
+
+			case KeyEvent.VK_SPACE: return Mobile.XKEY_SELECT;
+			case KeyEvent.VK_F: return Mobile.XKEY_SOFT1;
+			case KeyEvent.VK_G: return Mobile.XKEY_SOFT1;
+			case KeyEvent.VK_H: return Mobile.XKEY_SOFT1;
+
 		}
 		return 0;
 	}

@@ -70,6 +70,13 @@ public class Mobile
 	public static final int GAME_C    = Canvas.GAME_C; // 11
 	public static final int GAME_D    = Canvas.GAME_D; // 12
 
+	// ???
+	public static final int XKEY_SELECT = 20;
+    public static final int XKEY_SOFT1 = 21;
+    public static final int XKEY_SOFT2 = 22;
+    public static final int XKEY_SOFT3 = 23;
+
+
 	//Nokia-specific keycodes
 	public static final int NOKIA_UP    = -1; // KEY_UP_ARROW = -1;
 	public static final int NOKIA_DOWN  = -2; // KEY_DOWN_ARROW = -2;

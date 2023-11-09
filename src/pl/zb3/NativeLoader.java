@@ -1,11 +1,17 @@
 package pl.zb3;
 
 import java.io.*;
-import java.util.Locale;
+import java.util.HashSet;
+import java.util.Set;
 
 public class NativeLoader {
+    private static Set<String> loadedLibraries = new HashSet<>();
 
     public static void loadLibrary(String libraryName) {
+        if (loadedLibraries.contains(libraryName)) {
+            return;
+        }
+
         String osName = System.getProperty("os.name");
         String arch = System.getProperty("os.arch");
         String libraryPath = String.format("natives/%s/%s/%s", osName, arch, System.mapLibraryName(libraryName));
@@ -30,6 +36,7 @@ public class NativeLoader {
 
             System.load(tempLibraryFile.getAbsolutePath());
             tempLibraryFile.deleteOnExit();
+            loadedLibraries.add(libraryName);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load native library: " + e.getMessage());
         }

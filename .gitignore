@@ -2,4 +2,4 @@ build/
 *.o
 *.so
 config/
-rms/
+/rms/

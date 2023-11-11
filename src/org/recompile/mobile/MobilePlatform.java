@@ -25,6 +25,7 @@ import java.awt.event.KeyEvent;
 
 import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Displayable;
+import javax.microedition.lcdui.Font;
 import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.game.GameCanvas;
 import javax.microedition.lcdui.Image;
@@ -57,11 +58,7 @@ public class MobilePlatform
 
 	public MobilePlatform(int width, int height)
 	{
-		lcdWidth = width;
-		lcdHeight = height;
-
-		lcd = new PlatformImage(width, height);
-		gc = lcd.getGraphics();
+		resizeLCD(width, height);
 
 		eventQueue = new EventQueue(this);
 
@@ -86,6 +83,7 @@ public class MobilePlatform
 	{
 		lcdWidth = width;
 		lcdHeight = height;
+		Font.setScreenSize(width, height);
 
 		lcd = new PlatformImage(width, height);
 		gc = lcd.getGraphics();

@@ -47,6 +47,9 @@ public abstract class Displayable
 
 	public Ticker ticker;
 
+	// todo: adapt config and displayable so this hack is not needed
+	protected Font uiFont = Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE__INTERNAL_UI);
+
 	public Displayable()
 	{
 		width = Mobile.getPlatform().lcdWidth;
@@ -104,6 +107,7 @@ public abstract class Displayable
 	protected void render()
 	{
 		PlatformGraphics gc = platformImage.getGraphics();
+		gc.setFont(uiFont);
 
 		// Draw Background:
 		gc.setColor(0xFFFFFF);

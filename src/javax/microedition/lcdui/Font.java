@@ -31,18 +31,23 @@ public final class Font
 	public static final int SIZE_LARGE = 16;
 	public static final int SIZE_MEDIUM = 0;
 	public static final int SIZE_SMALL = 8;
+	public static final int SIZE__INTERNAL_UI = 64;
 
 	public static final int STYLE_BOLD = 1;
 	public static final int STYLE_ITALIC = 2;
 	public static final int STYLE_PLAIN = 0;
 	public static final int STYLE_UNDERLINED = 4;
 
+	private static int screenType = -4;
+	private static int[] fontSizes = {
+		10, 12, 14, // < 176
+		12, 14, 16, // < 220
+		14, 16, 20,
+	};
 
 	private int face;
 	private int style;
 	private int size;
-
-	private static Font defaultFont = new Font(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
 
 	public PlatformFont platformFont;
 
@@ -52,6 +57,17 @@ public final class Font
 		style = fontStyle;
 		size = fontSize;
 		platformFont = new PlatformFont(this);
+	}
+
+	public static void setScreenSize(int width, int height)
+	{
+		int minSize = Math.min(width, height);
+		if (minSize < 176)
+		screenType = 0;
+		else if (minSize < 220)
+		screenType = 1;
+		else
+		screenType = 2;
 	}
 
 	public int charsWidth(char[] ch, int offset, int length)
@@ -64,11 +80,13 @@ public final class Font
 
 	public int getBaselinePosition() { return platformFont.getAscent(); }
 
-	public static Font getDefaultFont() { return defaultFont; }
+	public static Font getDefaultFont() { 
+		return new Font(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
+	}
 
 	public int getFace() { return face; }
 
-	public static Font getFont(int fontSpecifier) { return defaultFont; }
+	public static Font getFont(int fontSpecifier) { return getDefaultFont(); }
 
 	public static Font getFont(int face, int style, int size) { return new Font(face, style, size); }
 
@@ -104,10 +122,11 @@ public final class Font
 	{
 		switch(size)
 		{
-			case SIZE_LARGE  : return 14;
-			case SIZE_MEDIUM : return 12;
-			case SIZE_SMALL  : return 10;
-			default          : return 10;
+			case SIZE__INTERNAL_UI: return 12; // todo: remove this exception
+			case SIZE_LARGE  : return fontSizes[3*screenType + 2];
+			case SIZE_MEDIUM : return fontSizes[3*screenType + 1];
+			case SIZE_SMALL  :
+			default          : return fontSizes[3*screenType];
 		}
 	}
 }

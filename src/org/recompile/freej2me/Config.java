@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
 
+import javax.microedition.lcdui.Font;
 import javax.microedition.lcdui.Graphics;
 
 import org.recompile.mobile.Mobile;
@@ -60,9 +61,6 @@ public class Config
 	{
 		width = Mobile.getPlatform().lcdWidth;
 		height = Mobile.getPlatform().lcdHeight;
-
-		lcd = new PlatformImage(width, height);
-		gc = lcd.getGraphics();
 
 		menu = new ArrayList<String[]>();
 		menu.add(new String[]{"Resume Game", "Display Size", "Sound", "Limit FPS", "Phone", "Rotate", "Exit"}); // 0 - Main Menu
@@ -151,15 +149,8 @@ public class Config
 			if(!settings.containsKey("rotate")) { settings.put("rotate", "off"); }
 			if(!settings.containsKey("fps")) { settings.put("fps", "0"); }
 
-			int w = Integer.parseInt(settings.get("width"));
-			int h = Integer.parseInt(settings.get("height"));
-			if(width!=w || height!=h)
-			{
-				width = w;
-				height = h;
-				lcd = new PlatformImage(width, height);
-				gc = lcd.getGraphics();
-			}
+			width = Integer.parseInt(settings.get("width"));
+			height = Integer.parseInt(settings.get("height"));
 		}
 		catch (Exception e)
 		{
@@ -167,6 +158,7 @@ public class Config
 			System.out.println(e.getMessage());
 		}
 
+		doUpdateDisplay(width, height);
 	}
 
 	public void saveConfig()
@@ -403,17 +395,21 @@ public class Config
 		render();
 	}
 
+	private final void doUpdateDisplay(int w, int h) {
+		width = w;
+		height = h;
+		lcd = new PlatformImage(width, height);
+		gc = lcd.getGraphics();
+		gc.setFont(Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE__INTERNAL_UI));
+	}
+
 	private void updateDisplaySize(int w, int h)
 	{
 		settings.put("width", ""+w);
 		settings.put("height", ""+h);
 		saveConfig();
 		onChange.run();
-		width = w;
-		height = h;
-		lcd = new PlatformImage(width, height);
-		gc = lcd.getGraphics();
-
+		doUpdateDisplay(w, h);
 	}
 
 	private void updateSound(String value)

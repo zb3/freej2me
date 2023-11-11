@@ -24,6 +24,7 @@ import javax.microedition.lcdui.game.Sprite;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.geom.AffineTransform;
 
@@ -55,6 +56,7 @@ public class PlatformGraphics extends javax.microedition.lcdui.Graphics
 		clipHeight = canvas.getHeight();
 
 		setColor(0,0,0);
+		// gc.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		gc.setBackground(new Color(0, 0, 0, 0));
 		gc.setFont(font.platformFont.awtFont);
 	}

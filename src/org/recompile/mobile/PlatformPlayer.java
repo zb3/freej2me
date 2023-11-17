@@ -206,8 +206,6 @@ public class PlatformPlayer implements Player
 	{
 		private Sequencer midi;
 
-		private int loops = 0;
-
 		private long tick = 0L;
 
 		public midiPlayer(InputStream stream)
@@ -250,8 +248,7 @@ public class PlatformPlayer implements Player
 
 		public void setLoopCount(int count)
 		{
-			loops = count;
-			midi.setLoopCount(count);
+			midi.setLoopCount(count > 0 ? count-1 : 0);
 		}
 		public long setMediaTime(long now)
 		{
@@ -349,8 +346,7 @@ public class PlatformPlayer implements Player
 
 		public void setLoopCount(int count)
 		{
-			loops = count;
-			wavClip.loop(count);
+			wavClip.loop(count > 0 ? count-1 : 0);
 		}
 
 		public long setMediaTime(long now)

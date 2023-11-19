@@ -34,6 +34,9 @@
 	<exec executable="make" dir="src/micro3d" failonerror="true"/>
 	<copy file="src/micro3d/libmicro3d.so" todir="natives/${os.name}/${os.arch}" overwrite="true"/>
 
+	<exec executable="make" dir="src/ffaudio" failonerror="true"/>
+	<copy file="src/ffaudio/libffaudio.so" todir="natives/${os.name}/${os.arch}" overwrite="true"/>
+
 <!--
 ****************************************************
 *    Jar Files

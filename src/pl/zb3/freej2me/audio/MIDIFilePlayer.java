@@ -41,6 +41,8 @@ public class MIDIFilePlayer extends MIDIPlayer
 			loaded = true;
 		} catch (InvalidMidiDataException e) {
 			e.printStackTrace();
+		} finally {
+			stream.close();
 		}
 	}
 

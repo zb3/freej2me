@@ -65,6 +65,8 @@ public class FFPlayer extends BasePlayer implements LineListener
 			// because the close method is not called otherwise.
 			if (ais != null)
 			ais.close();
+
+			stream.close();
 		}
 
 		if (clip != null) {

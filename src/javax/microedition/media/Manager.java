@@ -17,6 +17,9 @@
 package javax.microedition.media;
 
 import java.io.InputStream;
+
+import javax.microedition.media.tone.ToneManager;
+
 import java.io.IOException;
 
 import org.recompile.mobile.Mobile;
@@ -24,6 +27,7 @@ import org.recompile.mobile.Mobile;
 import pl.zb3.freej2me.audio.FFPlayer;
 import pl.zb3.freej2me.audio.MIDIFilePlayer;
 import pl.zb3.freej2me.audio.MIDIPlayer;
+import pl.zb3.freej2me.audio.MIDITonePlayer;
 
 public final class Manager
 {
@@ -37,24 +41,29 @@ public final class Manager
 	public static Player createPlayer(InputStream stream, String type) throws IOException, MediaException
 	{
 		
-		if(Mobile.sound == false || type.equalsIgnoreCase("audio/x-tone-seq")) {
+		if (!Mobile.sound) {
 			return new BasePlayer();
 		} else if(type.equalsIgnoreCase("audio/mid") || type.equalsIgnoreCase("audio/midi") || type.equalsIgnoreCase("audio/x-midi") || type.equalsIgnoreCase("sp-midi") || type.equalsIgnoreCase("audio/spmidi")) {
 			return new MIDIFilePlayer(stream, type);
 		} else if(type.equalsIgnoreCase(MIDI_DEVICE_LOCATOR)) {
 			return new MIDIFilePlayer(stream, "audio/midi");
-		} 
-		else {
+		} else if(type.equalsIgnoreCase(TONE_DEVICE_LOCATOR) || type.equalsIgnoreCase("audio/x-tone-seq")) {
+			return new MIDITonePlayer(stream);
+		} else {
 			return new FFPlayer(stream, type);
 		}
 	}
 
 	public static Player createPlayer(String locator) throws MediaException
 	{
-		System.out.println("Create Player "+locator);
-		if (locator.equals(MIDI_DEVICE_LOCATOR)) {
-			return new MIDIPlayer();
+		if (Mobile.sound) {
+			if (locator.equals(MIDI_DEVICE_LOCATOR)) {
+				return new MIDIPlayer();
+			} else if (locator.equals(TONE_DEVICE_LOCATOR)) {
+				return new MIDITonePlayer();
+			}
 		}
+
 		return new BasePlayer(); // not supported 
 	}
 	
@@ -75,9 +84,11 @@ public final class Manager
 		return DEFAULT_TIMEBASE;
 	}
 	
-	public static void playTone(int note, int duration, int volume)
-	{
-		System.out.println("Play Tone");
+	public synchronized static void playTone(int note, int duration, int volume)
+			throws MediaException {
+		if (Mobile.sound) {
+			ToneManager.play(note, duration, volume);
+		}
 	}
 
 }

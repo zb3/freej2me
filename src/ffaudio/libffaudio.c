@@ -3,6 +3,7 @@
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libswresample/swresample.h>
+#include <libavutil/opt.h>
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -259,8 +260,6 @@ int read_next_frame(ff_state *state) {
 
 
 void free_state(ff_state *state) {
-    logmsg("inside free_state");
-
     if (state->frame) {
         av_frame_free(&state->frame);
     }

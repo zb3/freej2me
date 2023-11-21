@@ -331,6 +331,10 @@ public class BasePlayer implements Player, VolumeControl {
 		timeBase = master;
 	}
 
+	protected boolean hasListeners() {
+		return !listeners.isEmpty();
+	}
+
 	// Implementation-defined methods
 
 	public void doRealize() throws IOException {

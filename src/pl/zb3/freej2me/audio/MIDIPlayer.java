@@ -23,6 +23,9 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
+
+import pl.zb3.ThreadUtility;
+
 import javax.microedition.media.BasePlayer;
 
 public class MIDIPlayer extends BasePlayer implements MetaEventListener, MIDIControl, TempoControl
@@ -64,7 +67,12 @@ public class MIDIPlayer extends BasePlayer implements MetaEventListener, MIDICon
 
 	@Override
 	public void doClose() {
-		midi.close();
+		if (midi != null) {
+			midi.removeMetaEventListener(this);
+			midi.close();
+			midi = null;
+			loaded = false;
+		}
 	}
 
 	@Override
@@ -103,6 +111,20 @@ public class MIDIPlayer extends BasePlayer implements MetaEventListener, MIDICon
 	public void meta(MetaMessage msg) {
 		if (msg.getType() == 47 && !midi.isRunning()) {
 			complete();
+
+			// Intervention: if the player has no listeners, we need to close ourselves
+			// because the app won't do this so we'll have many sequencers
+			// we'll not do this immediately so as to preserve the echo of the note
+			if (!hasListeners()) {
+				ThreadUtility.run(() -> {
+					try {
+						Thread.sleep(5000); // wait 5 seconds
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					close();
+				});
+			}
 		}
 	}
 

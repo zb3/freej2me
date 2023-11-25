@@ -66,9 +66,6 @@ static void m3gDestroyVertexArray(Object *obj)
     {
         Interface *m3g = M3G_INTERFACE(array);
         m3gFreeObject(m3g, array->data);
-        if (array->compatData) {
-            m3gFreeObject(m3g, array->compatData);
-        }
         m3gFreeObject(m3g, array->cachedColors);
     }
     m3gDestroyObject(&array->object);
@@ -207,46 +204,10 @@ static void m3gLockTexCoordArray(const VertexArray *array)
     M3G_VALIDATE_OBJECT(array);
     M3G_ASSERT(!array->mapCount);
 
-    // zb3: ehh not so good..
-    unsigned char *data = m3gMapObject(M3G_INTERFACE(array), array->data);
-    unsigned char *compat = array->compatData ? m3gMapObject(M3G_INTERFACE(array), array->compatData) : NULL;
-
-    if (array->elementType == GL_BYTE) {        
-        int stride = array->elementSize * 2;
-
-        for (int t=0; t<array->vertexCount; t++) {
-            compat[t*stride + 0] = data[(t<<2)];
-            compat[t*stride + 1] = (compat[t*stride + 0] & 0x80) ? 0xff : 0;
-
-            if (array->elementSize > 1) {
-                compat[t*stride + 2] = data[(t<<2) + 1];
-                compat[t*stride + 3] = (compat[t*stride + 2] & 0x80) ? 0xff : 0;
-            }
-
-            if (array->elementSize > 2) {
-                compat[t*stride + 4] = data[(t<<2) + 2];
-                compat[t*stride + 5] = (compat[t*stride + 4] & 0x80) ? 0xff : 0;
-            }
-
-            if (array->elementSize > 3) {
-                compat[t*stride + 6] = data[(t<<2) + 3];
-                compat[t*stride + 7] = (compat[t*stride + 6] & 0x80) ? 0xff : 0;
-            }
-        }
-        
-
-        glTexCoordPointer(array->elementSize,
-                        GL_SHORT,
-                        stride,
-                        compat);
-    } else {
-        glTexCoordPointer(array->elementSize,
-                        array->elementType,
-                        array->stride,
-                        data);
-
-
-    }
+    glTexCoordPointer(array->elementSize,
+                      array->elementType,
+                      array->stride,
+                      m3gMapObject(M3G_INTERFACE(array), array->data));
 
     M3G_ASSERT_GL;
     
@@ -259,50 +220,15 @@ static void m3gLockTexCoordArray(const VertexArray *array)
  *
  * \param array VertexArray object
  */
-static void m3gLockVertexArray(VertexArray *array)
+static void m3gLockVertexArray(const VertexArray *array)
 {
     M3G_VALIDATE_OBJECT(array);
     M3G_ASSERT(!array->mapCount);
 
-    // zb3: ehh not so good..
-    unsigned char *data = m3gMapObject(M3G_INTERFACE(array), array->data);
-    unsigned char *compat = array->compatData ? m3gMapObject(M3G_INTERFACE(array), array->compatData) : NULL;
-
- 
-
-    if (array->elementType == GL_BYTE) {
-        int stride = array->elementSize * 2;
-        
-        for (int t=0; t<array->vertexCount; t++) {
-            compat[t*stride + 0] = data[(t<<2)];
-            compat[t*stride + 1] = (compat[t*stride + 0] & 0x80) ? 0xff : 0;
-
-            if (array->elementSize > 1) {
-                compat[t*stride + 2] = data[(t<<2) + 1];
-                compat[t*stride + 3] = (compat[t*stride + 2] & 0x80) ? 0xff : 0;
-            }
-
-            if (array->elementSize > 2) {
-                compat[t*stride + 4] = data[(t<<2) + 2];
-                compat[t*stride + 5] = (compat[t*stride + 4] & 0x80) ? 0xff : 0;
-            }
-
-            if (array->elementSize > 3) {
-                compat[t*stride + 6] = data[(t<<2) + 3];
-                compat[t*stride + 7] = (compat[t*stride + 6] & 0x80) ? 0xff : 0;
-            }
-    }
-        
-        glVertexPointer(array->elementSize,
-                        GL_SHORT,
-                        stride,
-                        compat);
-    } else {
-        glVertexPointer(array->elementSize,
-                        array->elementType,
-                        array->stride,
-                        data);
-    }
+    glVertexPointer(array->elementSize,
+                    array->elementType,
+                    array->stride,
+                    m3gMapObject(M3G_INTERFACE(array), array->data));
 
     M3G_ASSERT_GL;
     
@@ -321,9 +247,6 @@ static void m3gUnlockArray(const VertexArray *array)
     M3G_ASSERT(array->numLocks > 0);
     
     m3gUnmapObject(M3G_INTERFACE(array), array->data);
-    if (array->compatData) {
-        m3gUnmapObject(M3G_INTERFACE(array), array->compatData);
-    }
     
     --((VertexArray*)array)->numLocks;
 }
@@ -367,23 +290,6 @@ static VertexArray *m3gCloneVertexArray(const VertexArray *array)
             array->vertexCount * array->stride);
     m3gUnmapObject(m3g, clone->data);
     m3gUnmapObject(m3g, array->data);
-
-
-    if (array->elementType == GL_BYTE) {
-        clone->compatData = m3gAllocObject(m3g, array->vertexCount * 2 * array->elementSize);
-        
-        	if (!clone->compatData) {
-                m3gDestroyObject((Object*) clone);
-        		m3gFree(m3g, clone);
-        		return NULL;
-        	}
-        
-        	m3gCopy(m3gMapObject(m3g, clone->compatData),
-                    m3gMapObject(m3g, array->compatData),
-                    array->vertexCount * 2 * array->elementSize);
-            m3gUnmapObject(m3g, clone->compatData);
-            m3gUnmapObject(m3g, array->compatData);
-    }
 
 	return clone;
 }
@@ -757,19 +663,6 @@ M3G_API M3GVertexArray m3gCreateVertexArray(M3GInterface interface,
             void *ptr = m3gMapObject(m3g, array->data);
             m3gZero(ptr, count * array->stride);
             m3gUnmapObject(m3g, array->data);
-        }
-
-        if (type == M3G_BYTE) {
-           array->compatData = m3gAllocObject(m3g, count * size * sizeof(M3Gshort));
-           if (!array->compatData) {
-               m3gFree(m3g, array);
-               return NULL;
-           }
-           else {
-               void *ptr = m3gMapObject(m3g, array->compatData);
-               m3gZero(ptr, count * size * sizeof(M3Gshort));
-               m3gUnmapObject(m3g, array->compatData);
-           } 
         }
 
         m3gInitObject(&array->object, m3g, M3G_CLASS_VERTEX_ARRAY);

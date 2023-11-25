@@ -44,7 +44,6 @@ struct M3GVertexArrayImpl
     GLsizei stride;
 
     M3GMemObject data;
-    M3GMemObject compatData;
     M3Gshort rangeMin, rangeMax;
 
     /*!
@@ -73,7 +72,7 @@ M3G_CT_ASSERT2(sizeof(VertexArray) == sizeof(Object) + 44);
 static void m3gLockColorArray   (const VertexArray *array, M3Gint alphaFactor);
 static void m3gLockNormalArray  (const VertexArray *array);
 static void m3gLockTexCoordArray(const VertexArray *array);
-static void m3gLockVertexArray  (VertexArray *array);
+static void m3gLockVertexArray  (const VertexArray *array);
 static void m3gUnlockArray      (const VertexArray *array);
 
 static M3Gbool m3gCreateAlphaColorCache(VertexArray *array);

@@ -28,7 +28,7 @@
 #include "m3g_defs.h"
 
 #if !(defined(M3G_NGL_CONTEXT_API) || defined(M3G_NGL_TEXTURE_API))
-#   include <GL/gl.h>
+#   include <GLES/gl.h>
 #   include <EGL/egl.h>
 #else
 
@@ -73,6 +73,8 @@ extern "C" {
  *--------------------------------------------------------------------*/
     
 static GLenum m3gGetGLFormat(M3GPixelFormat format);    /* m3g_image.inl */
+static void m3gGLColor(M3Guint argb, GLfixed *dst);     /* m3g_image.c */
+
 
 #if !defined(M3G_NGL_CONTEXT_API)
 static void m3gInitializeEGL(void);     /* m3g_rendercontext.inl */

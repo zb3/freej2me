@@ -736,6 +736,24 @@ static GLenum m3gGetGLMinFilter(M3Genum levelFilter, M3Genum imageFilter)
  * Internal functions
  *--------------------------------------------------------------------*/
 
+/*!
+ * \internal
+ * \brief Converts an internal ARGB color to four GLfixed components
+ */
+static void m3gGLColor(M3Guint argb, GLfixed *dst)
+{
+    GLfixed r, g, b, a;
+        
+    r = (GLfixed)((argb & 0x00FF0000u) >> 16);
+    g = (GLfixed)((argb & 0x0000FF00u) >>  8);
+    b = (GLfixed)( argb & 0x000000FFu       );
+    a = (GLfixed)((argb & 0xFF000000u) >> 24);
+
+    dst[0] = ((r << 8) | r) + (r >> 7);
+    dst[1] = ((g << 8) | g) + (g >> 7);
+    dst[2] = ((b << 8) | b) + (b >> 7);
+    dst[3] = ((a << 8) | a) + (a >> 7);
+}
 
 /*!
  * \internal
@@ -760,9 +778,9 @@ static void m3gBindTextureImage(Image *img, M3Genum levelFilter, M3Genum imageFi
 
     /* Set up OpenGL texture filtering according to our flags */
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+    glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
                     (imageFilter == M3G_FILTER_LINEAR) ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+    glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                     m3gGetGLMinFilter(levelFilter, imageFilter));
     
     M3G_ASSERT_GL;

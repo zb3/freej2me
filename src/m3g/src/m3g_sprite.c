@@ -218,7 +218,7 @@ static M3Gbool m3gGetSpriteCoordinates(Sprite *sprite,
                                        RenderContext *ctx,
                                        const Camera *cam,
                                        const Matrix *toCamera,
-                                       M3Gfloat *vert,
+                                       M3Gint *vert,
                                        M3Gshort *texvert,
                                        Vec4 *eyeSpace,
                                        M3Gshort adjust)
@@ -343,16 +343,15 @@ static M3Gbool m3gGetSpriteCoordinates(Sprite *sprite,
     }
 #endif
     /* Set up positions */
-    // zb3: conversion happened here
-    vert[0 * 3 + 0] = m3gSub(ot.x, x.x);
-    vert[0 * 3 + 1] = m3gAdd(ot.y, y.y);
-    vert[0 * 3 + 2] = ot.z;
+    vert[0 * 3 + 0] = (M3Gint) m3gMul(65536, m3gSub(ot.x, x.x));
+    vert[0 * 3 + 1] = m3gRoundToInt(m3gAdd(m3gMul(65536, m3gAdd(ot.y, y.y)), 0.5f));
+    vert[0 * 3 + 2] = m3gRoundToInt(m3gMul(65536, ot.z));
 
     vert[1 * 3 + 0] = vert[0 * 3 + 0];
-    vert[1 * 3 + 1] = m3gSub(ot.y, y.y);
+    vert[1 * 3 + 1] = (M3Gint) m3gMul(65536, m3gSub(ot.y, y.y));
     vert[1 * 3 + 2] = vert[0 * 3 + 2];
 
-    vert[2 * 3 + 0] = m3gAdd(ot.x, x.x);
+    vert[2 * 3 + 0] = m3gRoundToInt(m3gAdd(m3gMul(65536, m3gAdd(ot.x, x.x)), 0.5f));
     vert[2 * 3 + 1] = vert[0 * 3 + 1];
     vert[2 * 3 + 2] = vert[0 * 3 + 2];
 
@@ -407,7 +406,7 @@ static void m3gSpriteDoRender(Node *self,
 {
     Sprite *sprite = (Sprite *)self;
     M3Gshort texvert[4 * 2];
-    M3Gfloat vert[4 * 3];
+    M3Gint vert[4 * 3];
     Vec4 eyeSpace;
     Image *imagePow2;
     M3G_UNREF(patchIndex);
@@ -454,11 +453,11 @@ static void m3gSpriteDoRender(Node *self,
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glTexCoordPointer(2, GL_SHORT, 0, texvert);
     glEnable(GL_TEXTURE_2D);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,  GL_MODULATE);
+    glTexEnvx(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, (GLfixed) GL_MODULATE);
     m3gBindTextureImage(imagePow2, M3G_FILTER_BASE_LEVEL, M3G_FILTER_NEAREST);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
@@ -476,13 +475,16 @@ static void m3gSpriteDoRender(Node *self,
     m3gApplyCompositingMode(sprite->appearance->compositingMode, ctx);
 
     {
-        // zb3: conversion happened here, assuming alpha factor bits 16
-        glColor4f(1, 1, 1, sprite->totalAlphaFactor / 65536.0 ); // zb3: random
+        GLfixed a = (GLfixed) (0xff * sprite->totalAlphaFactor);
+        a = (a >> (NODE_ALPHA_FACTOR_BITS - 8))
+            + (a >> NODE_ALPHA_FACTOR_BITS)
+            + (a >> (NODE_ALPHA_FACTOR_BITS + 7));
+        glColor4x((GLfixed) 1 << 16, (GLfixed) 1 << 16, (GLfixed) 1 << 16, a);
     }
 
     /* Load vertices */
     glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, vert);
+    glVertexPointer(3, GL_FIXED, 0, vert);
 
     /* Store current matrices, then set up an identity modelview and
      * projection */
@@ -549,8 +551,8 @@ static M3Gbool m3gSpriteRayIntersect(Node *self,
 {
     Sprite *sprite = (Sprite *)self;
     M3Gshort texvert[4 * 2];
-    M3Gfloat vert[4 * 3];
-    M3Gfloat x, y;
+    M3Gint vert[4 * 3];
+    M3Gint x, y;
     Vec4 eyeSpace;
     M3Gfloat distance;
     M3G_UNREF(toGroup);
@@ -584,10 +586,9 @@ static M3Gbool m3gSpriteRayIntersect(Node *self,
     }
 
     /* Do the pick in 2D, formula is from the spec and values are
-       set to zb3: float */
-    
-    x = m3gMul(2, ri->x) - 1;
-    y = 1 - m3gMul(2, ri->y);
+       set to 16.16 fixed point format */
+    x = m3gRoundToInt(m3gMul(2 * 65536, ri->x)) - 65536;
+    y = 65536 - m3gRoundToInt(m3gMul(2 * 65536, ri->y));
 
     if (x >= vert[0 * 3 + 0] && x <= vert[2 * 3 + 0] &&
         y <= vert[0 * 3 + 1] && y >= vert[1 * 3 + 1] ) {

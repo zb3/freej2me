@@ -6,7 +6,7 @@ JAVA_HOME ?= /usr/lib/jvm/java
 
 CFLAGS := -O2 -DM3G_TARGET_LINUX -DM3G_GL_ES_1_1  -fPIC
 CXXFLAGS := $(CFLAGS)
-LDLIBS := -shared -Wl,-soname,libjavam3g.so -lEGL -lGL -lz
+LDLIBS := -shared -Wl,-soname,libjavam3g.so -lEGL -lGLESv1_CM -lz
 INCLUDES := -I$(CURDIR) -I$(CURDIR)/inc -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux
 
 SRCDIR := $(CURDIR)/src

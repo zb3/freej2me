@@ -63,11 +63,6 @@ static M3Gbool m3gReallocateArray(PointerArray *array,
     /* Copy array contents */
     
     if (array->items != NULL) {
-        if (!(array->capacity)) {
-            // zb3: investigate further
-            fprintf(stderr, "realloc fail: gonna segfault\n");
-            fflush(stderr);
-        }
         int i;
         M3G_ASSERT(array->size <= newCapacity);
         

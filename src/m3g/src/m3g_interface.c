@@ -1253,7 +1253,7 @@ static void m3gConfigureGL(Interface *m3g)
     attrib[0] = EGL_SURFACE_TYPE;
     attrib[1] = EGL_PBUFFER_BIT;
     attrib[2] = EGL_RENDERABLE_TYPE;
-    attrib[3] = EGL_OPENGL_BIT;
+    attrib[3] = EGL_OPENGL_ES_BIT;
     attrib[4] = EGL_NONE;
 
     eglChooseConfig(eglGetDisplay(EGL_DEFAULT_DISPLAY),
@@ -1263,12 +1263,12 @@ static void m3gConfigureGL(Interface *m3g)
 
     M3G_ASSERT(numConfigs > 0);
 
-    eglBindAPI(EGL_OPENGL_API);
+    eglBindAPI(EGL_OPENGL_ES_API);
     
     // Create an EGL context
     EGLint contextAttribs[] = {
         EGL_CONTEXT_CLIENT_VERSION, 1,
-        EGL_CONTEXT_MINOR_VERSION, 5,
+        EGL_CONTEXT_MINOR_VERSION, 1,
         EGL_NONE
     };
     
@@ -1276,6 +1276,7 @@ static void m3gConfigureGL(Interface *m3g)
                            config,
                            EGL_NO_CONTEXT,
                            contextAttribs);
+
     attrib[0] = EGL_WIDTH;
     attrib[1] = 2;
     attrib[2] = EGL_HEIGHT;
@@ -1297,6 +1298,7 @@ static void m3gConfigureGL(Interface *m3g)
     */
 
 	info = glGetString(GL_RENDERER);
+
     // on Android this string does not contain "HW", but renderer always(???) hardware
 #ifdef M3G_TARGET_ANDROID
     m3g->supportAntialiasing = M3G_TRUE;
@@ -1657,7 +1659,7 @@ M3G_API M3GInterface m3gCreateInterface(
         m3g->func.releaseFrameBuffer = params->endRenderFunc;
 
         m3g->userContext = params->userContext;
-        
+
         /* Initialize memory allocation failure debugging */
 #       if defined(M3G_DEBUG_OUT_OF_MEMORY)
         {
@@ -1681,7 +1683,7 @@ M3G_API M3GInterface m3gCreateInterface(
 #       if !defined(M3G_NGL_CONTEXT_API)
         /* Before messing with EGL state, check if EGL is already
          * initialized by the calling application. */
-    
+
         if (eglQueryString(eglGetDisplay(EGL_DEFAULT_DISPLAY), EGL_VERSION)) {
             ++m3g->glRefCount;
         }

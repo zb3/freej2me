@@ -123,6 +123,113 @@ static void m3gDestroyLargeImage(Image *img)
     img->large = NULL;
 }
 
+
+static const struct cpal_format_info {
+   GLenum cpal_format;
+   GLenum format;
+   GLenum type;
+   GLuint palette_size;
+   GLuint size;
+} formats[] = {
+   { GL_PALETTE4_RGB8_OES,     GL_RGB,  GL_UNSIGNED_BYTE,           16, 3 },
+   { GL_PALETTE4_RGBA8_OES,    GL_RGBA, GL_UNSIGNED_BYTE,           16, 4 },
+   { GL_PALETTE4_R5_G6_B5_OES, GL_RGB,  GL_UNSIGNED_SHORT_5_6_5,    16, 2 },
+   { GL_PALETTE4_RGBA4_OES,    GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4,  16, 2 },
+   { GL_PALETTE4_RGB5_A1_OES,  GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1,  16, 2 },
+   { GL_PALETTE8_RGB8_OES,     GL_RGB,  GL_UNSIGNED_BYTE,          256, 3 },
+   { GL_PALETTE8_RGBA8_OES,    GL_RGBA, GL_UNSIGNED_BYTE,          256, 4 },
+   { GL_PALETTE8_R5_G6_B5_OES, GL_RGB,  GL_UNSIGNED_SHORT_5_6_5,   256, 2 },
+   { GL_PALETTE8_RGBA4_OES,    GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4, 256, 2 },
+   { GL_PALETTE8_RGB5_A1_OES,  GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, 256, 2 }
+};
+
+
+/**
+ * Get a color/entry from the palette.
+ */
+static GLuint
+get_palette_entry(const struct cpal_format_info *info, const GLubyte *palette,
+                  GLuint index, GLubyte *pixel)
+{
+   memcpy(pixel, palette + info->size * index, info->size);
+   return info->size;
+}
+
+
+/**
+ * Convert paletted texture to color texture.
+ */
+static void
+paletted_to_color(const struct cpal_format_info *info, const GLubyte *palette,
+                  const void *indices, GLuint num_pixels, GLubyte *image)
+{
+   GLubyte *pix = image;
+   GLuint remain, i;
+
+   if (info->palette_size == 16) {
+      /* 4 bits per index */
+      const GLubyte *ind = (const GLubyte *) indices;
+
+      /* two pixels per iteration */
+      remain = num_pixels % 2;
+      for (i = 0; i < num_pixels / 2; i++) {
+         pix += get_palette_entry(info, palette, (ind[i] >> 4) & 0xf, pix);
+         pix += get_palette_entry(info, palette, ind[i] & 0xf, pix);
+      }
+      if (remain) {
+         get_palette_entry(info, palette, (ind[i] >> 4) & 0xf, pix);
+      }
+   }
+   else {
+      /* 8 bits per index */
+      const GLubyte *ind = (const GLubyte *) indices;
+      for (i = 0; i < num_pixels; i++)
+         pix += get_palette_entry(info, palette, ind[i], pix);
+   }
+}
+
+static void glCompressedTexImage2DCompat( GLenum target, GLint level, GLenum internalFormat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid *data ) {
+    if (internalFormat < GL_PALETTE4_RGB8_OES
+	  || internalFormat > GL_PALETTE8_RGB5_A1_OES) {
+        glCompressedTexImage2D( target, level, internalFormat, width, height, border, imageSize, data );
+        return;
+    }
+
+    const struct cpal_format_info *info;
+    info = &formats[internalFormat - GL_PALETTE4_RGB8_OES];
+
+    const GLubyte *indices;
+    /* first image follows the palette */
+    indices = (const GLubyte *) data + info->palette_size * info->size;
+
+    GLint saved_align;
+    glGetIntegerv(GL_UNPACK_ALIGNMENT, &saved_align);
+
+    {
+        GLsizei w, h;
+        GLuint num_texels;
+        GLubyte *image = NULL;
+
+        w = width;
+        h = height;
+        num_texels = w * h;
+        if (w * info->size % saved_align) {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        }
+
+        /* allocate and fill dest image buffer */
+        if (data) {
+            image = malloc(num_texels * info->size);
+            paletted_to_color(info, data, indices, num_texels, image);
+        }
+
+        glTexImage2D(target, 0, info->format, w, h, 0,
+                        info->format, info->type, image);
+        free(image);
+    }
+    
+}
+
 /*!
  * \internal
  * \brief Binds an image as an OpenGL texture object
@@ -175,7 +282,7 @@ static void m3gBindTextureObject(Image *img, M3Gbool mipmap)
                 M3G_ASSERT(img->glFormat == GL_PALETTE8_RGBA8_OES
                     || img->glFormat == GL_PALETTE8_RGB8_OES);
                 M3G_ASSERT(mipmap == M3G_FALSE);
-                glCompressedTexImage2D(GL_TEXTURE_2D,
+                glCompressedTexImage2DCompat(GL_TEXTURE_2D,
                                        0,
                                        img->glFormat,
                                        img->width, img->height,

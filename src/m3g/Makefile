@@ -2,7 +2,7 @@ CC := gcc
 CXX := g++
 LD := $(CXX)
 
-JAVA_HOME ?= /usr/lib/jvm/java
+JAVA_HOME=$(shell readlink -f /usr/bin/javac | sed "s:bin/javac::")
 
 CFLAGS := -O2 -DM3G_TARGET_LINUX -DM3G_GL_ES_1_1  -fPIC
 CXXFLAGS := $(CFLAGS)

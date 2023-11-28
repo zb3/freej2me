@@ -1,7 +1,7 @@
 CC := gcc
 LD := $(CC)
 
-JAVA_HOME ?= /usr/lib/jvm/java
+JAVA_HOME=$(shell readlink -f /usr/bin/javac | sed "s:bin/javac::")
 
 CFLAGS := -O2 -fPIC
 LDLIBS := -shared -Wl,-soname,libffaudio.so -lavformat -lavcodec -lswresample

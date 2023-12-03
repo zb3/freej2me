@@ -28,6 +28,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
 import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioSystem;
 
 public class FreeJ2ME
 {
@@ -322,7 +323,14 @@ public class FreeJ2ME
 
 		String sound = config.settings.get("sound");
 		Mobile.sound = false;
-		if(sound.equals("on")) { Mobile.sound = true; }
+		if(sound.equals("on")) { 
+			if (AudioSystem.getMixerInfo().length > 0) {
+				Mobile.sound = true;
+			} else {
+				System.out.println("no audio devices found");
+			}
+
+		}
 
 		String phone = config.settings.get("phone");
 		useNokiaControls = false;

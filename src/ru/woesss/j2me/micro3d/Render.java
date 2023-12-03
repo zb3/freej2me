@@ -26,6 +26,7 @@ import java.awt.AlphaComposite;
 
 import com.mascotcapsule.micro3d.v3.Graphics3D;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.LinkedList;
@@ -508,7 +509,8 @@ public class Render extends ClassWithNatives {
 			program.setLight(node.light);
 			program.setToonShading(node.attrs, node.toonThreshold, node.toonHigh, node.toonLow);
 
-			_glVertexAttribPointerf(program.aNormal, 3, false, 3 * 4, node.normals.rewind());
+			((Buffer)node.normals).rewind();
+			_glVertexAttribPointerf(program.aNormal, 3, false, 3 * 4, node.normals);
 			_glEVAA(program.aNormal);
 		} else {
 			_glVertexAttrib2f(program.aMaterial, 0, 0);
@@ -518,13 +520,15 @@ public class Render extends ClassWithNatives {
 
 		program.bindMatrices(MVP_TMP, node.viewMatrix);
 
-		_glVertexAttribPointerf(program.aPosition, 3, false, 3 * 4, node.vertices.rewind());
+		((Buffer)node.vertices).rewind();
+		_glVertexAttribPointerf(program.aPosition, 3, false, 3 * 4, node.vertices);
 		_glEVAA(program.aPosition);
 
 		if ((command & PDATA_COLOR_MASK) == Graphics3D.PDATA_COLOR_PER_COMMAND) {
 			program.setColor(node.colors);
 		} else {
-			_glVertexAttribPointerb(program.aColorData, 3, true, 3, node.colors.rewind());
+			((Buffer)node.colors).rewind();
+			_glVertexAttribPointerb(program.aColorData, 3, true, 3, node.colors);
 			_glEVAA(program.aColorData);
 		}
 
@@ -551,7 +555,8 @@ public class Render extends ClassWithNatives {
 			program.setLight(node.light);
 			program.setToonShading(node.attrs, node.toonThreshold, node.toonHigh, node.toonLow);
 
-			_glVertexAttribPointerf(program.aNormal, 3, false, 3 * 4, node.normals.rewind());
+			((Buffer)node.normals).rewind();
+			_glVertexAttribPointerf(program.aNormal, 3, false, 3 * 4, node.normals);
 			_glEVAA(program.aNormal);
 		} else {
 			_glVertexAttrib3f(program.aMaterial, 0, 0, command & Graphics3D.PATTR_COLORKEY);
@@ -561,10 +566,12 @@ public class Render extends ClassWithNatives {
 
 		program.bindMatrices(MVP_TMP, node.viewMatrix);
 
-		_glVertexAttribPointerf(program.aPosition, 3, false, 3 * 4, node.vertices.rewind());
+		((Buffer)node.vertices).rewind();
+		_glVertexAttribPointerf(program.aPosition, 3, false, 3 * 4, node.vertices);
 		_glEVAA(program.aPosition);
 
-		_glVertexAttribPointerb(program.aColorData, 2,  false, 2, node.texCoords.rewind());
+		((Buffer)node.texCoords).rewind();
+		_glVertexAttribPointerb(program.aColorData, 2,  false, 2, node.texCoords);
 		_glEVAA(program.aColorData);
 
 		program.setTex(node.texture);
@@ -911,7 +918,6 @@ public class Render extends ClassWithNatives {
 				break;
 			}
 			case Graphics3D.PRIMITVE_POINT_SPRITES: {
-				System.out.println("log: primitive psprites");
 				if (env.getTexture() == null) {
 					return;
 				}
@@ -1149,10 +1155,12 @@ public class Render extends ClassWithNatives {
 				Program.Sprite program = Program.sprite;
 				program.use();
 
-				_glVertexAttribPointerf(program.aPosition, 4, false, 4 * 4, node.vertices.rewind());
+				((Buffer)node.vertices).rewind();
+				_glVertexAttribPointerf(program.aPosition, 4, false, 4 * 4, node.vertices);
 				_glEVAA(program.aPosition);
 
-				_glVertexAttribPointerb(program.aColorData, 2, false, 2, node.texCoords.rewind());
+				((Buffer)node.texCoords).rewind();
+				_glVertexAttribPointerb(program.aColorData, 2, false, 2, node.texCoords);
 				_glEVAA(program.aColorData);
 
 				program.setTexture(node.texture);
@@ -1180,7 +1188,8 @@ public class Render extends ClassWithNatives {
 		if ((node.command & PDATA_COLOR_MASK) == Graphics3D.PDATA_COLOR_PER_COMMAND) {
 			program.setColor(node.colors);
 		} else {
-			_glVertexAttribPointerb(program.aColorData, 3, true, 3, node.colors.rewind());
+			((Buffer)node.colors).rewind();
+			_glVertexAttribPointerb(program.aColorData, 3, true, 3, node.colors);
 			_glEVAA(program.aColorData);
 		}
 

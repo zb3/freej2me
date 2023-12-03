@@ -16,6 +16,7 @@
 
 package ru.woesss.j2me.micro3d;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 class TextureData {
@@ -30,7 +31,7 @@ class TextureData {
 	}
 
 	ByteBuffer getRaster() {
-		raster.rewind();
+		((Buffer)raster).rewind();
 		return raster;
 	}
 }

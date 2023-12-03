@@ -18,6 +18,7 @@ package ru.woesss.j2me.micro3d;
 
 import com.mascotcapsule.micro3d.v3.Graphics3D;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 
@@ -156,7 +157,7 @@ abstract class Program extends ClassWithNatives {
 		}
 
 		void setColor(ByteBuffer rgb) {
-			rgb.rewind();
+			((Buffer)rgb).rewind();
 			float r = (rgb.get() & 0xff) / 255.0f;
 			float g = (rgb.get() & 0xff) / 255.0f;
 			float b = (rgb.get() & 0xff) / 255.0f;

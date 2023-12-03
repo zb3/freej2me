@@ -18,6 +18,7 @@ package ru.woesss.j2me.micro3d;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
@@ -122,7 +123,7 @@ class Loader {
 			throw new RuntimeException("Unexpected vertexFormat: " + vertexFormat);
 		}
 		loader.clearCache();
-		model.originalVertices.rewind();
+		((Buffer)model.originalVertices).rewind();
 
 		if (normalFormat != 0) {
 			FloatBuffer normals = BufferUtils.createFloatBuffer(numVertices * 3);
@@ -143,7 +144,7 @@ class Loader {
 			} else {
 				throw new RuntimeException("Unsupported normalFormat: " + normalFormat);
 			}
-			normals.rewind();
+			((Buffer)normals).rewind();
 			model.originalNormals = normals;
 			int len = numVertices * 3 + 3;
 			model.normals = BufferUtils.createFloatBuffer(len);
@@ -710,7 +711,7 @@ class Loader {
 
 			boneVertexSum += boneVertices;
 		}
-		bones.rewind();
+		((Buffer)bones).rewind();
 		return boneVertexSum;
 	}
 

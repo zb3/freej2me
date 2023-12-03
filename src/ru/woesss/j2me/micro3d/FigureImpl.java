@@ -17,6 +17,7 @@
 package ru.woesss.j2me.micro3d;
 
 import java.io.IOException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
@@ -119,7 +120,7 @@ public class FigureImpl {
 
 	private void fillTexCoordBuffer() {
 		ByteBuffer buffer = model.texCoordArray;
-		buffer.rewind();
+		((Buffer)buffer).rewind();
 		for (Model.Polygon poly : model.polygonsT) {
 			buffer.put(poly.texCoords);
 			poly.texCoords = null;
@@ -128,7 +129,7 @@ public class FigureImpl {
 			buffer.put(poly.texCoords);
 			poly.texCoords = null;
 		}
-		buffer.rewind();
+		((Buffer)buffer).rewind();
 	}
 
 	public final void dispose() {

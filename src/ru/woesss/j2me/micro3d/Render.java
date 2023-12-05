@@ -1182,7 +1182,8 @@ public class Render extends ClassWithNatives {
 		_glVertexAttrib2f(program.aMaterial, 0, 0);
 		program.bindMatrices(MVP_TMP, node.viewMatrix);
 
-		_glVertexAttribPointerf(program.aPosition, 3, false, 3 * 4, node.vertices.rewind());
+		((Buffer)node.vertices).rewind();
+		_glVertexAttribPointerf(program.aPosition, 3, false, 3 * 4, node.vertices);
 		_glEVAA(program.aPosition);
 
 		if ((node.command & PDATA_COLOR_MASK) == Graphics3D.PDATA_COLOR_PER_COMMAND) {

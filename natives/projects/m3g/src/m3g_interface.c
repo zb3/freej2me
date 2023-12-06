@@ -1688,13 +1688,12 @@ M3G_API M3GInterface m3gCreateInterface(
         /* Before messing with EGL state, check if EGL is already
          * initialized by the calling application. */
 
-        fprintf(stderr, "which eglQueryString? %p\n", eglQueryString);
-        fprintf(stderr, "kkoko: %s\n", eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS));
-        fflush(stderr);
+        #ifndef IS_WRANGLE
 
-        //if (eglQueryString(eglGetDisplay(EGL_DEFAULT_DISPLAY), EGL_VERSION)) {
-        //    ++m3g->glRefCount;
-        //}
+        if (eglQueryString(eglGetDisplay(EGL_DEFAULT_DISPLAY), EGL_VERSION)) {
+            ++m3g->glRefCount;
+        }
+        #endif
 
 #       endif /*!M3G_NGL_CONTEXT_API*/
         

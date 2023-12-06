@@ -19,7 +19,9 @@ That's why it's highly recommended to run this in a sandboxed environment, the e
 
 
 ## Let's play
-... binaries coming soon ...
+You can download prebuilt JARs with dependencies from the [Releases page](https://github.com/zb3/freej2me/releases)
+
+Have fun :)
 
 ## Building
 

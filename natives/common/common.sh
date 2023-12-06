@@ -80,8 +80,8 @@ elif [[ $variant == "macos-"* ]]; then
         
 
     elif [ "$variant" = "macos-arm64" ]; then
-        export HOST=aarch64-apple-darwin
-        export CROSS_COMPILE=/usr/bin/$HOST-
+        export HOST=aarch64-apple-${DARWIN_VERSION}
+        export CROSS_COMPILE=/osxcross/target/bin/$HOST-
 
         host_arch=aarch64
     fi

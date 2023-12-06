@@ -24,6 +24,7 @@ import java.util.jar.JarFile;
  * b) We can't modify java.library.path, not in an official, forward-compatible manner..
  */
 public class NativeLoader {
+    private static String TAG = "NativeLoader";
     private static String libraryDir = null;
     private static Set<String> loadedLibraries = new HashSet<>();
 
@@ -48,10 +49,9 @@ public class NativeLoader {
             }
 
             String sourceLibraryDir = String.format("natives/%s-%s", osName, arch);
-            System.out.println("sourcelibrarydir "+sourceLibraryDir);
+            File tempDir = createTempDirectory(osName.equals("windows"));
 
-            File tempDir = createTempDirectory();
-            System.out.println("created temp dir, path is "+tempDir);
+            System.out.println(TAG+": extracting native libraries to "+tempDir);
 
             extract(sourceLibraryDir, tempDir);
 
@@ -86,18 +86,26 @@ public class NativeLoader {
         loadedLibraries.add(libraryName);
     }
 
-    private static File createTempDirectory() {
-        File tempDir = new File(System.getProperty("java.io.tmpdir"), "freej2me-" + System.nanoTime());
-        if (!tempDir.mkdir()) {
+    private static File createTempDirectory(boolean isWindows) {
+        // on Windows, we can't delete the directory on exit because the dll files
+        // are still loaded.. so we use a persistent location to avoid flooding the temp directory
+
+        String dirName = isWindows ? "freej2me-natives-tmp" : "freej2me-" + System.nanoTime();
+
+        File tempDir = new File(System.getProperty("java.io.tmpdir"), dirName);
+        if (!tempDir.exists() && !tempDir.mkdir()) {
             throw new RuntimeException("Failed to create a temporary directory");
         }
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                NativeLoader.deleteDirectory(tempDir);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }));
+
+        if (!isWindows) {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    NativeLoader.deleteDirectory(tempDir);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }));
+        }
         return tempDir;
     }
 
@@ -129,12 +137,22 @@ public class NativeLoader {
                         Files.createDirectories(entryDest);
                     } else {
                         Files.createDirectories(entryDest.getParent());
+
                         try (InputStream is = jar.getInputStream(entry);
                              OutputStream os = Files.newOutputStream(entryDest)) {
                             byte[] buffer = new byte[4096];
                             int bytesRead;
                             while ((bytesRead = is.read(buffer)) != -1) {
                                 os.write(buffer, 0, bytesRead);
+                            }
+                        } catch (FileSystemException e) {
+                            // on Windows this might fail when there's another
+                            // instance of freej2me running.
+                            // so if the file already exists, let it be.
+                            if (!Files.exists(entryDest)) {
+                                throw e;
+                            } else {
+                                System.out.println(TAG+": assuming another instance is running");
                             }
                         }
                     }

@@ -1,6 +1,17 @@
 <project name="FreeJ2ME">
 	<echo message="Building FreeJ2ME" />
 
+	<property name="variant" value="linux-${os.arch}" />
+
+    <available file="natives/dist/${variant}" property="natives.exist" />
+    <fail message="Build natives for ${variant} first or specify a different variant via -Dvariant=variant.">
+        <condition>
+            <not>
+                <isset property="natives.exist" />
+            </not>
+        </condition>
+    </fail>
+
 
 <!--
 ****************************************************
@@ -16,26 +27,12 @@
 		includeantruntime="false"
 		debug="true"
 		debuglevel="lines,vars,source"
+		target="1.8" 
 	>
 	<compilerarg value="-Xlint:unchecked"/>
 	<compilerarg value="-Xlint:deprecation"/>
 	</javac>
 
-<!--
-****************************************************
-*    Natives
-****************************************************
--->
-	<mkdir dir="natives/${os.name}/${os.arch}"/>
-
-	<exec executable="make" dir="src/m3g" failonerror="true"/>
-	<copy file="src/m3g/libjavam3g.so" todir="natives/${os.name}/${os.arch}" overwrite="true"/>
-
-	<exec executable="make" dir="src/micro3d" failonerror="true"/>
-	<copy file="src/micro3d/libmicro3d.so" todir="natives/${os.name}/${os.arch}" overwrite="true"/>
-
-	<exec executable="make" dir="src/ffaudio" failonerror="true"/>
-	<copy file="src/ffaudio/libffaudio.so" todir="natives/${os.name}/${os.arch}" overwrite="true"/>
 
 <!--
 ****************************************************
@@ -45,10 +42,10 @@
 
 	<echo message="Building JAR - AWT" />
 	<jar
-		destfile="build/freej2me.jar"
+		destfile="build/freej2me-${variant}.jar"
 		basedir="build/classes">
 		<fileset dir="resources" />
-		<fileset dir="." includes="natives/**" />
+		<zipfileset dir="natives/dist/${variant}" prefix="natives/${variant}/"/>
 		<metainf dir="META-INF" />
 		<manifest>
 			<!-- AWT Version -->

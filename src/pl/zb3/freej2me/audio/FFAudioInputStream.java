@@ -6,7 +6,7 @@ import java.io.InputStream;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 
-import pl.zb3.NativeLoader;
+import pl.zb3.freej2me.NativeLoader;
 
 /*
 import java.io.*;

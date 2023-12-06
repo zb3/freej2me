@@ -1,0 +1,9 @@
+prefix={{PREFIX}}
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: angle
+Description: angle GLES library
+Version: 1.0.0
+Cflags: -I${includedir}/angle
+Libs: -L${libdir} ${libdir}/libGLESv2.{{SOEXT}}

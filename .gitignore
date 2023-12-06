@@ -1,5 +1,6 @@
 build/
 *.o
-*.so
 config/
 /rms/
+/natives/dist
+/natives/temp

@@ -1,0 +1,10 @@
+prefix={{PREFIX}}
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: wrangle
+Description: wrangle angle loading library
+Version: 1.0.0
+Requires: angle >= 1.0
+Cflags: -I${includedir}/
+Libs: -L${libdir} ${libdir}/libwrangle.{{SOEXT}}

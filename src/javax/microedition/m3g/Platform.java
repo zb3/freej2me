@@ -24,7 +24,7 @@ package javax.microedition.m3g;
 import javax.microedition.lcdui.Graphics;
 import javax.microedition.lcdui.Image;
 
-import pl.zb3.NativeLoader;
+import pl.zb3.freej2me.NativeLoader;
 
 /**
  * Implements platform-dependent functionality. At the moment, this

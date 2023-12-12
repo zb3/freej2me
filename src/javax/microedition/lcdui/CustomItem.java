@@ -16,6 +16,9 @@
 */
 package javax.microedition.lcdui;
 
+import java.awt.event.KeyEvent;
+
+import org.recompile.mobile.PlatformGraphics;
 
 public abstract class CustomItem extends Item
 {
@@ -49,7 +52,9 @@ public abstract class CustomItem extends Item
 
 	protected void hideNotify() { }
 
-	protected final void invalidate() { }
+	protected final void invalidate() {
+		super.invalidate();
+	}
 
 	protected void keyPressed(int keyCode) { }
 
@@ -65,16 +70,34 @@ public abstract class CustomItem extends Item
 
 	protected void pointerReleased(int x, int y) { }
 
-	protected final void repaint() { }
+	protected final void repaint() { this._invalidateContents(); }
 
-	protected final void repaint(int x, int y, int w, int h) { }
+	protected final void repaint(int x, int y, int w, int h) { this._invalidateContents(); }
 
 	protected void showNotify() { }
 
 	protected void sizeChanged(int w, int h) { }
 
-	protected boolean traverse(int dir, int viewportWidth, int viewportHeight, int[] visRect_inout) { return true; }
+	protected int getContentHeight(int width) {
+		return this.getPrefContentHeight(width);
+	}
 
-	protected void traverseOut() { }
+	protected void renderItem(PlatformGraphics gc, int x, int y, int width, int height) {
+		// TODO: possibly we'd need to save/restore much more
+
+		int color = gc.getColor();
+		gc.getGraphics2D().translate(x, y);
+		paint(gc, width, height);
+		gc.getGraphics2D().translate(-x, -y);
+		gc.setColor(color);
+	}
+
+	protected boolean keyPressed(int key, int platKey, KeyEvent keyEvent) { 
+		keyPressed(platKey);
+
+		// don't allow "preventDefault"
+		return false;
+	}
+
 
 }

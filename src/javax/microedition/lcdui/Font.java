@@ -32,6 +32,7 @@ public final class Font
 	public static final int SIZE_MEDIUM = 0;
 	public static final int SIZE_SMALL = 8;
 	public static final int SIZE__INTERNAL_UI = 64;
+	public static final int SIZE__INTERNAL_UI_LARGE = 128;
 
 	public static final int STYLE_BOLD = 1;
 	public static final int STYLE_ITALIC = 2;
@@ -122,7 +123,8 @@ public final class Font
 	{
 		switch(size)
 		{
-			case SIZE__INTERNAL_UI: return 12; // todo: remove this exception
+			case SIZE__INTERNAL_UI: return 12; // todo: maybe remove these exceptions?
+			case SIZE__INTERNAL_UI_LARGE: return 14;
 			case SIZE_LARGE  : return fontSizes[3*screenType + 2];
 			case SIZE_MEDIUM : return fontSizes[3*screenType + 1];
 			case SIZE_SMALL  :

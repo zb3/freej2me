@@ -195,43 +195,15 @@ public class Config
 		Mobile.getPlatform().painter.run();
 	}
 
-	public void keyPressed(int key)
+	public void keyPressed(int platKey)
 	{
+		int key = Mobile.normalizeKey(platKey);
 		switch(key)
 		{
-			case Mobile.KEY_NUM2: itemid--; break;
-			case Mobile.KEY_NUM8: itemid++; break;
-			case Mobile.KEY_NUM5: doMenuAction(); break;
-			default:
-				if(settings.get("phone").equals("Nokia") || settings.get("phone").equals("SonyEricsson"))
-				{
-					switch(key)
-					{
-						case Mobile.NOKIA_UP: itemid--; break;
-						case Mobile.NOKIA_DOWN: itemid++; break;
-						case Mobile.NOKIA_SOFT1: menuid=0; break;
-						case Mobile.NOKIA_SOFT3: doMenuAction(); break;
-					}
-				}
-				if(settings.get("phone").equals("Siemens"))
-				{
-					switch(key)
-					{
-						case Mobile.SIEMENS_UP: itemid--; break;
-						case Mobile.SIEMENS_DOWN: itemid++; break;
-						case Mobile.SIEMENS_SOFT1: menuid=0; break;
-					}
-				}
-				if(settings.get("phone").equals("Motorola"))
-				{
-					switch(key)
-					{
-						case Mobile.MOTOROLA_UP: itemid--; break;
-						case Mobile.MOTOROLA_DOWN: itemid++; break;
-						case Mobile.MOTOROLA_SOFT1: menuid=0; break;
-						case Mobile.MOTOROLA_FIRE: doMenuAction(); break;
-					}
-				}
+			case Mobile.NOKIA_UP: itemid--; break;
+			case Mobile.NOKIA_DOWN: itemid++; break;
+			case Mobile.NOKIA_SOFT1: menuid=0; break;
+			case Mobile.NOKIA_SOFT3: doMenuAction(); break;
 		}
 		if (menuid<0) { menuid=0; itemid=0; }
 		if (itemid>=menu.get(menuid).length) { itemid = menu.get(menuid).length-1; }

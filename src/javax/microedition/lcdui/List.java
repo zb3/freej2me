@@ -20,6 +20,7 @@ import org.recompile.mobile.Mobile;
 import org.recompile.mobile.PlatformImage;
 import org.recompile.mobile.PlatformGraphics;
 
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
 public class List extends Screen implements Choice
@@ -37,16 +38,11 @@ public class List extends Screen implements Choice
 	{
 		setTitle(title);
 		type = listType;
-
-		platformImage = new PlatformImage(width, height);
-
-		render();
 	}
 
 	public List(String title, int listType, String[] stringElements, Image[] imageElements)
 	{
-		setTitle(title);
-		type = listType;
+		this(title, listType);
 
 		for(int i=0; i<stringElements.length; i++)
 		{
@@ -59,9 +55,6 @@ public class List extends Screen implements Choice
 				items.add(new StringItem(stringElements[i], stringElements[i]));
 			}
 		}
-
-		platformImage = new PlatformImage(width, height);
-		render();
 	}
 
 	public int append(String stringPart, Image imagePart)
@@ -74,7 +67,7 @@ public class List extends Screen implements Choice
 			{
 				items.add(new StringItem(stringPart, stringPart));
 			}
-			render();
+			_invalidate();
 			return items.size()-1;
 	}
 
@@ -85,10 +78,10 @@ public class List extends Screen implements Choice
 			items.remove(elementNum);
 		}
 		catch (Exception e) { }
-		render();
+		_invalidate();
 	}
 
-	public void deleteAll() { items.clear(); render(); }
+	public void deleteAll() { items.clear(); _invalidate(); }
 
 	public int getFitPolicy() { return fitPolicy; }
 
@@ -116,7 +109,7 @@ public class List extends Screen implements Choice
 
 	public void insert(int elementNum, String stringPart, Image imagePart)
 	{
-		if(elementNum<items.size() && elementNum>0)
+		if(elementNum<items.size() && elementNum>=0)
 		{
 			try
 			{
@@ -128,6 +121,7 @@ public class List extends Screen implements Choice
 				{
 					items.add(elementNum, new StringItem(stringPart, stringPart));
 				}
+				_invalidate();
 			}
 			catch(Exception e)
 			{
@@ -138,7 +132,6 @@ public class List extends Screen implements Choice
 		{
 			append(stringPart, imagePart);
 		}
-		render();
 	}
 
 	public boolean isSelected(int elementNum) { return elementNum==currentItem; }
@@ -175,7 +168,7 @@ public class List extends Screen implements Choice
 		{
 			currentItem = 0;
 		}
-		render();
+		_invalidate();
 	}
 
 	//void setTicker(Ticker ticker)
@@ -188,23 +181,27 @@ public class List extends Screen implements Choice
 		Draw list, handle input
 	*/
 
-	public void keyPressed(int key)
+	public boolean screenKeyPressed(int key, int platKey, KeyEvent keyEvent)
 	{
-		if(items.size()<1) { return; }
-		switch(key)
-		{
-			case Mobile.KEY_NUM2: currentItem--; break;
-			case Mobile.KEY_NUM8: currentItem++; break;
-			case Mobile.NOKIA_UP: currentItem--; break;
-			case Mobile.NOKIA_DOWN: currentItem++; break;
-			case Mobile.NOKIA_SOFT1: doLeftCommand(); break;
-			case Mobile.NOKIA_SOFT2: doRightCommand(); break;
-			case Mobile.NOKIA_SOFT3: doDefaultCommand(); break;
-			case Mobile.KEY_NUM5: doDefaultCommand(); break;
+		if(items.size()<1) { return false; }
+		boolean handled = true;
+
+		if (key == Mobile.NOKIA_UP) {
+			currentItem--;
+		} else if (key == Mobile.NOKIA_DOWN) {
+			currentItem++;
+		} else {
+			handled = false;
 		}
+
 		if (currentItem>=items.size()) { currentItem=0; }
 		if (currentItem<0) { currentItem = items.size()-1; }
-		render();
+
+		if (handled) {
+			_invalidate();
+		}
+
+		return handled;		
 	}
 
 	protected void doDefaultCommand()
@@ -215,21 +212,22 @@ public class List extends Screen implements Choice
 		}
 	}
 
-	public void notifySetCurrent()
-	{
-		render();
-	}
-
-	public String renderItems(int x, int y, int width, int height)
+	public String renderScreen(int x, int y, int width, int height)
 	{		
-		PlatformGraphics gc = platformImage.getGraphics();
-
+		
 		if(items.size()>0)
 		{
 			if(currentItem<0) { currentItem = 0; }
-			// Draw list items //
-			int ah = height - 10; // allowed height
-			int max = (int)Math.floor(ah / 15); // max items per page
+
+
+
+			int listPadding = uiLineHeight/5;
+			int itemHeight = uiLineHeight;
+			int imagePadding = listPadding;
+
+			int ah = height - 2*listPadding; // allowed height
+			int max = (int)Math.floor(ah / itemHeight); // max items per page			
+
 			if(items.size()<max) { max = items.size(); }
 		
 			int page = 0;
@@ -239,15 +237,17 @@ public class List extends Screen implements Choice
 
 			if(last>=items.size()) { last = items.size()-1; }
 			
-			y += 5;
+			y += listPadding;
 			for(int i=first; i<=last; i++)
 			{	
 				if(currentItem == i)
 				{
-					gc.fillRect(x,y,width,15);
+					gc.fillRect(x, y, width, itemHeight);
 					gc.setColor(0xFFFFFF);
 				}
+
 				gc.drawString(items.get(i).getLabel(), width/2, y, Graphics.HCENTER);
+
 				if(items.get(i) instanceof StringItem)
 				{
 					gc.drawString(((StringItem)items.get(i)).getText(), x+width/2, y, Graphics.HCENTER);
@@ -256,10 +256,10 @@ public class List extends Screen implements Choice
 				gc.setColor(0x000000);
 				if(items.get(i) instanceof ImageItem)
 				{
-					gc.drawImage(((ImageItem)items.get(i)).getImage(), x+width/2, y, Graphics.HCENTER);
+					gc.drawImage(((ImageItem)items.get(i)).getImage(), x+imagePadding, y, Graphics.HCENTER);
 				}
 				
-				y+=15;
+				y += itemHeight;
 			}
 		}
 

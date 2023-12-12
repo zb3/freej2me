@@ -106,6 +106,58 @@ public class Mobile
 	public static final int MOTOROLA_SOFT2 = -22; 
 	public static final int MOTOROLA_FIRE = -20; 
 
+	// interaction with internal UI shouldn't depend on the keyset used
+	// but only one key code is passed, so we need to convert it
+	public static int normalizeKey(int key) {
+		if (key == KEY_NUM2) {
+			return NOKIA_UP;
+		} else if (key == KEY_NUM8) {
+			return NOKIA_DOWN;
+		} else if (key == KEY_NUM4) {
+			return NOKIA_LEFT;
+		} else if (key == KEY_NUM6) {
+			return NOKIA_RIGHT;
+		} else if (key == KEY_NUM5) {
+			return NOKIA_SOFT3;
+		}
+
+		if (siemens) {
+			if (key == SIEMENS_UP) {
+				key = NOKIA_UP;
+			} else if (key == SIEMENS_DOWN) {
+				key = NOKIA_DOWN;
+			} else if (key == SIEMENS_LEFT) {
+				key = NOKIA_LEFT;
+			} else if (key == SIEMENS_RIGHT) {
+				key = NOKIA_RIGHT;
+			} else if (key == SIEMENS_SOFT1) {
+				key = NOKIA_SOFT1;
+			} else if (key == SIEMENS_SOFT2) {
+				key = NOKIA_SOFT2;
+			} else if (key == SIEMENS_FIRE) {
+				key = NOKIA_SOFT3;
+			}
+		} else if (motorola) {
+			if (key == MOTOROLA_UP) {
+				key = NOKIA_UP;
+			} else if (key == MOTOROLA_DOWN) {
+				key = NOKIA_DOWN;
+			} else if (key == MOTOROLA_LEFT) {
+				key = NOKIA_LEFT;
+			} else if (key == MOTOROLA_RIGHT) {
+				key = NOKIA_RIGHT;
+			} else if (key == MOTOROLA_SOFT1) {
+				key = NOKIA_SOFT1;
+			} else if (key == MOTOROLA_SOFT2) {
+				key = NOKIA_SOFT2;
+			} else if (key == MOTOROLA_FIRE) {
+				key = NOKIA_SOFT3;
+			}
+		}
+
+		return key;
+	}
+
 	public static MobilePlatform getPlatform()
 	{
 		return platform;

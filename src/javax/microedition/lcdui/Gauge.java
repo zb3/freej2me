@@ -16,6 +16,7 @@
 */
 package javax.microedition.lcdui;
 
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
 import org.recompile.mobile.Mobile;
@@ -34,26 +35,16 @@ public class Gauge extends Item
 
 	private boolean interactive;
 	private int maxValue;
-	private int initialValue;
 	private int value;
-
-	//private ArrayList<Command> commands;
-	private Command defaultCommand;
-
-	private ItemCommandListener listener;
 
 
 	public Gauge(String label, boolean isInteractive, int maxvalue, int initialvalue)
 	{
-		System.out.println("Create Gauge");
 		setLabel(label);
 		interactive = isInteractive;
 		maxValue = maxvalue;
-		initialValue = initialvalue;
+		value = initialvalue;
 	}
-
-
-	//public void addCommand(Command cmd) { commands.add(cmd); }
 
 	public int getMaxValue() { return maxValue; }
 
@@ -61,12 +52,72 @@ public class Gauge extends Item
 
 	public boolean isInteractive() { return interactive; }
 
-	public void setDefaultCommand(Command cmd) { defaultCommand = cmd; }
+	public void setMaxValue(int maxvalue) { 
+		if (maxvalue < 0) {
+			maxvalue = 0;
+		}
 
-	public void setItemCommandListener(ItemCommandListener l) { listener = l; }
+		maxValue = maxvalue;
+	
+		if (value > maxValue) {
+			value = maxValue;
+		}
+		_invalidateContents();
+	}
 
-	public void setMaxValue(int maxvalue) { maxValue = maxvalue; }
+	public void setValue(int newValue) { 
+		if (newValue < 0) {
+			newValue = 0;
+		}
+		if (newValue > maxValue) {
+			newValue = maxValue;
+		}
+		value = newValue;
+		_invalidateContents();
+	}
 
-	public void setValue(int newvalue) { value = newvalue; }
+	protected int getContentHeight(int width) {
+		return lineHeight + lineHeight/5; // padding
+	}
+
+	protected boolean keyPressed(int key, int platKey, KeyEvent keyEvent) { 
+		boolean handled = true;
+
+		if (key == Mobile.NOKIA_LEFT && value > 0) {
+			value--;
+		} else if (key == Mobile.NOKIA_RIGHT && value < maxValue) {
+			value++;
+		} else {
+			handled = false;
+		}
+
+		if (handled) {
+			notifyStateChanged();
+			_invalidateContents();
+		}
+
+		return handled;
+	}
+
+	protected void renderItem(PlatformGraphics gc, int x, int y, int width, int height) {
+		gc.getGraphics2D().translate(x, y);
+		
+
+		int arrowSpacing = _drawArrow(gc, -1,  value > 0, 0, 0, width, lineHeight);
+
+		gc.setColor(0x000000);
+		gc.drawRect(arrowSpacing, 0, width-2*arrowSpacing, lineHeight);
+
+		int barWidth = maxValue == 0 ? 0 : ((value * (width-2*arrowSpacing))/maxValue);
+
+		gc.fillRect(arrowSpacing, 0, barWidth, lineHeight);
+		
+		_drawArrow(gc, 1,  value < maxValue, 0, 0, width, lineHeight);
+	
+	
+		gc.getGraphics2D().translate(-x, -y);
+	}
+
+
 
 }

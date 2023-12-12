@@ -22,6 +22,7 @@ import org.recompile.mobile.PlatformGraphics;
 
 import java.util.ArrayList;
 import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
 
 
 public class Form extends Screen
@@ -30,8 +31,10 @@ public class Form extends Screen
 	public ItemStateListener listener;
 
 	int focusedItem = 0;
+	boolean focusedItemNeedsTraverse = false;
 	boolean needsLayout = true;
 	int scrollY = 0;
+	int itemContentWidth;
 	Rectangle[] itemBounds = null;
 	int clientHeight;
 	int scrollHeight = 0;
@@ -39,46 +42,90 @@ public class Form extends Screen
 	public Form(String title)
 	{
 		setTitle(title);
-		platformImage = new PlatformImage(width, height);
-		render();
 	}
 
 	public Form(String title, Item[] itemarray)
 	{
 		setTitle(title);
 
-		if (items != null)
+		for (int i=0; i<itemarray.length; i++)
 		{
-			for (int i=0; i<itemarray.length; i++)
-			{
-				items.add(itemarray[i]);
-			}
+			items.add(itemarray[i]);
+			itemarray[i].setOwner(this);
 		}
-		platformImage = new PlatformImage(width, height);
-		render();
 	}
 
-	public int append(Image img) { items.add(new ImageItem("",img,0,"")); needsLayout = true; render(); return items.size()-1;  }
+	public int append(Image img) { return doInsert(items.size(), new ImageItem("",img,0,""), false); }
 
-	public int append(Item item) { items.add(item); needsLayout = true;  render(); return items.size()-1; }
+	public int append(Item item) { return doInsert(items.size(), item, false); }
 
-	public int append(String str) { items.add(new StringItem("",str)); needsLayout = true; render(); return items.size()-1;  }
+	public int append(String str) { return doInsert(items.size(), new StringItem("", str), false); }
 
-	public void delete(int itemNum) { items.remove(itemNum); needsLayout = true; render(); }
+	public void insert(int itemNum, Item item) { doInsert(items.size(), item, false);  }
 
-	public void deleteAll() { items.clear(); needsLayout = true;  render(); }
+	public void set(int itemNum, Item item) { doInsert(items.size(), item, true);  }
+
+	int doInsert(int index, Item item, boolean replace) {
+		if (replace && index < items.size()) {
+			Item oldItem = items.get(index);
+			if (oldItem != null) {
+				oldItem.setOwner(null);
+			}
+			items.set(index, item);
+		} else {
+			items.add(index, item);
+		}
+		
+		item.setOwner(this);
+		needsLayout = true;
+		if (items.size() == 1) {
+			focusedItemNeedsTraverse = true;
+		}
+		_invalidate();
+		return index;
+	}
+
+	public void delete(int itemNum) {
+		Item oldItem = items.get(itemNum);
+		oldItem.traverseOut();
+		oldItem.setOwner(null);
+		items.remove(itemNum);
+		needsLayout = true;
+		if (focusedItem >= items.size() && !items.isEmpty()) {
+			focusedItem = items.size()-1;
+			focusedItemNeedsTraverse = true;
+		} else if (items.isEmpty()) {
+			focusedItem = 0;
+			focusedItemNeedsTraverse = false;
+		}
+		_invalidate();
+	}
+
+	public void deleteAll() {
+		for (Item item: items) {
+			item.traverseOut();
+			item.setOwner(null);
+		}
+		items.clear();
+		needsLayout = true;
+		focusedItemNeedsTraverse = false;
+		focusedItem = 0;
+		_invalidate();
+	}
 
 	public Item get(int itemNum) { return items.get(itemNum); }
 
-	public int getHeight() { return 128; }
+	public int getHeight() { return height; }
 
-	public int getWidth() { return 64; }
-
-	public void insert(int itemNum, Item item) { items.add(itemNum, item); needsLayout = true; render(); }
-
-	public void set(int itemNum, Item item) { items.set(itemNum, item); needsLayout = true; render(); }
+	public int getWidth() { return width; }
 
 	public void setItemStateListener(ItemStateListener iListener) { listener = iListener; }
+
+	protected void itemStateChanged(Item item) {
+		if (listener != null) {
+			listener.itemStateChanged(item);
+		}
+	}
 
 	public int size() { return items.size(); }
 
@@ -86,66 +133,84 @@ public class Form extends Screen
 		Draw form, handle input
 	*/
 
-	public void keyPressed(int key)
+	public boolean screenKeyPressed(int key, int platKey, KeyEvent keyEvent)
 	{
-		if(listCommands==true)
-		{
-			keyPressedCommands(key);
-			return;
+		if(items.size()<1 || needsLayout || focusedItemNeedsTraverse) { return false; }
+
+		boolean handled = true, shouldInvalidate = false;
+
+		Item item = getFocusedItem();
+		if (item != null) {
+			handled = item.keyPressed(key, platKey, keyEvent); // platKey for CustomItem
 		}
 
-		if(items.size()<1) { return; }
+		if (!handled) {
+			if ((key == Mobile.NOKIA_UP || key == Mobile.NOKIA_DOWN)) {
+				// first see if internal traversal should be attempted
+				boolean traversed = false;
+				traversed = doTraverseItem(focusedItem, key == Mobile.NOKIA_UP ? Canvas.UP : Canvas.DOWN);
+			
+				// we assume that traversed returning false for a limit doesn't imply traverseOut yet
+				// and if we've trafersed internally, there's nothing left
 
-		int reasonablePadding = 10;
-		int scrollAmount = clientHeight/4;
+				if (!traversed) {
+					// check if we should scroll
 
-		switch(key)
-		{
-			case Mobile.KEY_NUM2:
-			case Mobile.NOKIA_UP:
-			{
-				Rectangle reasonableViewport = new Rectangle(0, scrollY+reasonablePadding, width, clientHeight-reasonablePadding);
+					int reasonablePadding = 10;
+					int scrollAmount = clientHeight/4;
 
-				if (focusedItem > 0 && itemBounds[focusedItem].intersects(reasonableViewport))
-				{
-					focusedItem--;
+					Rectangle reasonableViewport = new Rectangle(0, scrollY+reasonablePadding, width, clientHeight-reasonablePadding);
+					int traverseDir = 0;
+
+					if (key == Mobile.NOKIA_UP) {
+						if (focusedItem > 0 && itemBounds[focusedItem-1].intersects(reasonableViewport)) {
+							// focusedItem--;
+							traverseDir = -1;
+						} else if (scrollY > 0) {
+							scrollY = Math.max(0, scrollY - scrollAmount);
+							shouldInvalidate = true;
+						}
+					} else {
+						int maxScroll = scrollHeight - clientHeight;
+
+						if (focusedItem < items.size()-1 && itemBounds[focusedItem+1].intersects(reasonableViewport)) {
+							// focusedItem++;
+							traverseDir = 1;
+						} else if (scrollY < maxScroll) {
+							scrollY = Math.min(maxScroll, scrollY + scrollAmount);
+							shouldInvalidate = true;
+						}
+					}
+
+					if (traverseDir != 0) {
+						if (!focusedItemNeedsTraverse && getFocusedItem() != null) {
+							getFocusedItem().traverseOut();
+						}
+
+						focusedItem += traverseDir;
+
+						// do the initial traverse, ignoring results
+						doTraverseItem(focusedItem, traverseDir > 0 ? Canvas.DOWN : Canvas.UP);
+
+						scrollForRegion(itemBounds[focusedItem].y, itemBounds[focusedItem].height);
+						shouldInvalidate = true;
+					}
 				}
-				else if (scrollY > 0)
-				{
-					scrollY = Math.max(0, scrollY - scrollAmount);
+
+				handled = true;
+			} else if (item != null && key == Mobile.NOKIA_SOFT3) {
+				if (item.commandListener != null) {
+					item.commandListener.commandAction(getItemCommand(), item);
+					handled = true;
 				}
-				break;
 			}
-			case Mobile.KEY_NUM8:
-			case Mobile.NOKIA_DOWN:
-			{
-				Rectangle reasonableViewport = new Rectangle(0, scrollY+reasonablePadding, width, clientHeight-reasonablePadding);
-
-				int maxScroll = scrollHeight - clientHeight;
-
-				if (focusedItem < items.size()-1 && itemBounds[focusedItem+1].intersects(reasonableViewport))
-				{
-					focusedItem++;
-				}
-				else if (scrollY < maxScroll)
-				{
-					scrollY = Math.min(maxScroll, scrollY + scrollAmount);
-				}
-				break;
-				
-			}
-			case Mobile.NOKIA_SOFT1: doLeftCommand(); break;
-			case Mobile.NOKIA_SOFT2: doRightCommand(); break;
-			case Mobile.NOKIA_SOFT3: doDefaultCommand(); break;
-			case Mobile.KEY_NUM5: doDefaultCommand(); break;
 		}
 		
-		render();
-	}
+		if (shouldInvalidate) {
+			_invalidate();
+		}
 
-	public void notifySetCurrent()
-	{
-		render();
+		return handled;
 	}
 
 	private void computeLayout(PlatformGraphics gc, int height)
@@ -153,6 +218,8 @@ public class Form extends Screen
 		this.clientHeight = height;
 		scrollY = 0;
 		focusedItem = 0;
+		System.out.println("in computelayout");
+		focusedItemNeedsTraverse = !items.isEmpty();
 		itemBounds = new Rectangle[items.size()];
 
 		int spaceBetweenItems = 2;
@@ -161,8 +228,11 @@ public class Form extends Screen
 
 		int currentY = padding;
 
-		int itemWidth = width - padding*2 - scrollbarWidth;
 		int itemX = padding;
+
+		
+		itemContentWidth = width-scrollbarWidth-2*padding;
+
 
 		for (int i=0; i<items.size(); i++)
 		{
@@ -170,9 +240,9 @@ public class Form extends Screen
 			{
 				currentY += spaceBetweenItems;
 			}
-			int itemHeight = getItemHeight(gc, items.get(i), width-scrollbarWidth-2*padding);
+			int itemHeight = getItemHeight(gc, items.get(i), itemContentWidth);
 
-			itemBounds[i] = new Rectangle(itemX, currentY, itemWidth, itemHeight);
+			itemBounds[i] = new Rectangle(itemX, currentY, itemContentWidth, itemHeight);
 			currentY += itemHeight;
 		}
 
@@ -182,32 +252,117 @@ public class Form extends Screen
 
 	private int getItemHeight(PlatformGraphics gc, Item item, int width)
 	{
-		int height = 15;
-
-		if (item instanceof CustomItem)
-		{
-			height = ((CustomItem)item).getPrefContentHeight(width);
-		}
-		else if (item instanceof StringItem)
-		{
-			StringItem it = (StringItem)item;
-			it.generateLayout(gc.getGraphics2D().getFontMetrics(), width);
-			height = it.height;
-		}
-
+		int height = item.getContentHeight(width) + item.getLabelHeight(width);
 		return height;
+	}
+
+	protected Item getFocusedItem() {
+		if (items.isEmpty()) {
+			return null;
+		}
+
+		return items.get(focusedItem);
 
 	}
 
+	protected void focusItem(Item item) {
+		if (needsLayout) return; // hmm
 
-	public String renderItems(int x, int y, int width, int height)
+		int index = items.indexOf(item); // this might not be by reference
+		if (index == -1) return;
+
+		Item previousItem = getFocusedItem();
+		if (previousItem != null && previousItem != item) {
+			previousItem.traverseOut();
+			
+			focusedItem = index;
+			System.out.println("in focusitem");
+			focusedItemNeedsTraverse = true;
+		}
+
+		scrollForRegion(itemBounds[index].y, itemBounds[index].height);
+
+		render();
+	}
+
+	private void scrollForRegion(int y, int height) {
+		/*
+		 * current position is this.scrollY
+		 * screen height is this.clientHeight
+		 * 
+		 * our goal is to change scrollY by a minimum amount such that:
+		 * - if height <= this.clientHeight, the whole region should be visible
+		 * - otherwise, the closer edge (top or bottom) is at the edge of our screen
+		 */
+
+		if (height <= this.clientHeight) {
+			int topInvisible = Math.max(0, scrollY - y);
+			int bottomInvisible = Math.max(0, (y + height) - (scrollY + clientHeight));
+
+			if (topInvisible == 0 && bottomInvisible == 0) { return; }
+
+			if (topInvisible > bottomInvisible) {
+				scrollY -= topInvisible;
+			} else {
+				scrollY += bottomInvisible;
+			}
+		} else {
+			int topDistance = Math.abs(y - this.scrollY);
+			int bottomDistance = Math.abs((y + height) - (this.scrollY + this.clientHeight));
+
+			if (topDistance < bottomDistance) {
+				this.scrollY = y;
+			} else {
+				this.scrollY = y + height - this.clientHeight;
+			}
+		}
+	}
+
+	protected Command getItemCommand() {
+		Item focusedItem = getFocusedItem();
+		if (focusedItem != null) {
+			return focusedItem._getItemCommand();
+		}
+		return null;
+	}
+
+	public boolean doTraverseItem(int itemIdx, int dir) {
+		Item item = items.get(itemIdx);
+		int itemLabelHeight = item.getLabelHeight(itemBounds[itemIdx].width);
+
+		int itemStartY = itemBounds[itemIdx].y + itemLabelHeight;
+
+		int visRectStart = Math.max(scrollY, itemStartY);
+		int visRectEnd = Math.min(scrollY + clientHeight, itemBounds[itemIdx].y + itemBounds[itemIdx].height);
+
+		int[] visRect = new int[]{0, visRectStart - itemStartY, itemBounds[itemIdx].width,  Math.max(0, visRectEnd - visRectStart)};
+
+		boolean continueTraversing = item.traverse(dir, itemBounds[itemIdx].width, clientHeight, visRect);
+
+		if (continueTraversing) {
+			scrollForRegion(visRect[1] + itemStartY, visRect[3]);
+		}
+
+		return continueTraversing;
+	}
+
+
+	public String renderScreen(int x, int y, int width, int height)
 	{
-		PlatformGraphics gc = platformImage.getGraphics();
+		String ret = null;
 
 		if (needsLayout)
 		{
 			computeLayout(gc, height);
 			needsLayout = false;
+		}
+
+		if (focusedItemNeedsTraverse) {
+			// initial traverse occurs here and we ignore the return value
+			// if traverse returns false then it doesn't mean skip traversing
+			// otherwise no itemcommands could be supported without traversing.
+			focusedItemNeedsTraverse = false;
+			doTraverseItem(focusedItem, CustomItem.NONE);
 		}
 
 		if(items.size()>0)
@@ -235,20 +390,18 @@ public class Form extends Screen
 					gc.setColor(0, 0, 0);
 				}
 
-				// paint...
-				if (item instanceof StringItem)
-				{
-					StringItem si = (StringItem) item;
-
-					for(int l=0;l<si.lines.size();l++)
-					{
-						gc.drawString(
-							si.lines.get(l),
-							thisX,
-						  	thisY + l*si.lineHeight + (l > 0 ? (l-1)*si.lineSpacing : 0),
-						 	Graphics.LEFT);
-					}
+				if (item.hasLabel()) {
+					item.renderItemLabel(gc, thisX, thisY, itemContentWidth);
+					thisY += item.getLabelHeight(itemContentWidth);
 				}
+
+				// paint...
+
+				int itemHeight = item.getContentHeight(itemContentWidth);
+
+				item.renderItem(gc, thisX, thisY, itemContentWidth, itemHeight);
+
+				thisY += itemHeight;
 			}
 
 			double fact = (double)height/scrollHeight;
@@ -262,9 +415,10 @@ public class Form extends Screen
 			}
 		
 			gc.reset();
+
+			ret = (focusedItem+1)+" of "+items.size();
 		}
 
-		return null;
+		return ret;
 	}
-
 }

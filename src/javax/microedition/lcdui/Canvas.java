@@ -16,8 +16,9 @@
 */
 package javax.microedition.lcdui;
 
+import java.awt.event.KeyEvent;
+
 import org.recompile.mobile.Mobile;
-import org.recompile.mobile.PlatformImage;
 import org.recompile.mobile.PlatformGraphics;
 
 public abstract class Canvas extends Displayable
@@ -49,12 +50,7 @@ public abstract class Canvas extends Displayable
 
 	protected Canvas()
 	{
-		width = Mobile.getPlatform().lcdWidth;
-		height = Mobile.getPlatform().lcdHeight;
-
 		System.out.println("Create Canvas:"+width+", "+height);
-
-		platformImage = new PlatformImage(width, height);
 	}
 
 	public int getGameAction(int keyCode)
@@ -146,6 +142,29 @@ public abstract class Canvas extends Displayable
 	public void keyReleased(int keyCode) { }
 
 	public void keyRepeated(int keyCode) { }
+
+	public void keyPressed(int platKey, KeyEvent keyEvent) {
+		// technically commands should be supported
+		// but no default command
+
+		int key = Mobile.normalizeKey(platKey);
+
+		if (key == Mobile.NOKIA_SOFT1 && commands.size()>0) {
+			doCommand(0);
+		} else if (key == Mobile.NOKIA_SOFT2 && commands.size()>1) {
+			doCommand(1);
+		} else {
+			keyPressed(platKey);
+		}
+	}
+
+	public void keyReleased(int keyCode, KeyEvent keyEvent) {
+		keyReleased(keyCode);
+	}
+
+	public void keyRepeated(int keyCode, KeyEvent keyEvent) {
+		keyRepeated(keyCode);
+	}
 
 	protected abstract void paint(Graphics g);
 

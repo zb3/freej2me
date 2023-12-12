@@ -156,11 +156,6 @@ public class FreeJ2ME
 					break;
 				}
 				
-				if (mobikey == 0) //Ignore events from keys not mapped to a phone keypad key
-				{
-					return; 
-				}
-				
 				if(config.isRunning)
 				{
 					config.keyPressed(mobikey);
@@ -170,15 +165,18 @@ public class FreeJ2ME
 					if (pressedKeys[mobikeyN] == false)
 					{
 						//~ System.out.println("keyPressed:  " + Integer.toString(mobikey));
-						Mobile.getPlatform().keyPressed(mobikey);
+						Mobile.getPlatform().keyPressed(mobikey, e);
 					}
 					else
 					{
 						//~ System.out.println("keyRepeated:  " + Integer.toString(mobikey));
-						Mobile.getPlatform().keyRepeated(mobikey);
+						Mobile.getPlatform().keyRepeated(mobikey, e);
 					}
 				}
+
+				if (mobikey != 0) {
 				pressedKeys[mobikeyN] = true;
+				}
 				
 			}
 
@@ -187,12 +185,9 @@ public class FreeJ2ME
 				int mobikey = getMobileKey(e.getKeyCode());
 				int mobikeyN = (mobikey + 64) & 0x7F; //Normalized value for indexing the pressedKeys array
 				
-				if (mobikey == 0) //Ignore events from keys not mapped to a phone keypad key
-				{
-					return; 
+				if (mobikey != 0) {
+					pressedKeys[mobikeyN] = false;
 				}
-				
-				pressedKeys[mobikeyN] = false;
 				
 				if(config.isRunning)
 				{
@@ -201,7 +196,7 @@ public class FreeJ2ME
 				else
 				{
 					//~ System.out.println("keyReleased: " + Integer.toString(mobikey));
-					Mobile.getPlatform().keyReleased(mobikey);
+					Mobile.getPlatform().keyReleased(mobikey, e);
 				}
 			}
 
@@ -399,8 +394,12 @@ public class FreeJ2ME
 				case KeyEvent.VK_DOWN: return Mobile.SIEMENS_DOWN;
 				case KeyEvent.VK_LEFT: return Mobile.SIEMENS_LEFT;
 				case KeyEvent.VK_RIGHT: return Mobile.SIEMENS_RIGHT;
-				case KeyEvent.VK_Q: return Mobile.SIEMENS_SOFT1;
-				case KeyEvent.VK_W: return Mobile.SIEMENS_SOFT2;
+				case KeyEvent.VK_F1:
+				case KeyEvent.VK_Q: 
+					return Mobile.SIEMENS_SOFT1;
+				case KeyEvent.VK_F2:
+				case KeyEvent.VK_W:
+					return Mobile.SIEMENS_SOFT2;
 				case KeyEvent.VK_ENTER: return Mobile.SIEMENS_FIRE;
 			}
 		}
@@ -413,8 +412,12 @@ public class FreeJ2ME
 				case KeyEvent.VK_DOWN: return Mobile.MOTOROLA_DOWN;
 				case KeyEvent.VK_LEFT: return Mobile.MOTOROLA_LEFT;
 				case KeyEvent.VK_RIGHT: return Mobile.MOTOROLA_RIGHT;
-				case KeyEvent.VK_Q: return Mobile.MOTOROLA_SOFT1;
-				case KeyEvent.VK_W: return Mobile.MOTOROLA_SOFT2;
+				case KeyEvent.VK_F1:
+				case KeyEvent.VK_Q:
+					return Mobile.MOTOROLA_SOFT1;
+				case KeyEvent.VK_F2:
+				case KeyEvent.VK_W:
+					return Mobile.MOTOROLA_SOFT2;
 				case KeyEvent.VK_ENTER: return Mobile.MOTOROLA_FIRE;
 			}
 		}
@@ -452,8 +455,12 @@ public class FreeJ2ME
 
 			case KeyEvent.VK_ENTER: return Mobile.KEY_NUM5;
 
-			case KeyEvent.VK_Q: return Mobile.NOKIA_SOFT1;
-			case KeyEvent.VK_W: return Mobile.NOKIA_SOFT2;
+			case KeyEvent.VK_F1:
+			case KeyEvent.VK_Q:
+				return Mobile.NOKIA_SOFT1;
+			case KeyEvent.VK_F2:
+			case KeyEvent.VK_W:
+				return Mobile.NOKIA_SOFT2;
 			case KeyEvent.VK_E: return Mobile.KEY_STAR;
 			case KeyEvent.VK_R: return Mobile.KEY_POUND;
 

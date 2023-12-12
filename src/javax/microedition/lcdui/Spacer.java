@@ -30,10 +30,6 @@ public class Spacer extends Item
 		minHeight = minh;
 	}
 
-	public void addCommand(Command cmd) { }
-
-	public void setDefaultCommand(Command cmd) { }
-
 	public void setLabel(String label) { }
 
 	public void setMinimumSize(int minwidth, int minheight)
@@ -42,4 +38,7 @@ public class Spacer extends Item
 		minHeight = minHeight;
 	}
 
+	protected int getContentHeight(int width) {
+		return minHeight;
+	}
 }

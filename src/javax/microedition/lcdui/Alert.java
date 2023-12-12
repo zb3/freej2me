@@ -16,7 +16,8 @@
 */
 package javax.microedition.lcdui;
 
-import java.util.ArrayList;
+
+import java.util.List;
 
 import org.recompile.mobile.Mobile;
 
@@ -31,6 +32,11 @@ public class Alert extends Screen
 
 	private String message;
 
+	private List<String> lines;
+	private int lineSpacing;
+	private int margin;
+	private boolean needsLayout = true;
+
 	private Image image;
 
 	private AlertType type;
@@ -44,17 +50,12 @@ public class Alert extends Screen
 
 	public Alert(String title)
 	{
-		System.out.println("Alert: " + title);
 		setTitle(title);
-		Thread.dumpStack();
 	}
 
 	public Alert(String title, String alertText, Image alertImage, AlertType alertType)
 	{
-		System.out.println("Alert: " + title);
-		System.out.println("Alert: " + alertText);
-
-		setTitle(title);
+		this(title);
 		setString(alertText);
 		setImage(alertImage);
 		setType(alertType);
@@ -64,6 +65,9 @@ public class Alert extends Screen
 		addCommand(Alert.DISMISS_COMMAND);
 
 		setCommandListener(defaultListener);
+
+		lineSpacing = 1;
+		margin = uiLineHeight / 4;
 	}
 
 	public int getDefaultTimeout() { return Alert.FOREVER; }
@@ -80,8 +84,8 @@ public class Alert extends Screen
 
 	public void setString(String text)
 	{
-		System.out.println(text);
 		message = text;
+		needsLayout = true;
 	}
 
 	public Image getImage() { return image; }
@@ -122,12 +126,31 @@ public class Alert extends Screen
 
 	public CommandListener defaultListener = new CommandListener()
 	{
-		public void commandAction(Command cmd, Displayable next)
+		public void commandAction(Command cmd, Displayable disp)
 		{
-			Mobile.getDisplay().setCurrent(next);
+			Mobile.getDisplay().setCurrent(nextScreen);
 		}
 	};
 
 	public void setNextScreen(Displayable next) { nextScreen = next; }
 
+	public String renderScreen(int x, int y, int width, int height) {
+		if (message == null) {
+			return null;
+		}
+
+		if (needsLayout) {
+			lines = StringItem.wrapText(message, width - 2*margin, uiFont);
+			needsLayout = false;
+		}
+
+		for(int l=0;l<lines.size();l++) {
+			gc.drawString(
+				lines.get(l),
+				x + margin,
+				y + margin + l*uiLineHeight + (l > 0 ? (l-1)*lineSpacing : 0),
+				Graphics.LEFT);
+		}
+		return null;
+	}
 }

@@ -16,7 +16,11 @@
 */
 package javax.microedition.lcdui;
 
+import java.awt.FontMetrics;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+
+import org.recompile.mobile.PlatformGraphics;
 
 
 
@@ -48,23 +52,36 @@ public abstract class Item
 
 	public static final int PLAIN = 0;
 
+    protected static Font itemFont;
+	protected static Font labelFont;
+	protected static int lineHeight;
 
+	public Item() {
+		if (itemFont == null) {
+			itemFont = Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE__INTERNAL_UI);
+			labelFont = Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE__INTERNAL_UI_LARGE);
+			lineHeight = itemFont.getHeight();
+		}
+	}
+
+	protected Form owner;
+	
 	private String label;
-
-	private ArrayList<Command> commands = new ArrayList<>();
 
 	private int layout;
 
 	private Command defaultCommand;
 
-	private ItemCommandListener commandListener;
+	protected ItemCommandListener commandListener;
 
 	private int prefWidth = 64;
 
 	private int prefHeight = 16;
 
+	// only one command is supported (the default command)
+	// this command is triggered by the enter key
 
-	public void addCommand(Command cmd) { commands.add(cmd); }
+	public void addCommand(Command cmd) { defaultCommand = cmd; }
 
 	public String getLabel() { return label; }
 
@@ -78,15 +95,23 @@ public abstract class Item
 
 	public int getPreferredWidth() { return prefWidth; }
 
-	public void notifyStateChanged() { }
+	public void notifyStateChanged() { 
+		Form owner = getOwner();
+		if (owner != null) {
+			owner.itemStateChanged(this);
+		}
+	}
 
-	public void removeCommand(Command cmd) { commands.remove(cmd); }
+	public void removeCommand(Command cmd) { if (cmd == defaultCommand) defaultCommand=null; }
 
 	public void setDefaultCommand(Command cmd) { defaultCommand = cmd; }
 
 	public void setItemCommandListener(ItemCommandListener listener) { commandListener = listener; }
 
-	public void setLabel(String text) { label = text; }
+	public void setLabel(String text) { 
+		label = text;
+		invalidate();
+	}
 
 	public void setLayout(int value) { layout = value; }
 
@@ -95,5 +120,90 @@ public abstract class Item
 		prefWidth = width;
 		prefHeight = height;
 	}
+
+	protected void setOwner(Form f) {
+		owner = f;
+	}
+	
+	protected Form getOwner() {
+		return owner;
+	}
+
+	protected boolean hasLabel() {
+		return label != null && !label.isEmpty();
+	}
+
+	protected int getContentHeight(int width) {
+		return lineHeight;
+	}
+
+	protected int getLabelHeight(int width) {
+		if (!hasLabel()) {
+			return 0;
+		}
+
+		// for now we assume one line + bottom padding
+		return labelFont.getHeight() + labelFont.getHeight() / 5;
+	}
+
+	protected void renderItem(PlatformGraphics gc, int x, int y, int width, int height) {
+	}
+
+	protected void invalidate() {
+		Form owner = getOwner();
+		if (owner != null) {
+			owner.needsLayout = true;
+			owner._invalidate();
+		}
+	}
+
+	protected void _invalidateContents() {
+		Form owner = getOwner();
+		if (owner != null) {
+			owner._invalidate();
+		}
+	}
+
+	protected Command _getItemCommand() { return defaultCommand; }
+
+	protected boolean keyPressed(int key, int platKey, KeyEvent keyEvent) { return false; }
+
+	protected void renderItemLabel(PlatformGraphics gc, int x, int y, int itemContentWidth) {
+		Font oldFont = gc.getFont();
+		gc.setFont(labelFont);
+		gc.drawString(getLabel(), x, y, 0);
+		gc.setFont(oldFont);
+	}
+
+	protected boolean traverse(int dir, int viewportWidth, int viewportHeight, int[] visRect_inout) { return false; }
+
+	protected void traverseOut() { }
+
+	protected int _drawArrow(PlatformGraphics gc, int dir, boolean active, int x, int y, int width, int height) {
+		// these parameters are for the field, not for the arrow
+
+		int arrowWidth = height/2;
+		int arrowMargin = height/15;
+		int arrowPadding = height/2;
+		int arrowHeight = height/2;
+
+		gc.setColor(active ? 0x000000 : 0xaaaaaa);
+
+		if (dir == -1) {
+			gc.fillPolygon(
+				new int[]{x+arrowMargin, x+arrowMargin+arrowWidth, x+arrowMargin+arrowWidth}, 0,
+				new int[]{y+height/2, y+height/2-arrowHeight/2, y+height/2+arrowHeight/2}, 0, 3
+			);
+		} else if (dir == 1) {
+			gc.fillPolygon(
+				new int[]{x+width-arrowWidth-arrowMargin-1, x+width-arrowMargin-1, x+width-arrowWidth-arrowMargin-1}, 0,
+				new int[]{y+height/2-arrowHeight/2, y+height/2, y+height/2+arrowHeight/2}, 0, 3
+			);
+		}
+
+
+		return arrowWidth+arrowMargin+arrowPadding;
+	}
+
 
 }

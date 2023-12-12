@@ -18,6 +18,9 @@ package javax.microedition.lcdui;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.recompile.mobile.PlatformGraphics;
+
 import java.awt.FontMetrics;
 
 
@@ -26,48 +29,52 @@ public class StringItem extends Item
 
 	private String text;
 	private int appearance;
-	private Font font;
 	protected List<String> lines;
-	protected int lineHeight;
 	protected int lineSpacing;
-	protected int height;
-
+	protected int height = 0;
+	private int buttonMargin;
+	private int buttonPadding;
 
 	public StringItem(String label, String textvalue)
 	{
 		setLabel(label);
 		text = textvalue;
-		font = Font.getDefaultFont();
+		buttonMargin = lineHeight / 5;
+		buttonPadding = lineHeight / 3;
 	}
 
 	public StringItem(String label, String textvalue, int appearanceMode)
 	{
-		setLabel(label);
-		text = textvalue;
+		this(label, textvalue);
 		appearance = appearanceMode;
-		font = Font.getDefaultFont();
 	}
 
 	public int getAppearanceMode() { return appearance; }
 
-	public Font getFont() { return font; }
+	public Font getFont() { return itemFont; }
 
 	public String getText() { return text; }
 
-	public void setFont(Font newfont) { font = newfont; }
+	public void setFont(Font newfont) {  }
 
-	public void setText(String textvalue) { text = textvalue; }
+	public void setText(String textvalue) { text = textvalue; height = 0; this._invalidateContents(); }
 
-	protected void generateLayout(FontMetrics fm, int width) {
-		lines = wrapText(fm, this.getText(), width);
-		lineHeight = fm.getHeight();
-		lineSpacing = 1;
+	protected int getContentHeight(int width) {
+		if (appearance == Item.BUTTON) {
+			height = lineHeight + 2*buttonMargin + 2*buttonPadding;
+		} else if (height == 0 && !text.isEmpty()) {
+			lines = wrapText(text, width, itemFont);
+			lineSpacing = 1;
 
-		height = lines.size() > 0 ? (lines.size()*lineHeight + (lines.size()-1)*lineSpacing) : 0;
+			height = lines.size() > 0 ? (lines.size()*lineHeight + (lines.size()-1)*lineSpacing) : 0;
+		} else if (text.isEmpty() && lines == null) {
+			lines = new ArrayList<>();
+		}
 
+		return height;
 	}
 
-	private List<String> wrapText(FontMetrics fm, String text, int width) {
+	protected static List<String> wrapText(String text, int width, Font font) {
 		String[] lines = text.split("\n");
 		List<String> wrappedLines = new ArrayList<>();
 	
@@ -77,7 +84,7 @@ public class StringItem extends Item
 	
 			for (String word : words) {
 				String candidate = wrappedLine.isEmpty() ? word : wrappedLine + " " + word;
-				int candidateWidth = fm.stringWidth(candidate);
+				int candidateWidth = font.stringWidth(candidate);
 	
 				if (candidateWidth > width) {
 					wrappedLines.add(wrappedLine);
@@ -92,5 +99,27 @@ public class StringItem extends Item
 	
 		return wrappedLines;
 	  }
+
+	protected void renderItem(PlatformGraphics gc, int x, int y, int width, int height) {
+		if (appearance == Item.BUTTON) {
+			gc.setColor(0xdddddd);
+			gc.fillRect(x+buttonMargin, y+buttonMargin, width-2*buttonMargin, height-2*buttonMargin);
+
+			gc.setColor(0x888888);
+			gc.drawRect(x+buttonMargin, y+buttonMargin, width-2*buttonMargin, height-2*buttonMargin);
+
+			gc.setColor(0x000000);
+			gc.drawString(text, x+buttonMargin+buttonPadding, y+buttonMargin+buttonPadding, 0);
+		} else {
+			for(int l=0;l<lines.size();l++) {
+				gc.drawString(
+					lines.get(l),
+					x,
+					y + l*lineHeight + (l > 0 ? (l-1)*lineSpacing : 0),
+					Graphics.LEFT);
+			}
+		}
+
+	}
 
 }

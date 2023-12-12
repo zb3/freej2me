@@ -50,7 +50,7 @@ public class Display
 	public static final int COLOR_HIGHLIGHTED_BORDER = 5;
 
 
-	private Displayable current;
+	protected volatile Displayable current;
 
 	private static Display display;
 
@@ -194,7 +194,16 @@ public class Display
 		}
 	}
 
-	public void setCurrentItem(Item item) { System.out.println("Display.setCurrentItem"); }
+	public void setCurrentItem(Item item) {
+		Form form = item.getOwner();
+		if (form != null) {
+			if (form != current) {
+				setCurrent(form);
+			}
+			form.focusItem(item);
+		}
+
+	}
 
 	public boolean vibrate(int duration)
 	{

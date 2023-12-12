@@ -99,19 +99,19 @@ public class MobilePlatform
 		painter = r;
 	}
 
-	public void keyPressed(int keycode)
+	public void keyPressed(int keycode, KeyEvent e)
 	{
-		eventQueue.submit(new PlatformEvent(PlatformEvent.KEY_PRESSED, keycode));
+		eventQueue.submit(new PlatformEvent(PlatformEvent.KEY_PRESSED, keycode, e));
 	}
 
-	public void keyReleased(int keycode)
+	public void keyReleased(int keycode, KeyEvent e)
 	{
-		eventQueue.submit(new PlatformEvent(PlatformEvent.KEY_RELEASED, keycode));
+		eventQueue.submit(new PlatformEvent(PlatformEvent.KEY_RELEASED, keycode, e));
 	}
 
-	public void keyRepeated(int keycode)
+	public void keyRepeated(int keycode, KeyEvent e)
 	{
-		eventQueue.submit(new PlatformEvent(PlatformEvent.KEY_REPEATED, keycode));
+		eventQueue.submit(new PlatformEvent(PlatformEvent.KEY_REPEATED, keycode, e));
 	}
 
 	public void pointerDragged(int x, int y)
@@ -130,29 +130,33 @@ public class MobilePlatform
 	}
 
 
-	public void doKeyPressed(int keycode)
+	public void doKeyPressed(int keycode, KeyEvent keyEvent)
 	{
-		updateKeyState(keycode, 1);
+		if (keycode != 0) {
+			updateKeyState(Mobile.normalizeKey(keycode), 1);
+		}
 		Displayable d;
 		if ((d = Mobile.getDisplay().getCurrent()) != null) {
-			d.keyPressed(keycode);		
+			d.keyPressed(keycode, keyEvent);		
 		}
 	}
 
-	public void doKeyReleased(int keycode)
+	public void doKeyReleased(int keycode, KeyEvent keyEvent)
 	{
-		updateKeyState(keycode, 0);
+		if (keycode != 0) {
+			updateKeyState(Mobile.normalizeKey(keycode), 0);
+		}
 		Displayable d;
 		if ((d = Mobile.getDisplay().getCurrent()) != null) {
-			d.keyReleased(keycode);
+			d.keyReleased(keycode, keyEvent);
 		}
 	}
 
-	public void doKeyRepeated(int keycode)
+	public void doKeyRepeated(int keycode, KeyEvent keyEvent)
 	{
 		Displayable d;
 		if ((d = Mobile.getDisplay().getCurrent()) != null) {
-			d.keyRepeated(keycode);	
+			d.keyRepeated(keycode, keyEvent);	
 		}
 	}
 
@@ -281,11 +285,13 @@ public class MobilePlatform
 		int type;
 		int code;
 		int code2;
+		KeyEvent keyEvent;
 
-		PlatformEvent(int type, int code)
+		PlatformEvent(int type, int code, KeyEvent e)
 		{
 			this.type = type;
 			this.code = code;
+			this.keyEvent = e;
 		}
 
 		PlatformEvent(int type, int x, int y)
@@ -324,6 +330,7 @@ public class MobilePlatform
 					Thread.currentThread().interrupt();
 					break;
 				} catch (Exception e) {
+					e.printStackTrace();
 					System.out.println("exception in event handler: "+e.getMessage());
 				}
 			}
@@ -345,11 +352,11 @@ public class MobilePlatform
 
 		private void handleEvent(PlatformEvent event) {
 			if (event.type == PlatformEvent.KEY_PRESSED) {
-				platform.doKeyPressed(event.code);
+				platform.doKeyPressed(event.code, event.keyEvent);
 			} else if (event.type == PlatformEvent.KEY_REPEATED) {
-				platform.doKeyRepeated(event.code);
+				platform.doKeyRepeated(event.code, event.keyEvent);
 			} else if (event.type == PlatformEvent.KEY_RELEASED) {
-				platform.doKeyReleased(event.code);
+				platform.doKeyReleased(event.code, event.keyEvent);
 			} else if (event.type == PlatformEvent.POINTER_PRESSED) {
 				platform.doPointerPressed(event.code, event.code2);
 			} else if (event.type == PlatformEvent.POINTER_DRAGGED) {

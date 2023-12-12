@@ -21,8 +21,6 @@ import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.Graphics;
 
 import org.recompile.mobile.Mobile;
-import org.recompile.mobile.PlatformImage;
-
 public abstract class GameCanvas extends Canvas
 {
 	public static final int UP_PRESSED = 1 << Canvas.UP;
@@ -40,11 +38,6 @@ public abstract class GameCanvas extends Canvas
 	protected GameCanvas(boolean suppressKeyEvents)
 	{
 		this.suppressKeyEvents = suppressKeyEvents;
-
-		width = Mobile.getPlatform().lcdWidth;
-		height = Mobile.getPlatform().lcdHeight;
-
-		platformImage = new PlatformImage(width, height);
 	}
 
 	protected Graphics getGraphics()

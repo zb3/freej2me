@@ -32,8 +32,6 @@ public abstract class Displayable
 	public int width = 0;
 
 	public int height = 0;
-
-	public boolean fullScreen = false;
 	
 	protected String title = "";
 
@@ -66,17 +64,14 @@ public abstract class Displayable
 
 	public void addCommand(Command cmd)
 	{ 
-		try
-		{
-			commands.add(cmd);
-		}
-		catch (Exception e)
-		{
-			System.out.println("Problem Adding Command: "+e.getMessage());
-		}
+		commands.add(cmd);
+		_invalidate();
 	}
 
-	public void removeCommand(Command cmd) { commands.remove(cmd); }
+	public void removeCommand(Command cmd) {
+		commands.remove(cmd);
+		_invalidate();
+	}
 	
 	public int getWidth() { return width; }
 
@@ -277,20 +272,26 @@ public abstract class Displayable
 
 	protected void keyPressedCommands(int key)
 	{
-		switch(key)
-		{
-			case Mobile.KEY_NUM2: currentCommand--; break;
-			case Mobile.KEY_NUM8: currentCommand++; break;
-			case Mobile.NOKIA_UP: currentCommand--; break;
-			case Mobile.NOKIA_DOWN: currentCommand++; break;
-			case Mobile.NOKIA_SOFT1: doLeftCommand(); break;
-			case Mobile.NOKIA_SOFT2: doRightCommand(); break;
-			case Mobile.KEY_NUM5: doLeftCommand(); break;
-		}
-		if(currentCommand>=commands.size()) { currentCommand = 0; }
-		if(currentCommand<0) { currentCommand = commands.size()-1; }
+		if (key == Mobile.NOKIA_UP || key == Mobile.NOKIA_DOWN) {
+			currentCommand += (key == Mobile.NOKIA_UP) ? -1 : 1;
+			if(currentCommand>=commands.size()) { currentCommand = 0; }
+			if(currentCommand<0) { currentCommand = commands.size()-1; }
+		} else if (key == Mobile.NOKIA_SOFT1 || key == Mobile.NOKIA_SOFT2 ||
+				   key == Mobile.NOKIA_SOFT3) {
+			listCommands = false;
+			
+			if (key != Mobile.NOKIA_SOFT2) {
+				doCommand(currentCommand);
+			}
 
-		_invalidate();
+			currentCommand = 0;
+		} else {
+			return;
+		}
+
+		// we've either exited listCommands or changed selection
+		// this is intentionally done after command execution to prevent flashes
+		_invalidate(); 
 	}
 
 	protected void doCommand(int index)
@@ -313,16 +314,8 @@ public abstract class Displayable
 	{
 		if(commands.size()>2)
 		{
-			if(listCommands == true)
-			{
-				doCommand(currentCommand);
-			}
-			else
-			{
-				listCommands = true;
-				currentCommand = 0;
-			}
-			return;
+			listCommands = true;
+			_invalidate();
 		}
 		else
 		{
@@ -335,17 +328,9 @@ public abstract class Displayable
 
 	protected void doRightCommand()
 	{
-		if(listCommands==true)
+		if(commands.size()>0 && commands.size()<=2)
 		{
-			listCommands = false;
-			currentCommand = 0;
-		}
-		else
-		{
-			if(commands.size()>0 && commands.size()<=2)
-			{
-				doCommand(1);
-			}
+			doCommand(1);
 		}
 	}
 
@@ -355,7 +340,7 @@ public abstract class Displayable
 
 		synchronized (Display.LCDUILock) {
 			if (getDisplay().current != this) {
-				// we'll render again on snotifySetCurrent
+				// we'll render again on notifySetCurrent
 				return;
 			}
 

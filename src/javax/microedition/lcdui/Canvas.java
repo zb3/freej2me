@@ -47,14 +47,21 @@ public abstract class Canvas extends Displayable
 	public static final int KEY_STAR = 42;
 	public static final int KEY_POUND = 35;
 
+	private int barHeight;
+	private int barPadding;
+	private boolean fullscreen = false;
+	private boolean shouldRepaintBar = true;
+
 
 	protected Canvas()
 	{
-		System.out.println("Create Canvas:"+width+", "+height);
+		barPadding = uiLineHeight / 5;
+		barHeight = uiLineHeight + barPadding;
 	}
 
-	public int getGameAction(int keyCode)
+	public int getGameAction(int platKeyCode)
 	{
+		int keyCode = Mobile.normalizeKey(platKeyCode);
 		switch(keyCode)
 		{
 			case Mobile.KEY_NUM2: return UP;
@@ -149,21 +156,29 @@ public abstract class Canvas extends Displayable
 
 		int key = Mobile.normalizeKey(platKey);
 
-		if (key == Mobile.NOKIA_SOFT1 && commands.size()>0) {
-			doCommand(0);
-		} else if (key == Mobile.NOKIA_SOFT2 && commands.size()>1) {
-			doCommand(1);
+		if (listCommands) {
+			keyPressedCommands(key);
 		} else {
-			keyPressed(platKey);
+			if (key == Mobile.NOKIA_SOFT1 && commands.size()>0) {
+				doLeftCommand();
+			} else if (key == Mobile.NOKIA_SOFT2 && commands.size()>1) {
+				doRightCommand();
+			} else {
+				keyPressed(platKey);
+			}
 		}
 	}
 
 	public void keyReleased(int keyCode, KeyEvent keyEvent) {
-		keyReleased(keyCode);
+		if (!listCommands) {
+			keyReleased(keyCode);
+		}
 	}
 
 	public void keyRepeated(int keyCode, KeyEvent keyEvent) {
-		keyRepeated(keyCode);
+		if (!listCommands) {
+			keyRepeated(keyCode);
+		}
 	}
 
 	protected abstract void paint(Graphics g);
@@ -176,42 +191,52 @@ public abstract class Canvas extends Displayable
 
 	public void repaint()
 	{
-		Display.LCDUILock.lock();
-		try {
-			PlatformGraphics graphics;
-			try
-			{
-				graphics = platformImage.getGraphics();
-				graphics.reset();
-				paint(graphics);
-				if(Mobile.getDisplay().getCurrent() == this)
-				{
-					Mobile.getPlatform().repaint(platformImage, 0, 0, width, height);
-				}
-			}
-			catch (Exception e)
-			{
-				System.out.print("Canvas repaint(): "+e.getMessage());
-				e.printStackTrace();
-			}
-		} finally {
-			Display.LCDUILock.unlock();
-		}	
+		repaint(0, 0, width, height);
 	}
 
 	public void repaint(int x, int y, int width, int height)
 	{
 		Display.LCDUILock.lock();
 		try {
-			PlatformGraphics graphics = platformImage.getGraphics();
-			graphics.reset();
-			paint(graphics);
-			if(Mobile.getDisplay().getCurrent() == this)
-			{
-				Mobile.getPlatform().repaint(platformImage, x, y, width, height);
+			if (getDisplay().current != this) {
+				// we'll render again on notifySetCurrent
+				return;
 			}
+
+			if (listCommands) {
+				return;
+			}
+
+			gc.reset();
+			paint(gc);
+
+			if (shouldRepaintBar) {
+				paintCommandsBar();
+				shouldRepaintBar = false;
+			}
+			
+			Mobile.getPlatform().repaint(platformImage, x, y, width, height);
 		} finally {
 			Display.LCDUILock.unlock();
+		}
+	}
+
+	private void paintCommandsBar() {
+		if (fullscreen) {
+			return;
+		}
+		
+		gc.reset();
+
+		gc.setFont(uiFont);
+		gc.setColor(0xcccccc);
+		gc.fillRect(0, height-barHeight, width, barHeight);
+
+		gc.setColor(0x222222);
+		gc.drawString(commands.size() > 2 ? "Options" : commands.get(0).getLabel(), barPadding, height-barHeight+barPadding, Graphics.LEFT);
+
+		if (commands.size() == 2) {
+			gc.drawString(commands.get(1).getLabel(), width-barPadding, height-barHeight+barPadding, Graphics.RIGHT);
 		}
 	}
 
@@ -226,22 +251,45 @@ public abstract class Canvas extends Displayable
 	public void setFullScreenMode(boolean mode)
 	{
 		//System.out.print("Set Canvas Full Screen Mode ");
-		fullScreen = mode;
-		if(fullScreen)
-		{
-			width = Mobile.getPlatform().lcdWidth;
-			height = Mobile.getPlatform().lcdHeight;
+		if (mode != fullscreen) {
+			fullscreen = mode;
+			_invalidate();
 		}
 	}
 
 	public void showNotify() { }
 
-	protected void sizeChanged(int w, int h)
-	{
-		width = w;
-		height = h;
+	protected void sizeChanged(int w, int h) { } // ??
+
+	public void notifySetCurrent() { _invalidate(); }
+
+	public int getWidth() { return width; }
+
+	public int getHeight() { 
+		// this is quite problematic because games check this before adding commands
+		// so if we'd only include the bar if there are commands, games could
+		// get invalid resolution
+		return fullscreen ? height : height - barHeight;
 	}
 
-	public void notifySetCurrent() { repaint(); }
+	public void addCommand(Command cmd)	{ 
+		commands.add(cmd);
+		shouldRepaintBar = true;
+		_invalidate();
+	}
 
+	public void removeCommand(Command cmd) {
+		commands.remove(cmd);
+		shouldRepaintBar = true;
+		_invalidate();
+	}
+
+	protected void render() {
+		if (listCommands) {
+			shouldRepaintBar = true;
+			super.render();
+		} else {
+			repaint();
+		}
+	}
 }

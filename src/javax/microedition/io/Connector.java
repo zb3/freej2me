@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 
 import org.recompile.mobile.Mobile;
 
@@ -53,21 +54,16 @@ public class Connector
 		return new DataInputStream(new fakeIS());
 	}
 
-	private static class DummyConnection implements Connection
-	{
-		public void close() {}
-	}
-
 	private static class DummyOutputStream extends OutputStream
 	{
 		public void write(int a) {}
 	}
 
-	public static Connection open(String name) { return new DummyConnection(); }
+	public static Connection open(String name) throws IOException { throw new ConnectionNotFoundException(); }
 
-	public static Connection open(String name, int mode) { return new DummyConnection(); }
+	public static Connection open(String name, int mode) throws IOException { throw new ConnectionNotFoundException(); }
 
-	public static Connection open(String name, int mode, boolean timeouts) { return new DummyConnection(); }
+	public static Connection open(String name, int mode, boolean timeouts) throws IOException { throw new ConnectionNotFoundException(); }
 
 	public static DataOutputStream openDataOutputStream(String name) { return new DataOutputStream(new DummyOutputStream()); }
 

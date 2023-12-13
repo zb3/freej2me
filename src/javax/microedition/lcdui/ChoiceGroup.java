@@ -52,9 +52,7 @@ public class ChoiceGroup extends Item implements Choice
 		this(choiceLabel, choiceType);
 		for(int i=0; i<stringElements.length; i++) {
 			strings.add(stringElements[i]);
-			if (imageElements != null && i<imageElements.length) {
-				images.add(imageElements[i]);
-			}
+			images.add((imageElements != null && i<imageElements.length) ? imageElements[i] : null);
 			selectedElements.add(false);
 		}
 
@@ -297,7 +295,13 @@ public class ChoiceGroup extends Item implements Choice
 					gc.setColor(0xffffff);
 				}
 
-				gc.drawString(strings.get(t), tickOffset+textPadding, t*lineHeight, 0);
+				if (images.get(t) != null) {
+					gc.drawImage(images.get(t), tickOffset+textPadding, t*lineHeight, 0);
+
+					gc.drawString(strings.get(t), tickOffset+textPadding+lineHeight, t*lineHeight, 0);
+				} else {
+					gc.drawString(strings.get(t), tickOffset+textPadding, t*lineHeight, 0);
+				}
 
 				gc.setColor(0x000000);
 			}

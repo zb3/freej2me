@@ -50,8 +50,7 @@ public class Form extends Screen
 
 		for (int i=0; i<itemarray.length; i++)
 		{
-			items.add(itemarray[i]);
-			itemarray[i].setOwner(this);
+			doInsert(i, itemarray[i], false);
 		}
 	}
 

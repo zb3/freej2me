@@ -57,6 +57,10 @@ public class ChoiceGroup extends Item implements Choice
 			}
 			selectedElements.add(false);
 		}
+
+		if (!strings.isEmpty()) {
+			selectedIndex = 0;
+		}
 	}
 
 	ChoiceGroup(String choiceLabel, int choiceType, boolean validateChoiceType)
@@ -73,6 +77,10 @@ public class ChoiceGroup extends Item implements Choice
 		strings.add(stringPart);
 		images.add(imagePart);
 		selectedElements.add(false);
+
+		if (!strings.isEmpty() && selectedIndex == -1) {
+			selectedIndex = 0;
+		}
 		invalidate();
 
 		return strings.size() - 1;
@@ -84,13 +92,18 @@ public class ChoiceGroup extends Item implements Choice
 		images.remove(itemNum);
 		selectedElements.remove(itemNum);
 
-		if (selectedIndex > itemNum) {
-			selectedIndex--;
+		if (strings.isEmpty()) {
+			selectedIndex = hilightedIndex = -1;
+		} else {
+			if (selectedIndex > itemNum) {
+				selectedIndex--;
+			}
+			
+			if (hilightedIndex > itemNum) {
+				hilightedIndex--;
+			}
 		}
-		
-		if (hilightedIndex > itemNum) {
-			hilightedIndex--;
-		}
+
 
 		invalidate();
 	}
@@ -113,6 +126,10 @@ public class ChoiceGroup extends Item implements Choice
 		
 		if (hilightedIndex >= elementNum) {
 			hilightedIndex++;
+		}
+
+		if (!strings.isEmpty() && selectedIndex == -1) {
+			selectedIndex = 0;
 		}
 
 		invalidate();

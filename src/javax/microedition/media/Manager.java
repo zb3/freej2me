@@ -17,6 +17,7 @@
 package javax.microedition.media;
 
 import java.io.InputStream;
+import java.util.Locale;
 
 import javax.microedition.media.tone.ToneManager;
 
@@ -40,14 +41,15 @@ public final class Manager
 
 	public static Player createPlayer(InputStream stream, String type) throws IOException, MediaException
 	{
-		
+		type = type.toLowerCase(Locale.ROOT);
+
 		if (!Mobile.sound) {
 			return new BasePlayer();
-		} else if(type.equalsIgnoreCase("audio/mid") || type.equalsIgnoreCase("audio/midi") || type.equalsIgnoreCase("audio/x-midi") || type.equalsIgnoreCase("sp-midi") || type.equalsIgnoreCase("audio/spmidi")) {
+		} else if(type.equals("audio/mid") || type.equals("audio/midi") || type.equals("audio/x-midi") || type.equals("sp-midi") || type.equals("audio/spmidi")) {
 			return new MIDIFilePlayer(stream, type);
-		} else if(type.equalsIgnoreCase(MIDI_DEVICE_LOCATOR)) {
+		} else if(type.equals(MIDI_DEVICE_LOCATOR)) {
 			return new MIDIFilePlayer(stream, "audio/midi");
-		} else if(type.equalsIgnoreCase(TONE_DEVICE_LOCATOR) || type.equalsIgnoreCase("audio/x-tone-seq")) {
+		} else if(type.equals(TONE_DEVICE_LOCATOR) || type.equals("audio/x-tone-seq")) {
 			return new MIDITonePlayer(stream);
 		} else {
 			return new FFPlayer(stream, type);
@@ -61,6 +63,22 @@ public final class Manager
 				return new MIDIPlayer();
 			} else if (locator.equals(TONE_DEVICE_LOCATOR)) {
 				return new MIDITonePlayer();
+			} else if (locator.startsWith("/")) {
+				String locator2 = locator.toLowerCase(Locale.ROOT);
+				String type = "";
+
+				InputStream stream = Mobile.getPlatform().loader.getMIDletResourceAsStream(locator);
+				if (stream != null) {
+					if (locator2.endsWith(".mid") || locator2.endsWith(".midi")) {
+						type = "audio/midi";
+					}
+
+					try {
+						return createPlayer(stream, type);
+					} catch (IOException e) {
+						throw new MediaException(e.getMessage());
+					}				
+				}
 			}
 		}
 

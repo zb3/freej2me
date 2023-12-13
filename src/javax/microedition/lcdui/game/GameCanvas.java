@@ -21,6 +21,7 @@ import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.Graphics;
 
 import org.recompile.mobile.Mobile;
+import org.recompile.mobile.PlatformImage;
 public abstract class GameCanvas extends Canvas
 {
 	public static final int UP_PRESSED = 1 << Canvas.UP;
@@ -33,23 +34,33 @@ public abstract class GameCanvas extends Canvas
 	public static final int GAME_C_PRESSED = 1 << Canvas.GAME_C;
 	public static final int GAME_D_PRESSED = 1 << Canvas.GAME_D;
 
+	protected PlatformImage canvasImage;
 	private boolean suppressKeyEvents;
 
 	protected GameCanvas(boolean suppressKeyEvents)
 	{
 		this.suppressKeyEvents = suppressKeyEvents;
+		canvasImage = new PlatformImage(width, height);
 	}
 
 	protected Graphics getGraphics()
 	{
-		return platformImage.getGraphics();
+		return canvasImage.getGraphics();
 	}
 
-	public void paint(Graphics g) { }
+	public void paint(Graphics g) {
+		// at this point the canvasImage might not yet be "ready"
+		// this could cause a flash
+		// g.drawImage(canvasImage, 0, 0, Graphics.TOP | Graphics.LEFT);
+	}
 
 	public void flushGraphics(int x, int y, int width, int height)
 	{
-		Mobile.getPlatform().flushGraphics(platformImage, x, y, width, height);
+		// we paint this on the main canvas image so that when we repaint the main canvas
+		// it draws the "ready" image
+		height = Math.min(getHeight()-y, height-y);
+		gc.getGraphics2D().drawImage(canvasImage.getCanvas().getSubimage(x, y, width, height), x, y, null);
+		repaint(x, y, width, height);
 	}
 
 	public void flushGraphics()

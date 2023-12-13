@@ -71,6 +71,13 @@ public class PlatformImage extends javax.microedition.lcdui.Image
 		platformImage = this;
 	}
 
+	public PlatformImage(int width, int height, int argb)
+	{
+		this(width, height);
+
+		gc.clearARGB(0, 0, width, height, argb);
+	}
+
 	public PlatformImage(String name)
 	{
 		// Create Image from resource name

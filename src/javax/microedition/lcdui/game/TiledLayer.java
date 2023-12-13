@@ -19,8 +19,7 @@ package javax.microedition.lcdui.game;
 import javax.microedition.lcdui.Graphics;
 import javax.microedition.lcdui.Image;
 
-public class TiledLayer extends Layer
-{
+public class TiledLayer extends Layer {
 	private int cellHeight;
 	private int cellWidth;
 	private int rows;
@@ -35,14 +34,12 @@ public class TiledLayer extends Layer
 	private int numOfAnimTiles;
 
 	public TiledLayer(int columns, int rows, Image image, int tileWidth,
-					  int tileHeight)
-	{
+					  int tileHeight) {
 		super(columns < 1 || tileWidth < 1 ? -1 : columns * tileWidth,
 				rows < 1 || tileHeight < 1 ? -1 : rows * tileHeight);
 
 		if (((image.getWidth() % tileWidth) != 0) ||
-				((image.getHeight() % tileHeight) != 0))
-		{
+				((image.getHeight() % tileHeight) != 0)) {
 			throw new IllegalArgumentException();
 		}
 		this.columns = columns;
@@ -54,21 +51,16 @@ public class TiledLayer extends Layer
 		createStaticSet(image, noOfFrames + 1, tileWidth, tileHeight, true);
 	}
 
-	public int createAnimatedTile(int staticTileIndex)
-	{
+	public int createAnimatedTile(int staticTileIndex) {
 		// checks static tile
-		if (staticTileIndex < 0 || staticTileIndex >= numberOfTiles)
-		{
+		if (staticTileIndex < 0 || staticTileIndex >= numberOfTiles) {
 			throw new IndexOutOfBoundsException();
 		}
 
-		if (anim_to_static == null)
-		{
+		if (anim_to_static == null) {
 			anim_to_static = new int[4];
 			numOfAnimTiles = 1;
-		}
-		else if (numOfAnimTiles == anim_to_static.length)
-		{
+		} else if (numOfAnimTiles == anim_to_static.length) {
 			// grow anim_to_static table if needed
 			int new_anim_tbl[] = new int[anim_to_static.length * 2];
 			System.arraycopy(anim_to_static, 0,
@@ -80,18 +72,15 @@ public class TiledLayer extends Layer
 		return (-(numOfAnimTiles - 1));
 	}
 
-	public void setAnimatedTile(int animatedTileIndex, int staticTileIndex)
-	{
+	public void setAnimatedTile(int animatedTileIndex, int staticTileIndex) {
 		// checks static tile
-		if (staticTileIndex < 0 || staticTileIndex >= numberOfTiles)
-		{
+		if (staticTileIndex < 0 || staticTileIndex >= numberOfTiles) {
 			throw new IndexOutOfBoundsException();
 		}
 		// do animated tile index check
 		animatedTileIndex = -animatedTileIndex;
 		if (anim_to_static == null || animatedTileIndex <= 0
-				|| animatedTileIndex >= numOfAnimTiles)
-		{
+				|| animatedTileIndex >= numOfAnimTiles) {
 			throw new IndexOutOfBoundsException();
 		}
 
@@ -99,39 +88,30 @@ public class TiledLayer extends Layer
 
 	}
 
-	public int getAnimatedTile(int animatedTileIndex)
-	{
+	public int getAnimatedTile(int animatedTileIndex) {
 		animatedTileIndex = -animatedTileIndex;
 		if (anim_to_static == null || animatedTileIndex <= 0
-				|| animatedTileIndex >= numOfAnimTiles)
-		{
+				|| animatedTileIndex >= numOfAnimTiles) {
 			throw new IndexOutOfBoundsException();
 		}
 
 		return anim_to_static[animatedTileIndex];
 	}
 
-	public void setCell(int col, int row, int tileIndex)
-	{
-		if (col < 0 || col >= this.columns || row < 0 || row >= this.rows)
-		{
+	public void setCell(int col, int row, int tileIndex) {
+		if (col < 0 || col >= this.columns || row < 0 || row >= this.rows) {
 			throw new IndexOutOfBoundsException();
 		}
 
-		if (tileIndex > 0)
-		{
+		if (tileIndex > 0) {
 			// do checks for static tile
-			if (tileIndex >= numberOfTiles)
-			{
+			if (tileIndex >= numberOfTiles) {
 				throw new IndexOutOfBoundsException();
 			}
-		}
-		else if (tileIndex < 0)
-		{
+		} else if (tileIndex < 0) {
 			// do animated tile index check
 			if (anim_to_static == null ||
-					(-tileIndex) >= numOfAnimTiles)
-			{
+					(-tileIndex) >= numOfAnimTiles) {
 				throw new IndexOutOfBoundsException();
 			}
 		}
@@ -140,83 +120,65 @@ public class TiledLayer extends Layer
 
 	}
 
-	public int getCell(int col, int row)
-	{
-		if (col < 0 || col >= this.columns || row < 0 || row >= this.rows)
-		{
+	public int getCell(int col, int row) {
+		if (col < 0 || col >= this.columns || row < 0 || row >= this.rows) {
 			throw new IndexOutOfBoundsException();
 		}
 		return cellMatrix[row][col];
 	}
 
-	public void fillCells(int col, int row, int numCols, int numRows, int tileIndex)
-	{
-		if (numCols < 0 || numRows < 0)
-		{
+	public void fillCells(int col, int row, int numCols, int numRows, int tileIndex) {
+		if (numCols < 0 || numRows < 0) {
 			throw new IllegalArgumentException();
 		}
 
 		if (col < 0 || col >= this.columns || row < 0 || row >= this.rows ||
-				col + numCols > this.columns || row + numRows > this.rows)
-		{
+				col + numCols > this.columns || row + numRows > this.rows) {
 			throw new IndexOutOfBoundsException();
 		}
 
-		if (tileIndex > 0)
-		{
+		if (tileIndex > 0) {
 			// do checks for static tile
-			if (tileIndex >= numberOfTiles)
-			{
+			if (tileIndex >= numberOfTiles) {
 				throw new IndexOutOfBoundsException();
 			}
-		}
-		else if (tileIndex < 0)
-		{
+		} else if (tileIndex < 0) {
 			// do animated tile index check
 			if (anim_to_static == null ||
-					(-tileIndex) >= numOfAnimTiles)
-			{
+					(-tileIndex) >= numOfAnimTiles) {
 				throw new IndexOutOfBoundsException();
 			}
 		}
 
-		for (int rowCount = row; rowCount < row + numRows; rowCount++)
-		{
+		for (int rowCount = row; rowCount < row + numRows; rowCount++) {
 			for (int columnCount = col;
-				 columnCount < col + numCols; columnCount++)
-			{
+				 columnCount < col + numCols; columnCount++) {
 				cellMatrix[rowCount][columnCount] = tileIndex;
 			}
 		}
 	}
 
-	public final int getCellWidth()
-	{
+	public final int getCellWidth() {
 		return cellWidth;
 	}
 
-	public final int getCellHeight()
-	{
+	public final int getCellHeight() {
 		return cellHeight;
 	}
 
-	public final int getColumns()
-	{
+	public final int getColumns() {
 		return columns;
 	}
 
-	public final int getRows()
-	{
+	public final int getRows() {
 		return rows;
 	}
 
-	public void setStaticTileSet(Image image, int tileWidth, int tileHeight)
-	{
+	public void setStaticTileSet(Image image, int tileWidth, int tileHeight) {
 		// if img is null img.getWidth() will throw NullPointerException
 		if (tileWidth < 1 || tileHeight < 1 ||
 				((image.getWidth() % tileWidth) != 0) ||
-				((image.getHeight() % tileHeight) != 0))
-		{
+				((image.getHeight() % tileHeight) != 0)) {
 			throw new IllegalArgumentException();
 		}
 		setWidthImpl(columns * tileWidth);
@@ -228,28 +190,22 @@ public class TiledLayer extends Layer
 		// the zero th index is left empty for transparent tile
 		// so it is passed in  createStaticSet as noOfFrames + 1
 
-		if (noOfFrames >= (numberOfTiles - 1))
-		{
+		if (noOfFrames >= (numberOfTiles - 1)) {
 			// maintain static indices
 			createStaticSet(image, noOfFrames + 1, tileWidth, tileHeight, true);
-		}
-		else
-		{
+		} else {
 			createStaticSet(image, noOfFrames + 1, tileWidth,
 					tileHeight, false);
 		}
 	}
 
 	@Override
-	public final void paint(Graphics g)
-	{
-		if (g == null)
-		{
+	public final void paint(Graphics g) {
+		if (g == null) {
 			throw new NullPointerException();
 		}
 
-		if (visible)
-		{
+		if (visible) {
 			int startColumn = 0;
 			int endColumn = this.columns;
 			int startRow = 0;
@@ -257,8 +213,7 @@ public class TiledLayer extends Layer
 
 			// calculate the number of columns left of the clip
 			int number = (g.getClipX() - this.x) / cellWidth;
-			if (number > 0)
-			{
+			if (number > 0) {
 				startColumn = number;
 			}
 
@@ -266,15 +221,13 @@ public class TiledLayer extends Layer
 			int endX = this.x + (this.columns * cellWidth);
 			int endClipX = g.getClipX() + g.getClipWidth();
 			number = (endX - endClipX) / cellWidth;
-			if (number > 0)
-			{
+			if (number > 0) {
 				endColumn -= number;
 			}
 
 			// calculate the number of rows above the clip
 			number = (g.getClipY() - this.y) / cellHeight;
-			if (number > 0)
-			{
+			if (number > 0) {
 				startRow = number;
 			}
 
@@ -282,8 +235,7 @@ public class TiledLayer extends Layer
 			int endY = this.y + (this.rows * cellHeight);
 			int endClipY = g.getClipY() + g.getClipHeight();
 			number = (endY - endClipY) / cellHeight;
-			if (number > 0)
-			{
+			if (number > 0) {
 				endRow -= number;
 			}
 
@@ -293,26 +245,21 @@ public class TiledLayer extends Layer
 			// y-coordinate
 			int ty = this.y + (startRow * cellHeight);
 			for (int row = startRow;
-				 row < endRow; row++, ty += cellHeight)
-			{
+				 row < endRow; row++, ty += cellHeight) {
 
 				// reset the x-coordinate at the beginning of every row
 				// x-coordinate to draw tile into
 				int tx = this.x + (startColumn * cellWidth);
 				for (int column = startColumn; column < endColumn;
-					 column++, tx += cellWidth)
-				{
+					 column++, tx += cellWidth) {
 
 					tileIndex = cellMatrix[row][column];
 					// check the indices
 					// if animated get the corresponding
 					// static index from anim_to_static table
-					if (tileIndex == 0)
-					{ // transparent tile
+					if (tileIndex == 0) { // transparent tile
 						continue;
-					}
-					else if (tileIndex < 0)
-					{
+					} else if (tileIndex < 0) {
 						tileIndex = getAnimatedTile(tileIndex);
 					}
 
@@ -329,8 +276,7 @@ public class TiledLayer extends Layer
 	}
 
 	private void createStaticSet(Image image, int noOfFrames, int tileWidth,
-								 int tileHeight, boolean maintainIndices)
-	{
+								 int tileHeight, boolean maintainIndices) {
 		cellWidth = tileWidth;
 		cellHeight = tileHeight;
 
@@ -343,14 +289,11 @@ public class TiledLayer extends Layer
 		tileSetX = new int[numberOfTiles];
 		tileSetY = new int[numberOfTiles];
 
-		if (!maintainIndices)
-		{
+		if (!maintainIndices) {
 			// populate cell matrix, all the indices are 0 to begin with
-			for (rows = 0; rows < cellMatrix.length; rows++)
-			{
+			for (rows = 0; rows < cellMatrix.length; rows++) {
 				int totalCols = cellMatrix[rows].length;
-				for (columns = 0; columns < totalCols; columns++)
-				{
+				for (columns = 0; columns < totalCols; columns++) {
 					cellMatrix[rows][columns] = 0;
 				}
 			}
@@ -360,10 +303,8 @@ public class TiledLayer extends Layer
 
 		int currentTile = 1;
 
-		for (int locY = 0; locY < imageH; locY += tileHeight)
-		{
-			for (int locX = 0; locX < imageW; locX += tileWidth)
-			{
+		for (int locY = 0; locY < imageH; locY += tileHeight) {
+			for (int locX = 0; locX < imageW; locX += tileWidth) {
 
 				tileSetX[currentTile] = locX;
 				tileSetY[currentTile] = locY;

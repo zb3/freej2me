@@ -24,50 +24,41 @@ public class LayerManager
 	private Layer component[] = new Layer[4];
 	protected int viewX, viewY, viewWidth, viewHeight;
 
-	public LayerManager()
-	{
+	public LayerManager() {
 		setViewWindow(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
 	}
 
-	public void append(Layer l)
-	{
+	public void append(Layer l) {
 		// remove the Layer if it is already present
 		// will throw NullPointerException if the Layer is null
 		removeImpl(l);
 		addImpl(l, nlayers);
 	}
 
-	public void insert(Layer l, int index)
-	{
-		if ((index < 0) || (index > nlayers) || (exist(l) && (index >= nlayers)))
-		{
+	public void insert(Layer l, int index) {
+		if ((index < 0) || (index > nlayers) || (exist(l) && (index >= nlayers))) {
 			throw new IndexOutOfBoundsException();
 		}
 		removeImpl(l);
 		addImpl(l, index);
 	}
 
-	public Layer getLayerAt(int index)
-	{
-		if ((index < 0) || (index >= nlayers))
-		{
+	public Layer getLayerAt(int index) {
+		if ((index < 0) || (index >= nlayers)) {
 			throw new IndexOutOfBoundsException();
 		}
 		return component[index];
 	}
 
-	public int getSize()
-	{
+	public int getSize() {
 		return nlayers;
 	}
 
-	public void remove(Layer l)
-	{
+	public void remove(Layer l) {
 		removeImpl(l);
 	}
 
-	public void paint(Graphics g, int x, int y)
-	{
+	public void paint(Graphics g, int x, int y) {
 		// if g == null g.getClipX will throw NullPointerException;
 
 		// save the original clip
@@ -82,11 +73,9 @@ public class LayerManager
 		g.clipRect(viewX, viewY, viewWidth, viewHeight);
 
 		// draw last to first
-		for (int i = nlayers; --i >= 0; )
-		{
+		for (int i = nlayers; --i >= 0; ) {
 			Layer comp = component[i];
-			if (comp.visible)
-			{
+			if (comp.visible) {
 				comp.paint(g);
 			}
 		}
@@ -95,10 +84,8 @@ public class LayerManager
 		g.setClip(clipX, clipY, clipW, clipH);
 	}
 
-	public void setViewWindow(int x, int y, int width, int height)
-	{
-		if (width < 0 || height < 0)
-		{
+	public void setViewWindow(int x, int y, int width, int height) {
+		if (width < 0 || height < 0) {
 			throw new IllegalArgumentException();
 		}
 
@@ -108,18 +95,14 @@ public class LayerManager
 		viewHeight = height;
 	}
 
-	private void addImpl(Layer layer, int index)
-	{
-		if (nlayers == component.length)
-		{
+	private void addImpl(Layer layer, int index) {
+		if (nlayers == component.length) {
 			Layer newcomponents[] = new Layer[nlayers + 4];
 			System.arraycopy(component, 0, newcomponents, 0, nlayers);
 			System.arraycopy(component, index, newcomponents,
 					index + 1, nlayers - index);
 			component = newcomponents;
-		}
-		else
-		{
+		} else {
 			System.arraycopy(component, index, component,
 					index + 1, nlayers - index);
 		}
@@ -128,41 +111,32 @@ public class LayerManager
 		nlayers++;
 	}
 
-	private void removeImpl(Layer l)
-	{
-		if (l == null)
-		{
+	private void removeImpl(Layer l) {
+		if (l == null) {
 			throw new NullPointerException();
 		}
 
-		for (int i = nlayers; --i >= 0; )
-		{
-			if (component[i] == l)
-			{
+		for (int i = nlayers; --i >= 0; ) {
+			if (component[i] == l) {
 				remove(i);
 			}
 		}
 	}
 
-	private boolean exist(Layer l)
-	{
-		if (l == null)
-		{
+	private boolean exist(Layer l) {
+		if (l == null) {
 			return false;
 		}
 
-		for (int i = nlayers; --i >= 0; )
-		{
-			if (component[i] == l)
-			{
+		for (int i = nlayers; --i >= 0; ) {
+			if (component[i] == l) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private void remove(int index)
-	{
+	private void remove(int index) {
 		System.arraycopy(component, index + 1,
 				component, index,
 				nlayers - index - 1);

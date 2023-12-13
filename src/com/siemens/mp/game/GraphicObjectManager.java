@@ -1,60 +1,84 @@
 /*
-	This file is part of FreeJ2ME.
-
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
+ *  Siemens API for MicroEmulator
+ *  Copyright (C) 2003 Markus Heberling <markus@heberling.net>
+ *
+ *  It is licensed under the following two licenses as alternatives:
+ *    1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version
+ *    2. Apache License (the "AL") Version 2.0
+ *
+ *  You may not use this file except in compliance with at least one of
+ *  the above two licenses.
+ *
+ *  You may obtain a copy of the LGPL at
+ *      http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+ *
+ *  You may obtain a copy of the AL at
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the LGPL or the AL for the specific language governing permissions and
+ *  limitations.
+ */
 
 package com.siemens.mp.game;
 
-import com.siemens.mp.misc.NativeMem;
-
-import org.recompile.mobile.Mobile;
-import org.recompile.mobile.PlatformImage;
-import org.recompile.mobile.PlatformGraphics;
+import java.util.Vector;
 
 import javax.microedition.lcdui.Graphics;
 import javax.microedition.lcdui.Image;
 
-import java.util.ArrayList;
+public class GraphicObjectManager extends com.siemens.mp.misc.NativeMem {
 
+	private Vector<GraphicObject> v = new Vector<>();
 
-public class GraphicObjectManager extends com.siemens.mp.misc.NativeMem
-{
-	ArrayList<GraphicObject> list = new ArrayList<GraphicObject>();
-
-	public GraphicObjectManager() { }
-	
-	public static byte[] createTextureBits(int width, int height, byte[] texture)
-	{
-		return texture;
+	public void addObject(GraphicObject gobject) {
+		v.addElement(gobject);
 	}
-	
 
-	public void addObject(GraphicObject g) { list.add(g); }
+	public static byte[] createTextureBits(int width, int height, byte[] texture) {
+		return null;
+	}
 
-	public void insertObject(GraphicObject g, int pos) { list.add(pos, g); }
+	public void deleteObject(GraphicObject gobject) {
+		v.removeElement(gobject);
+	}
 
-	public void deleteObject(GraphicObject g) { list.remove(g); }
+	public void deleteObject(int position) {
+		v.removeElementAt(position);
+	}
 
+	public GraphicObject getObjectAt(int index) {
+		return v.elementAt(index);
+	}
 
-	public GraphicObject getObjectAt(int index) { return list.get(index); }
-	
-	public int getObjectPosition(GraphicObject g) { return list.indexOf(g); }
+	public int getObjectPosition(GraphicObject gobject) {
+		return v.indexOf(gobject);
+	}
 
-	
-	public void paint(ExtendedImage img, int x, int y) { }
+	public void insertObject(GraphicObject gobject, int position) {
+		v.insertElementAt(gobject, position);
+	}
 
-	public void paint(Image image, int x, int y) { }
+	public void paint(ExtendedImage eimage, int x, int y) {
+		paint(eimage.getImage(), x, y);
+	}
+
+	public void paint(Image image, int x, int y) {
+		Graphics g = image.getGraphics();
+
+		for (int i = 0; i < v.size(); i++) {
+			GraphicObject go = v.elementAt(i);
+			if (go.getVisible()) {
+				if (go instanceof Sprite) {
+					((Sprite) go).paint(g);
+				} else if (go instanceof TiledBackground) {
+					((TiledBackground) go).paint(g);
+				}
+			}
+		}
+
+	}
 
 }

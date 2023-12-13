@@ -22,6 +22,7 @@ import javax.microedition.lcdui.Font;
 import javax.microedition.lcdui.game.GameCanvas;
 import javax.microedition.lcdui.game.Sprite;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -83,6 +84,14 @@ public class PlatformGraphics extends javax.microedition.lcdui.Graphics
 	public void clearRect(int x, int y, int width, int height)
 	{
 		gc.clearRect(x, y, width, height);
+	}
+
+	public void clearARGB(int x, int y, int width, int height, int argb)
+	{
+		gc.setComposite(AlphaComposite.Src); // overwrite even if transparent
+		gc.setColor(new Color(argb, true));
+		gc.fillRect(x, y, width, height);
+		gc.setComposite(AlphaComposite.SrcOver);
 	}
 
 	public void copyArea(int subx, int suby, int subw, int subh, int x, int y, int anchor)

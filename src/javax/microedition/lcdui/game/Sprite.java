@@ -19,8 +19,7 @@ package javax.microedition.lcdui.game;
 import javax.microedition.lcdui.Graphics;
 import javax.microedition.lcdui.Image;
 
-public class Sprite extends Layer
-{
+public class Sprite extends Layer {
 
 	public static final int TRANS_NONE = 0;
 	public static final int TRANS_ROT90 = 5;
@@ -100,8 +99,7 @@ public class Sprite extends Layer
 	int t_collisionRectHeight;
 
 
-	public Sprite(Image image)
-	{
+	public Sprite(Image image) {
 		super(image.getWidth(), image.getHeight());
 
 		initializeFrames(image, image.getWidth(), image.getHeight(), false);
@@ -114,15 +112,13 @@ public class Sprite extends Layer
 
 	}
 
-	public Sprite(Image image, int frameWidth, int frameHeight)
-	{
+	public Sprite(Image image, int frameWidth, int frameHeight) {
 
 		super(frameWidth, frameHeight);
 		// if img is null img.getWidth() will throw NullPointerException
 		if ((frameWidth < 1 || frameHeight < 1) ||
 				((image.getWidth() % frameWidth) != 0) ||
-				((image.getHeight() % frameHeight) != 0))
-		{
+				((image.getHeight() % frameHeight) != 0)) {
 			throw new IllegalArgumentException();
 		}
 
@@ -139,14 +135,12 @@ public class Sprite extends Layer
 
 	}
 
-	public Sprite(Sprite s)
-	{
+	public Sprite(Sprite s) {
 
 		super(s != null ? s.getWidth() : 0,
 				s != null ? s.getHeight() : 0);
 
-		if (s == null)
-		{
+		if (s == null) {
 			throw new NullPointerException();
 		}
 
@@ -197,14 +191,12 @@ public class Sprite extends Layer
 
 	}
 
-	public void defineReferencePixel(int inp_x, int inp_y)
-	{
+	public void defineReferencePixel(int inp_x, int inp_y) {
 		dRefX = inp_x;
 		dRefY = inp_y;
 	}
 
-	public void setRefPixelPosition(int inp_x, int inp_y)
-	{
+	public void setRefPixelPosition(int inp_x, int inp_y) {
 
 		// update x and y
 		x = inp_x - getTransformedPtX(dRefX, dRefY,
@@ -214,72 +206,57 @@ public class Sprite extends Layer
 
 	}
 
-	public int getRefPixelX()
-	{
+	public int getRefPixelX() {
 		return (this.x +
 				getTransformedPtX(dRefX, dRefY, this.t_currentTransformation));
 	}
 
-	public int getRefPixelY()
-	{
+	public int getRefPixelY() {
 		return (this.y +
 				getTransformedPtY(dRefX, dRefY, this.t_currentTransformation));
 	}
 
-	public void setFrame(int inp_sequenceIndex)
-	{
+	public void setFrame(int inp_sequenceIndex) {
 		if (inp_sequenceIndex < 0 ||
-				inp_sequenceIndex >= frameSequence.length)
-		{
+				inp_sequenceIndex >= frameSequence.length) {
 			throw new IndexOutOfBoundsException();
 		}
 		sequenceIndex = inp_sequenceIndex;
 	}
 
-	public final int getFrame()
-	{
+	public final int getFrame() {
 		return sequenceIndex;
 	}
 
-	public int getRawFrameCount()
-	{
+	public int getRawFrameCount() {
 		return numberFrames;
 	}
 
-	public int getFrameSequenceLength()
-	{
+	public int getFrameSequenceLength() {
 		return frameSequence.length;
 	}
 
-	public void nextFrame()
-	{
+	public void nextFrame() {
 		sequenceIndex = (sequenceIndex + 1) % frameSequence.length;
 	}
 
-	public void prevFrame()
-	{
-		if (sequenceIndex == 0)
-		{
+	public void prevFrame() {
+		if (sequenceIndex == 0) {
 			sequenceIndex = frameSequence.length - 1;
-		}
-		else
-		{
+		} else {
 			sequenceIndex--;
 		}
 	}
 
 	@Override
-	public final void paint(Graphics g)
-	{
+	public final void paint(Graphics g) {
 		// managing the painting order is the responsibility of
 		// the layermanager, so depth is ignored
-		if (g == null)
-		{
+		if (g == null) {
 			throw new NullPointerException();
 		}
 
-		if (visible)
-		{
+		if (visible) {
 
 			// width and height of the source
 			// image is the width and height
@@ -297,32 +274,26 @@ public class Sprite extends Layer
 
 	}
 
-	public void setFrameSequence(int sequence[])
-	{
+	public void setFrameSequence(int sequence[]) {
 
-		if (sequence == null)
-		{
+		if (sequence == null) {
 			// revert to the default sequence
 			sequenceIndex = 0;
 			customSequenceDefined = false;
 			frameSequence = new int[numberFrames];
 			// copy frames indices into frameSequence
-			for (int i = 0; i < numberFrames; i++)
-			{
+			for (int i = 0; i < numberFrames; i++) {
 				frameSequence[i] = i;
 			}
 			return;
 		}
 
-		if (sequence.length < 1)
-		{
+		if (sequence.length < 1) {
 			throw new IllegalArgumentException();
 		}
 
-		for (int aSequence : sequence)
-		{
-			if (aSequence < 0 || aSequence >= numberFrames)
-			{
+		for (int aSequence : sequence) {
+			if (aSequence < 0 || aSequence >= numberFrames) {
 				throw new ArrayIndexOutOfBoundsException();
 			}
 		}
@@ -332,14 +303,12 @@ public class Sprite extends Layer
 		sequenceIndex = 0;
 	}
 
-	public void setImage(Image img, int frameWidth, int frameHeight)
-	{
+	public void setImage(Image img, int frameWidth, int frameHeight) {
 
 		// if image is null image.getWidth() will throw NullPointerException
 		if ((frameWidth < 1 || frameHeight < 1) ||
 				((img.getWidth() % frameWidth) != 0) ||
-				((img.getHeight() % frameHeight) != 0))
-		{
+				((img.getHeight() % frameHeight) != 0)) {
 			throw new IllegalArgumentException();
 		}
 
@@ -347,16 +316,14 @@ public class Sprite extends Layer
 				(img.getWidth() / frameWidth) * (img.getHeight() / frameHeight);
 
 		boolean maintainCurFrame = true;
-		if (noOfFrames < numberFrames)
-		{
+		if (noOfFrames < numberFrames) {
 			// use default frame , sequence index = 0
 			maintainCurFrame = false;
 			customSequenceDefined = false;
 		}
 
 		if (!((srcFrameWidth == frameWidth) &&
-				(srcFrameHeight == frameHeight)))
-		{
+				(srcFrameHeight == frameHeight))) {
 
 			// computing is the location
 			// of the reference pixel in the painter's coordinate system.
@@ -389,9 +356,7 @@ public class Sprite extends Layer
 
 			computeTransformedBounds(this.t_currentTransformation);
 
-		}
-		else
-		{
+		} else {
 			// just reinitialize the animation frames.
 			initializeFrames(img, frameWidth, frameHeight, maintainCurFrame);
 		}
@@ -399,11 +364,9 @@ public class Sprite extends Layer
 	}
 
 	public void defineCollisionRectangle(int inp_x, int inp_y,
-										 int width, int height)
-	{
+										 int width, int height) {
 
-		if (width < 0 || height < 0)
-		{
+		if (width < 0 || height < 0) {
 			throw new IllegalArgumentException();
 		}
 
@@ -417,17 +380,14 @@ public class Sprite extends Layer
 		setTransformImpl(t_currentTransformation);
 	}
 
-	public void setTransform(int transform)
-	{
+	public void setTransform(int transform) {
 		setTransformImpl(transform);
 	}
 
-	public final boolean collidesWith(Sprite s, boolean pixelLevel)
-	{
+	public final boolean collidesWith(Sprite s, boolean pixelLevel) {
 
 		// check if either of the Sprite's are not visible
-		if (!(s.visible && this.visible))
-		{
+		if (!(s.visible && this.visible)) {
 			return false;
 		}
 
@@ -445,60 +405,49 @@ public class Sprite extends Layer
 
 		// check if the collision rectangles of the two sprites intersect
 		if (intersectRect(otherLeft, otherTop, otherRight, otherBottom,
-				left, top, right, bottom))
-		{
+				left, top, right, bottom)) {
 
 			// collision rectangles intersect
-			if (pixelLevel)
-			{
+			if (pixelLevel) {
 
 				// we need to check pixel level collision detection.
 				// use only the coordinates within the Sprite frame if
 				// the collision rectangle is larger than the Sprite
 				// frame
-				if (this.t_collisionRectX < 0)
-				{
+				if (this.t_collisionRectX < 0) {
 					left = this.x;
 				}
-				if (this.t_collisionRectY < 0)
-				{
+				if (this.t_collisionRectY < 0) {
 					top = this.y;
 				}
 				if ((this.t_collisionRectX + this.t_collisionRectWidth)
-						> this.width)
-				{
+						> this.width) {
 					right = this.x + this.width;
 				}
 				if ((this.t_collisionRectY + this.t_collisionRectHeight)
-						> this.height)
-				{
+						> this.height) {
 					bottom = this.y + this.height;
 				}
 
 				// similarly for the other Sprite
-				if (s.t_collisionRectX < 0)
-				{
+				if (s.t_collisionRectX < 0) {
 					otherLeft = s.x;
 				}
-				if (s.t_collisionRectY < 0)
-				{
+				if (s.t_collisionRectY < 0) {
 					otherTop = s.y;
 				}
 				if ((s.t_collisionRectX + s.t_collisionRectWidth)
-						> s.width)
-				{
+						> s.width) {
 					otherRight = s.x + s.width;
 				}
 				if ((s.t_collisionRectY + s.t_collisionRectHeight)
-						> s.height)
-				{
+						> s.height) {
 					otherBottom = s.y + s.height;
 				}
 
 				// recheck if the updated collision area rectangles intersect
 				if (!intersectRect(otherLeft, otherTop, otherRight, otherBottom,
-						left, top, right, bottom))
-				{
+						left, top, right, bottom)) {
 
 					// if they don't intersect, return false;
 					return false;
@@ -556,9 +505,7 @@ public class Sprite extends Layer
 						s.t_currentTransformation,
 						intersectWidth, intersectHeight);
 
-			}
-			else
-			{
+			} else {
 				// collides!
 				return true;
 			}
@@ -567,12 +514,10 @@ public class Sprite extends Layer
 
 	}
 
-	public final boolean collidesWith(TiledLayer t, boolean pixelLevel)
-	{
+	public final boolean collidesWith(TiledLayer t, boolean pixelLevel) {
 
 		// check if either this Sprite or the TiledLayer is not visible
-		if (!(t.visible && this.visible))
-		{
+		if (!(t.visible && this.visible)) {
 			return false;
 		}
 
@@ -604,8 +549,7 @@ public class Sprite extends Layer
 		int startRow; // = 0;
 		int endRow;   // = 0;
 
-		if (!intersectRect(tLx1, tLy1, tLx2, tLy2, sx1, sy1, sx2, sy2))
-		{
+		if (!intersectRect(tLx1, tLy1, tLx2, tLy2, sx1, sy1, sx2, sy2)) {
 			// if the collision rectangle of the sprite
 			// does not intersect with the dimensions of the entire
 			// tiled layer
@@ -627,15 +571,11 @@ public class Sprite extends Layer
 		endCol = (sx2 < tLx2) ? ((sx2 - 1 - tLx1) / tW) : tNumCols - 1;
 		endRow = (sy2 < tLy2) ? ((sy2 - 1 - tLy1) / tH) : tNumRows - 1;
 
-		if (!pixelLevel)
-		{
+		if (!pixelLevel) {
 			// check for intersection with a non-empty cell,
-			for (int row = startRow; row <= endRow; row++)
-			{
-				for (int col = startCol; col <= endCol; col++)
-				{
-					if (t.getCell(col, row) != 0)
-					{
+			for (int row = startRow; row <= endRow; row++) {
+				for (int col = startCol; col <= endCol; col++) {
+					if (t.getCell(col, row) != 0) {
 						return true;
 					}
 				}
@@ -644,36 +584,29 @@ public class Sprite extends Layer
 			// overlapping region and
 			// all the cells are empty!
 			return false;
-		}
-		else
-		{
+		} else {
 			// do pixel level
 
 			// we need to check pixel level collision detection.
 			// use only the coordinates within the Sprite frame if
 			// the collision rectangle is larger than the Sprite
 			// frame
-			if (this.t_collisionRectX < 0)
-			{
+			if (this.t_collisionRectX < 0) {
 				sx1 = this.x;
 			}
-			if (this.t_collisionRectY < 0)
-			{
+			if (this.t_collisionRectY < 0) {
 				sy1 = this.y;
 			}
 			if ((this.t_collisionRectX + this.t_collisionRectWidth)
-					> this.width)
-			{
+					> this.width) {
 				sx2 = this.x + this.width;
 			}
 			if ((this.t_collisionRectY + this.t_collisionRectHeight)
-					> this.height)
-			{
+					> this.height) {
 				sy2 = this.y + this.height;
 			}
 
-			if (!intersectRect(tLx1, tLy1, tLx2, tLy2, sx1, sy1, sx2, sy2))
-			{
+			if (!intersectRect(tLx1, tLy1, tLx2, tLy2, sx1, sy1, sx2, sy2)) {
 				return (false);
 			}
 
@@ -701,21 +634,18 @@ public class Sprite extends Layer
 			int tileIndex; // = 0;
 
 			for (int row = startRow; row <= endRow;
-				 row++, cellTop += tH, cellBottom += tH)
-			{
+				 row++, cellTop += tH, cellBottom += tH) {
 
 				// current cell coordinates
 				int cellLeft = startCol * tW + tLx1;
 				int cellRight = cellLeft + tW;
 
 				for (int col = startCol; col <= endCol;
-					 col++, cellLeft += tW, cellRight += tW)
-				{
+					 col++, cellLeft += tW, cellRight += tW) {
 
 					tileIndex = t.getCell(col, row);
 
-					if (tileIndex != 0)
-					{
+					if (tileIndex != 0) {
 
 						// current cell/sprite intersection coordinates
 						// in painter coordinate system.
@@ -729,15 +659,13 @@ public class Sprite extends Layer
 						int intersectBottom = (sy2 < cellBottom) ?
 								sy2 : cellBottom;
 
-						if (intersectLeft > intersectRight)
-						{
+						if (intersectLeft > intersectRight) {
 							int temp = intersectRight;
 							intersectRight = intersectLeft;
 							intersectLeft = temp;
 						}
 
-						if (intersectTop > intersectBottom)
-						{
+						if (intersectTop > intersectBottom) {
 							int temp = intersectBottom;
 							intersectBottom = intersectTop;
 							intersectTop = temp;
@@ -769,8 +697,7 @@ public class Sprite extends Layer
 								this.t_currentTransformation,
 								t.sourceImage,
 								TRANS_NONE,
-								intersectWidth, intersectHeight))
-						{
+								intersectWidth, intersectHeight)) {
 							// intersection found with this tile
 							return true;
 						}
@@ -787,12 +714,10 @@ public class Sprite extends Layer
 	}
 
 	public final boolean collidesWith(Image image, int inp_x,
-									  int inp_y, boolean pixelLevel)
-	{
+									  int inp_y, boolean pixelLevel) {
 
 		// check if this Sprite is not visible
-		if (!(visible))
-		{
+		if (!(visible)) {
 			return false;
 		}
 
@@ -810,12 +735,10 @@ public class Sprite extends Layer
 
 		// first check if the collision rectangles of the two sprites intersect
 		if (intersectRect(otherLeft, otherTop, otherRight, otherBottom,
-				left, top, right, bottom))
-		{
+				left, top, right, bottom)) {
 
 			// collision rectangles intersect
-			if (pixelLevel)
-			{
+			if (pixelLevel) {
 
 				// find intersecting region,
 
@@ -823,30 +746,25 @@ public class Sprite extends Layer
 				// use only the coordinates within the Sprite frame if
 				// the collision rectangle is larger than the Sprite
 				// frame
-				if (this.t_collisionRectX < 0)
-				{
+				if (this.t_collisionRectX < 0) {
 					left = this.x;
 				}
-				if (this.t_collisionRectY < 0)
-				{
+				if (this.t_collisionRectY < 0) {
 					top = this.y;
 				}
 				if ((this.t_collisionRectX + this.t_collisionRectWidth)
-						> this.width)
-				{
+						> this.width) {
 					right = this.x + this.width;
 				}
 				if ((this.t_collisionRectY + this.t_collisionRectHeight)
-						> this.height)
-				{
+						> this.height) {
 					bottom = this.y + this.height;
 				}
 
 				// recheck if the updated collision area rectangles intersect
 				if (!intersectRect(otherLeft, otherTop,
 						otherRight, otherBottom,
-						left, top, right, bottom))
-				{
+						left, top, right, bottom)) {
 
 					// if they don't intersect, return false;
 					return false;
@@ -891,9 +809,7 @@ public class Sprite extends Layer
 						Sprite.TRANS_NONE,
 						intersectWidth, intersectHeight);
 
-			}
-			else
-			{
+			} else {
 				// collides!
 				return true;
 			}
@@ -903,8 +819,7 @@ public class Sprite extends Layer
 	}
 
 	private void initializeFrames(Image image, int fWidth,
-								  int fHeight, boolean maintainCurFrame)
-	{
+								  int fHeight, boolean maintainCurFrame) {
 
 		int imageW = image.getWidth();
 		int imageH = image.getHeight();
@@ -922,28 +837,23 @@ public class Sprite extends Layer
 		frameCoordsX = new int[numberFrames];
 		frameCoordsY = new int[numberFrames];
 
-		if (!maintainCurFrame)
-		{
+		if (!maintainCurFrame) {
 			sequenceIndex = 0;
 		}
 
-		if (!customSequenceDefined)
-		{
+		if (!customSequenceDefined) {
 			frameSequence = new int[numberFrames];
 		}
 
 		int currentFrame = 0;
 
-		for (int yy = 0; yy < imageH; yy += fHeight)
-		{
-			for (int xx = 0; xx < imageW; xx += fWidth)
-			{
+		for (int yy = 0; yy < imageH; yy += fHeight) {
+			for (int xx = 0; xx < imageW; xx += fWidth) {
 
 				frameCoordsX[currentFrame] = xx;
 				frameCoordsY[currentFrame] = yy;
 
-				if (!customSequenceDefined)
-				{
+				if (!customSequenceDefined) {
 					frameSequence[currentFrame] = currentFrame;
 				}
 				currentFrame++;
@@ -952,8 +862,7 @@ public class Sprite extends Layer
 		}
 	}
 
-	private void initCollisionRectBounds()
-	{
+	private void initCollisionRectBounds() {
 
 		// reset x and y of collision rectangle
 		collisionRectX = 0;
@@ -966,14 +875,10 @@ public class Sprite extends Layer
 	}
 
 	private boolean intersectRect(int r1x1, int r1y1, int r1x2, int r1y2,
-								  int r2x1, int r2y1, int r2x2, int r2y2)
-	{
-		if (r2x1 >= r1x2 || r2y1 >= r1y2 || r2x2 <= r1x1 || r2y2 <= r1y1)
-		{
+								  int r2x1, int r2y1, int r2x2, int r2y2) {
+		if (r2x1 >= r1x2 || r2y1 >= r1y2 || r2x2 <= r1x1 || r2y2 <= r1y1) {
 			return false;
-		}
-		else
-		{
+		} else {
 			return true;
 		}
 	}
@@ -984,8 +889,7 @@ public class Sprite extends Layer
 											int image2YOffset,
 											Image image1, int transform1,
 											Image image2, int transform2,
-											int width, int height)
-	{
+											int width, int height) {
 
 		// starting point of comparison
 		int startY1;
@@ -1001,122 +905,94 @@ public class Sprite extends Layer
 		int[] argbData1 = new int[numPixels];
 		int[] argbData2 = new int[numPixels];
 
-		if (0x0 != (transform1 & INVERTED_AXES))
-		{
+		if (0x0 != (transform1 & INVERTED_AXES)) {
 
-			if (0x0 != (transform1 & Y_FLIP))
-			{
+			if (0x0 != (transform1 & Y_FLIP)) {
 				xIncr1 = -(height); // - scanlength
 
 				startY1 = numPixels - height; // numPixels - scanlength
-			}
-			else
-			{
+			} else {
 				xIncr1 = height; // + scanlength
 
 				startY1 = 0;
 			}
 
-			if (0x0 != (transform1 & X_FLIP))
-			{
+			if (0x0 != (transform1 & X_FLIP)) {
 				yIncr1 = -1;
 
 				startY1 += (height - 1);
-			}
-			else
-			{
+			} else {
 				yIncr1 = +1;
 			}
 
 			image1.getRGB(argbData1, 0, height, // scanlength = height
 					image1XOffset, image1YOffset, height, width);
 
-		}
-		else
-		{
-			if (0x0 != (transform1 & Y_FLIP))
-			{
+		} else {
+
+			if (0x0 != (transform1 & Y_FLIP)) {
+
 				startY1 = numPixels - width; // numPixels - scanlength
 
 				yIncr1 = -(width); // - scanlength
-			}
-			else
-			{
+			} else {
 				startY1 = 0;
 
 				yIncr1 = width; // + scanlength
 			}
 
-			if (0x0 != (transform1 & X_FLIP))
-			{
+			if (0x0 != (transform1 & X_FLIP)) {
 				xIncr1 = -1;
 
 				startY1 += (width - 1);
-			}
-			else
-			{
+			} else {
 				xIncr1 = +1;
 			}
 
 			image1.getRGB(argbData1, 0, width, image1XOffset, image1YOffset, width, height);
 		}
 
-		if (0x0 != (transform2 & INVERTED_AXES))
-		{
+		if (0x0 != (transform2 & INVERTED_AXES)) {
 			// inverted axes
 
-			if (0x0 != (transform2 & Y_FLIP))
-			{
+			if (0x0 != (transform2 & Y_FLIP)) {
 				xIncr2 = -(height);
 
 				startY2 = numPixels - height;
-			}
-			else
-			{
+			} else {
 				xIncr2 = height;
 
 				startY2 = 0;
 			}
 
-			if (0x0 != (transform2 & X_FLIP))
-			{
+			if (0x0 != (transform2 & X_FLIP)) {
 				yIncr2 = -1;
 
 				startY2 += height - 1;
-			}
-			else
-			{
+			} else {
 				yIncr2 = +1;
 			}
 
 			image2.getRGB(argbData2, 0, height,
 					image2XOffset, image2YOffset, height, width);
 
-		}
-		else
-		{
+		} else {
 
-			if (0x0 != (transform2 & Y_FLIP))
-			{
+			if (0x0 != (transform2 & Y_FLIP)) {
 				startY2 = numPixels - width;
 
 				yIncr2 = -(width);
-			}
-			else
-			{
+			} else {
 				startY2 = 0;
 
 				yIncr2 = +width;
 			}
 
-			if (0x0 != (transform2 & X_FLIP))
-			{
+			if (0x0 != (transform2 & X_FLIP)) {
 				xIncr2 = -1;
 
 				startY2 += (width - 1);
-			}
-			else
-			{
+			} else {
 				xIncr2 = +1;
 			}
 
@@ -1132,17 +1008,14 @@ public class Sprite extends Layer
 
 		for (numIterRows = 0, xLocalBegin1 = startY1, xLocalBegin2 = startY2;
 			 numIterRows < height;
-			 xLocalBegin1 += yIncr1, xLocalBegin2 += yIncr2, numIterRows++)
-		{
+			 xLocalBegin1 += yIncr1, xLocalBegin2 += yIncr2, numIterRows++) {
 
 			for (numIterColumns = 0, x1 = xLocalBegin1, x2 = xLocalBegin2;
 				 numIterColumns < width;
-				 x1 += xIncr1, x2 += xIncr2, numIterColumns++)
-			{
+				 x1 += xIncr1, x2 += xIncr2, numIterColumns++) {
 
 				if (((argbData1[x1] & ALPHA_BITMASK) == FULLY_OPAQUE_ALPHA) &&
-						((argbData2[x2] & ALPHA_BITMASK) == FULLY_OPAQUE_ALPHA))
-				{
+						((argbData2[x2] & ALPHA_BITMASK) == FULLY_OPAQUE_ALPHA)) {
 
 					return true;
 				}
@@ -1155,12 +1028,10 @@ public class Sprite extends Layer
 		return false;
 	}
 
-	private int getImageTopLeftX(int x1, int y1, int x2, int y2)
-	{
+	private int getImageTopLeftX(int x1, int y1, int x2, int y2) {
 		int retX = 0;
 
-		switch (this.t_currentTransformation)
-		{
+		switch (this.t_currentTransformation) {
 
 			case TRANS_NONE:
 			case TRANS_MIRROR_ROT180:
@@ -1191,11 +1062,9 @@ public class Sprite extends Layer
 		return retX;
 	}
 
-	private int getImageTopLeftY(int x1, int y1, int x2, int y2)
-	{
+	private int getImageTopLeftY(int x1, int y1, int x2, int y2) {
 		int retY = 0;
-		switch (this.t_currentTransformation)
-		{
+		switch (this.t_currentTransformation) {
 
 			case TRANS_NONE:
 			case TRANS_MIRROR:
@@ -1226,8 +1095,7 @@ public class Sprite extends Layer
 		return retY;
 	}
 
-	private void setTransformImpl(int transform)
-	{
+	private void setTransformImpl(int transform) {
 		// setTransform sets up all transformation related data structures
 		// except transforming the current frame's bitmap.
 
@@ -1256,10 +1124,8 @@ public class Sprite extends Layer
 
 	}
 
-	private void computeTransformedBounds(int transform)
-	{
-		switch (transform)
-		{
+	private void computeTransformedBounds(int transform) {
+		switch (transform) {
 
 			case TRANS_NONE:
 
@@ -1435,11 +1301,9 @@ public class Sprite extends Layer
 		}
 	}
 
-	private int getTransformedPtX(int inp_x, int inp_y, int transform)
-	{
+	private int getTransformedPtX(int inp_x, int inp_y, int transform) {
 		int t_x = 0;
-		switch (transform)
-		{
+		switch (transform) {
 
 			case TRANS_NONE:
 				t_x = inp_x;
@@ -1471,11 +1335,9 @@ public class Sprite extends Layer
 		return t_x;
 	}
 
-	private int getTransformedPtY(int inp_x, int inp_y, int transform)
-	{
+	private int getTransformedPtY(int inp_x, int inp_y, int transform) {
 		int t_y = 0;
-		switch (transform)
-		{
+		switch (transform) {
 
 			case TRANS_NONE:
 				t_y = inp_y;

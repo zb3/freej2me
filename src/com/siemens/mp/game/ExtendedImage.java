@@ -61,8 +61,11 @@ public class ExtendedImage extends com.siemens.mp.misc.NativeMem
 
 	public void getPixelBytes(byte[] pixels, int x, int y, int width, int height) { }
 
-	public void setPixels(byte[] pixels, int x, int y, int width, int height) { System.out.println("setPixels"); }
-
+	public void setPixels(byte[] pixels, int x, int y, int width, int height) {
+		Image img = com.siemens.mp.ui.Image.createImageFromBitmap(pixels, width, height);
+		image.getGraphics().drawImage(img, x, y, 0);
+	}
+	
 	public void clear(byte color)
 	{
 		gc.setColor(palette[color & 1]);

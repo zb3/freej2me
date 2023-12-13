@@ -74,6 +74,12 @@ public class Image
 		return new PlatformImage(width, height);
 	}
 
+	public static Image createImage(int width, int height, int argb)
+	{
+		if (width <= 0 || height <= 0) {throw new IllegalArgumentException();}
+		return new PlatformImage(width, height, argb);
+	}
+
 	public static Image createImage(String name) throws IOException
 	{
 		//System.out.println("Create Image " + name);

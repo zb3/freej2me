@@ -35,6 +35,7 @@ public abstract class FullCanvas extends javax.microedition.lcdui.Canvas
 
 	protected FullCanvas()
 	{
+		super(true);
 		//System.out.println("Nokia FullCanvas");
 	}
 

@@ -59,6 +59,12 @@ public abstract class Canvas extends Displayable
 		barHeight = uiLineHeight + barPadding;
 	}
 
+	protected Canvas(boolean fullscreen)
+	{
+		this();
+		this.fullscreen = fullscreen;
+	}
+
 	public int getGameAction(int platKeyCode)
 	{
 		int keyCode = Mobile.normalizeKey(platKeyCode);

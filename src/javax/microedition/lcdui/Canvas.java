@@ -238,8 +238,10 @@ public abstract class Canvas extends Displayable
 		gc.setColor(0xcccccc);
 		gc.fillRect(0, height-barHeight, width, barHeight);
 
-		gc.setColor(0x222222);
-		gc.drawString(commands.size() > 2 ? "Options" : commands.get(0).getLabel(), barPadding, height-barHeight+barPadding, Graphics.LEFT);
+		if (!commands.isEmpty()) {
+			gc.setColor(0x222222);
+			gc.drawString(commands.size() > 2 ? "Options" : commands.get(0).getLabel(), barPadding, height-barHeight+barPadding, Graphics.LEFT);
+		}
 
 		if (commands.size() == 2) {
 			gc.drawString(commands.get(1).getLabel(), width-barPadding, height-barHeight+barPadding, Graphics.RIGHT);

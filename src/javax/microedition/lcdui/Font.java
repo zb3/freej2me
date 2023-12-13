@@ -46,6 +46,8 @@ public final class Font
 		14, 16, 20,
 	};
 
+	private static Font defaultFont = null;
+
 	private int face;
 	private int style;
 	private int size;
@@ -82,7 +84,10 @@ public final class Font
 	public int getBaselinePosition() { return platformFont.getAscent(); }
 
 	public static Font getDefaultFont() { 
-		return new Font(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
+		if (defaultFont == null) {
+			defaultFont = new Font(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
+		}
+		return defaultFont;
 	}
 
 	public int getFace() { return face; }

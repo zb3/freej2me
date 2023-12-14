@@ -1,5 +1,6 @@
 /*
- * Copyright 2017 Nikita Shakarun
+ * Copyright 2017-2020 Nikita Shakarun
+ * Copyright 2021-2023 Yury Kharchenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +17,8 @@
 
 package com.nokia.mid.sound;
 
+import static javax.microedition.media.PlayerListener.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
@@ -23,6 +26,7 @@ import javax.microedition.media.Manager;
 import javax.microedition.media.MediaException;
 import javax.microedition.media.Player;
 import javax.microedition.media.PlayerListener;
+import javax.microedition.media.control.VolumeControl;
 import javax.microedition.media.tone.MidiToneConstants;
 import javax.microedition.media.tone.ToneManager;
 
@@ -45,10 +49,20 @@ public class Sound {
 	};
 	private Player player;
 	private int state;
+	private int gain = 255;
 	private SoundListener soundListener;
 	private PlayerListener playerListener = (player, event, eventData) -> {
-		if ("endOfMedia".equals(event)) {
-			postEvent(SOUND_STOPPED);
+		switch (event) {
+			case END_OF_MEDIA:
+			case STOPPED:
+				postEvent(SOUND_STOPPED);
+				break;
+			case STARTED:
+				postEvent(SOUND_PLAYING);
+				break;
+			case CLOSED:
+				postEvent(SOUND_UNINITIALIZED);
+				break;
 		}
 	};
 
@@ -69,7 +83,7 @@ public class Sound {
 	}
 
 	public int getGain() {
-		return -1;
+		return gain;
 	}
 
 	public int getState() {
@@ -90,13 +104,20 @@ public class Sound {
 			}
 			int note = convertFreqToNote(freq);
 			player = ToneManager.createPlayer(note, (int) duration, MidiToneConstants.TONE_MAX_VOLUME);
+			if (player instanceof VolumeControl) {
+				((VolumeControl)player).setLevel(gain * 100 / 255);
+			}
 			state = SOUND_STOPPED;
 		} catch (MediaException e) {
 			e.printStackTrace();
+			state = SOUND_UNINITIALIZED;
 		}
 	}
 
 	public void init(byte[] data, int type) {
+		if (data == null) {
+			throw new NullPointerException();
+		}
 		try {
 			String mime;
 			switch (type) {
@@ -114,10 +135,14 @@ public class Sound {
 				player.close();
 			}
 			player = Manager.createPlayer(new ByteArrayInputStream(data), mime);
+			if (player instanceof VolumeControl) {
+				((VolumeControl)player).setLevel(gain * 100 / 255);
+			}
 			player.addPlayerListener(playerListener);
 			state = SOUND_STOPPED;
 		} catch (IOException | MediaException e) {
 			e.printStackTrace();
+			state = SOUND_UNINITIALIZED;
 		}
 	}
 
@@ -128,10 +153,10 @@ public class Sound {
 			}
 			if (player.getState() == Player.STARTED) {
 				player.stop();
+				player.setMediaTime(0);
 			}
 			player.setLoopCount(loop);
 			player.start();
-			postEvent(SOUND_PLAYING);
 		} catch (MediaException e) {
 			e.printStackTrace();
 		}
@@ -139,19 +164,26 @@ public class Sound {
 
 	public void release() {
 		player.close();
-		postEvent(SOUND_UNINITIALIZED);
 	}
 
 	public void resume() {
 		try {
 			player.start();
-			postEvent(SOUND_PLAYING);
 		} catch (MediaException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void setGain(int i) {
+	public void setGain(int gain) {
+		if (gain < 0) {
+			gain = 0;
+		} else if (gain > 255) {
+			gain = 255;
+		}
+		this.gain = gain;
+		if (player instanceof VolumeControl) {
+			((VolumeControl)player).setLevel(gain * 100 / 255);
+		}
 	}
 
 	public void setSoundListener(SoundListener soundListener) {
@@ -160,7 +192,6 @@ public class Sound {
 
 	public void stop() {
 		player.stop();
-		postEvent(SOUND_STOPPED);
 	}
 
 	private void postEvent(int state) {

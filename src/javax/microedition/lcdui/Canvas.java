@@ -51,6 +51,7 @@ public abstract class Canvas extends Displayable
 	private int barPadding;
 	private boolean fullscreen = false;
 	private boolean shouldRepaintBar = true;
+	private boolean isInsidePaint = false;
 
 
 	protected Canvas()
@@ -213,9 +214,25 @@ public abstract class Canvas extends Displayable
 				return;
 			}
 
-			gc.reset();
-			paint(gc);
+			if (isInsidePaint) {
+				// we need this to avoid stackoverflow
+				// but it seems the underlying problem is that when paint calls
+				// repaint, we shouldn't even land here...
+				Mobile.getDisplay().callSerially(() -> {
+					repaint(x, y, width, height);
+				});
+				return;
+			}
 
+			gc.reset();
+
+			isInsidePaint = true;
+			try {
+				paint(gc);
+			} finally {
+				isInsidePaint = false;
+			}
+			
 			if (shouldRepaintBar) {
 				paintCommandsBar();
 				shouldRepaintBar = false;

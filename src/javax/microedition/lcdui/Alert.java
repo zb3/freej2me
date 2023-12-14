@@ -51,15 +51,6 @@ public class Alert extends Screen
 	public Alert(String title)
 	{
 		setTitle(title);
-	}
-
-	public Alert(String title, String alertText, Image alertImage, AlertType alertType)
-	{
-		this(title);
-		setString(alertText);
-		setImage(alertImage);
-		setType(alertType);
-
 		setTimeout(getDefaultTimeout());
 
 		addCommand(Alert.DISMISS_COMMAND);
@@ -68,6 +59,14 @@ public class Alert extends Screen
 
 		lineSpacing = 1;
 		margin = uiLineHeight / 4;
+	}
+
+	public Alert(String title, String alertText, Image alertImage, AlertType alertType)
+	{
+		this(title);
+		setString(alertText);
+		setImage(alertImage);
+		setType(alertType);
 	}
 
 	public int getDefaultTimeout() { return Alert.FOREVER; }

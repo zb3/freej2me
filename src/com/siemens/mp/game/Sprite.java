@@ -113,7 +113,7 @@ public class Sprite extends GraphicObject {
 		this.y = y;
 	}
 
-	protected void paint(Graphics g) {
-		g.drawImage(pixels[frame], x, y, 0);
+	protected void paint(Graphics g, int x, int y) {
+		g.drawImage(pixels[frame], this.x + x, this.y + y, 0);
 	}
 }

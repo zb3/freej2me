@@ -38,7 +38,19 @@ public class GraphicObjectManager extends com.siemens.mp.misc.NativeMem {
 	}
 
 	public static byte[] createTextureBits(int width, int height, byte[] texture) {
-		return null;
+		int widthBytes = width >> 3;
+		byte[] pixels = new byte[widthBytes * height];
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x += 8) {
+				int t = 0;
+				for (int b = 0; b < 8; b++) {
+					t <<= 1;
+					t |= texture[x + b + y * width];
+				}
+				pixels[(x >> 3) + y * widthBytes] = (byte)t;
+			}
+		}
+		return pixels;
 	}
 
 	public void deleteObject(GraphicObject gobject) {
@@ -71,11 +83,7 @@ public class GraphicObjectManager extends com.siemens.mp.misc.NativeMem {
 		for (int i = 0; i < v.size(); i++) {
 			GraphicObject go = v.elementAt(i);
 			if (go.getVisible()) {
-				if (go instanceof Sprite) {
-					((Sprite) go).paint(g);
-				} else if (go instanceof TiledBackground) {
-					((TiledBackground) go).paint(g);
-				}
+				go.paint(g, x, y);
 			}
 		}
 

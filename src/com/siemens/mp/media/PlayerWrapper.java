@@ -2,7 +2,7 @@ package com.siemens.mp.media;
 
 import com.siemens.mp.media.control.VolumeControlWrapper;
 
-public class PlayerWrapper implements Player {
+public class PlayerWrapper extends NativePlayer {
 
     private final javax.microedition.media.Player delegate;
 
@@ -83,12 +83,14 @@ public class PlayerWrapper implements Player {
 
     @Override
     public void addPlayerListener(PlayerListener playerListener) {
-        delegate.addPlayerListener(playerListener);
+        delegate.addPlayerListener(PlayerListenerWrapper.createWrapper(this, playerListener));
     }
 
     @Override
     public void removePlayerListener(PlayerListener playerListener) {
-        delegate.removePlayerListener(playerListener);
+        PlayerListenerWrapper wrapper = PlayerListenerWrapper.getWrapperForListener(playerListener);
+        wrapper.removeWrapperAssociation();
+        delegate.removePlayerListener(wrapper);
     }
 
     @Override

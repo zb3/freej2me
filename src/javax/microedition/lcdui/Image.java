@@ -31,6 +31,7 @@ public class Image
 
 	public int width;
 	public int height;
+	private boolean hasSiemensAlpha = false;
 
 	public static Image createImage(byte[] imageData, int imageOffset, int imageLength)
 	{
@@ -107,5 +108,13 @@ public class Image
 	public int getWidth() { return width; }
 
 	public boolean isMutable() { return true; }
+
+	public boolean hasSiemensAlpha() {
+		return hasSiemensAlpha;
+	}
+
+	public void setHasSiemensAlpha(boolean val) {
+		hasSiemensAlpha = val;
+	}
 
 }

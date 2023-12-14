@@ -23,12 +23,12 @@ import javax.microedition.lcdui.Graphics;
 
 public class GraphicObject
 {
-	private boolean visible;
+	private boolean visible = true;
 
 
 	protected GraphicObject() { }
 
-	protected void paint(Graphics g) {  }
+	protected void paint(Graphics g, int x, int y) {  }
 	
 
 	public boolean getVisible() { return visible; }

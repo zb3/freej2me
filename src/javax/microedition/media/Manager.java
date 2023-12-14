@@ -45,7 +45,7 @@ public final class Manager
 
 		if (!Mobile.sound) {
 			return new BasePlayer();
-		} else if(type.equals("audio/mid") || type.equals("audio/midi") || type.equals("audio/x-midi") || type.equals("sp-midi") || type.equals("audio/spmidi")) {
+		} else if(type.equals("audio/mid") || type.equals("audio/midi") || type.equals("audio/x-midi") || type.equals("audio/x-mid")  || type.equals("sp-midi") || type.equals("audio/spmidi")) {
 			return new MIDIFilePlayer(stream, type);
 		} else if(type.equals(MIDI_DEVICE_LOCATOR)) {
 			return new MIDIFilePlayer(stream, "audio/midi");

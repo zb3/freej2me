@@ -23,7 +23,7 @@
  */
 package com.siemens.mp.media;
 
-public interface PlayerListener extends javax.microedition.media.PlayerListener {
+public interface PlayerListener {
 	public abstract void playerUpdate(Player player, String s, Object obj);
 
 	public static final String STARTED = "started";

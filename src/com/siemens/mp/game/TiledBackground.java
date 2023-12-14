@@ -77,11 +77,16 @@ public class TiledBackground extends GraphicObject {
 		posy = y;
 	}
 
-	protected void paint(Graphics g) {
-		for (int y = posy / 8; y < heightInTiles; y++) {
-			for (int x = posx / 8; x < widthInTiles; x++) {
-				g.drawImage(pixels[map[y * widthInTiles + x] & 0xFF], -posx + x * 8, -posy + y * 8, 0);
+	protected void paint(Graphics g, int dx, int dy) {
+		// untested
+		for (int y = (posy+dy) / 8; y < heightInTiles; y++) {
+			for (int x = (posx+dx) / 8; x < widthInTiles; x++) {
+				g.drawImage(pixels[map[y * widthInTiles + x] & 0xFF], -(posx+dx) + x * 8, -(posy+dy) + y * 8, 0);
 			}
 		}
+	}
+
+	protected void paint(Graphics g) {
+		paint(g, 0, 0);
 	}
 }

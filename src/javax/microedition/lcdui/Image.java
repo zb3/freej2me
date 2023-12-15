@@ -117,4 +117,9 @@ public class Image
 		hasSiemensAlpha = val;
 	}
 
+	public static javax.microedition.lcdui.Image createImageFromBitmap(byte[] imageData, int imageWidth, int imageHeight) {
+		return com.siemens.mp.ui.Image.createImageFromBitmap(imageData, null, imageWidth, imageHeight);
+	}
+
+
 }

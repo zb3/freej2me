@@ -181,6 +181,10 @@ public class ChoiceGroup extends Item implements Choice
 	}
 
   	public void setSelectedIndex(int elementNum, boolean selected) {
+		if (elementNum < 0) {
+			return;
+		}
+
 		if (type != Choice.MULTIPLE && selected) {
 			selectedIndex = elementNum;
 		}

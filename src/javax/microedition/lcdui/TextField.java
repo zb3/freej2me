@@ -50,7 +50,7 @@ public class TextField extends Item
 	public TextField(String label, String value, int maxSize, int Constraints)
 	{
 		setLabel(label);
-		text = value;
+		text = value == null ? "" : value;
 		max = maxSize;
 		constraints = Constraints;
 
@@ -109,6 +109,11 @@ public class TextField extends Item
 
 	public void setChars(char[] data, int offset, int length)
 	{
+		if (data == null) {
+			setString("");
+			return;
+		}
+
 		StringBuilder out = new StringBuilder();
 		out.append(data, offset, length);
 		text = out.toString();
@@ -125,7 +130,11 @@ public class TextField extends Item
 
 	public int setMaxSize(int maxSize) { max = maxSize; return max; }
 
-	public void setString(String value) { 
+	public void setString(String value) {
+		if (value == null) {
+			value = "";
+		}
+		
 		text = value;
 		caretPosition = text.length();
 		_invalidateContents();

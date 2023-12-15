@@ -366,7 +366,6 @@ public class Form extends Screen
 
 		if(items.size()>0)
 		{
-			gc.setClip(x, y, width, height);
 			int scrollbarWidth = 4;
 
 			Rectangle viewport = new Rectangle(0, scrollY, width, height);

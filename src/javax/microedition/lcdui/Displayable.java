@@ -213,6 +213,7 @@ public abstract class Displayable
 		}
 		else
 		{
+			gc.setClip(0, currentY, width, contentHeight);
 			String status = renderScreen(0, currentY, width, contentHeight);
 
 			currentY += contentHeight;

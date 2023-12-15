@@ -199,7 +199,8 @@ public class RecordStore
 		//System.out.println("> Add Record "+nextid+ " to "+name);
 		try
 		{
-			byte[] rec = Arrays.copyOfRange(data, offset, offset+numBytes);
+			byte[] rec = data == null ? new byte[]{} : 
+							Arrays.copyOfRange(data, offset, offset+numBytes);
 			records.addElement(rec);
 
 			lastModified = nextid;
@@ -217,6 +218,7 @@ public class RecordStore
 		catch (Exception e)
 		{
 			//System.out.println("> Add Record Failed");
+			e.printStackTrace();
 			throw(new RecordStoreException("Can't Add RMS Record"));
 		}
 	}
@@ -407,7 +409,9 @@ public class RecordStore
 		}
 		try
 		{
-			byte[] rec = Arrays.copyOfRange(newData, offset, offset+numBytes);
+			byte[] rec = newData == null ? new byte[]{} : 
+							Arrays.copyOfRange(newData, offset, offset+numBytes);
+
 			records.set(recordId, rec);
 		}
 		catch (Exception e)

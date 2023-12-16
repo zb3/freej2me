@@ -631,6 +631,9 @@ public class MIDletLoader extends URLClassLoader
 				{
 					mv.visitMethodInsn(INVOKESTATIC, "org/recompile/mobile/Mobile", name, "(Ljava/lang/Class;Ljava/lang/String;)Ljava/io/InputStream;");
 				}
+				else if (opcode == INVOKESTATIC && name.equals("setListener") && owner.equals("com/siemens/mp/io/Connection")) {
+					mv.visitMethodInsn(opcode, owner, "setListenerCompat", desc);
+				}
 				else
 				{
 					mv.visitMethodInsn(opcode, owner, name, desc);

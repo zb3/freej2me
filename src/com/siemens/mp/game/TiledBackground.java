@@ -27,6 +27,8 @@ package com.siemens.mp.game;
 import javax.microedition.lcdui.Graphics;
 import javax.microedition.lcdui.Image;
 
+import org.recompile.mobile.PlatformGraphics;
+
 public class TiledBackground extends GraphicObject {
 	private Image[] pixels;
 	private byte[] map;
@@ -78,10 +80,14 @@ public class TiledBackground extends GraphicObject {
 	}
 
 	protected void paint(Graphics g, int dx, int dy) {
-		// untested
-		for (int y = (posy+dy) / 8; y < heightInTiles; y++) {
-			for (int x = (posx+dx) / 8; x < widthInTiles; x++) {
-				g.drawImage(pixels[map[y * widthInTiles + x] & 0xFF], -(posx+dx) + x * 8, -(posy+dy) + y * 8, 0);
+		// untested, no usable game uses this
+
+		int clientWidth = ((PlatformGraphics)g).getCanvas().getWidth();
+		int clientHeight = ((PlatformGraphics)g).getCanvas().getHeight();
+
+		for (int left = dx-(posx % 8), tx = posx/8; left < clientWidth; left+=8,tx++) {
+			for (int top = dy-(posy % 8), ty = posy/8; top < clientHeight; top+=8,ty++) {
+				g.drawImage(pixels[map[((ty + heightInTiles) % heightInTiles) * widthInTiles + ((tx + widthInTiles)%widthInTiles)] & 0xFF], left, top, 0);
 			}
 		}
 	}

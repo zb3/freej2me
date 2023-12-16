@@ -119,22 +119,15 @@ public class Sound {
 			throw new NullPointerException();
 		}
 		try {
-			String mime;
-			switch (type) {
-				case FORMAT_TONE:
-					ToneVerifier.fix(data);
-					mime = "audio/midi";
-					break;
-				case FORMAT_WAV:
-					mime = "audio/wav";
-					break;
-				default:
-					throw new IllegalArgumentException();
-			}
 			if (player != null) {
 				player.close();
 			}
-			player = Manager.createPlayer(new ByteArrayInputStream(data), mime);
+			if (type == FORMAT_WAV) {
+				player = Manager.createPlayer(new ByteArrayInputStream(data), "audio/wav");
+			} else {
+				// create a dummy player
+				player = Manager.createPlayer("unsupported://");
+			}
 			if (player instanceof VolumeControl) {
 				((VolumeControl)player).setLevel(gain * 100 / 255);
 			}

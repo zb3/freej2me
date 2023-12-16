@@ -223,7 +223,7 @@ public class List extends Screen implements Choice
 
 			int listPadding = uiLineHeight/5;
 			int itemHeight = uiLineHeight;
-			int imagePadding = listPadding;
+			int imagePadding = uiLineHeight/4;
 
 			int ah = height - 2*listPadding; // allowed height
 			int max = (int)Math.floor(ah / itemHeight); // max items per page			
@@ -256,7 +256,7 @@ public class List extends Screen implements Choice
 				gc.setColor(0x000000);
 				if(items.get(i) instanceof ImageItem)
 				{
-					gc.drawImage(((ImageItem)items.get(i)).getImage(), x+imagePadding, y, Graphics.HCENTER);
+					gc.drawImage(((ImageItem)items.get(i)).getImage(), x+imagePadding, y, 0);
 				}
 				
 				y += itemHeight;

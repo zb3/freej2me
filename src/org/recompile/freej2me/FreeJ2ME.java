@@ -28,6 +28,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
 import javax.imageio.ImageIO;
+import javax.microedition.lcdui.Display;
 import javax.sound.sampled.AudioSystem;
 
 public class FreeJ2ME
@@ -116,6 +117,8 @@ public class FreeJ2ME
 				lcd.paint(lcd.getGraphics());
 			}
 		});
+
+		Mobile.setDisplay(new Display());
 
 		Mobile.getPlatform().startEventQueue();		
 

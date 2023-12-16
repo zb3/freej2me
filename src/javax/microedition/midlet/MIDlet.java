@@ -24,12 +24,12 @@ import javax.microedition.lcdui.game.*;
 import javax.microedition.pki.*;
 import javax.microedition.rms.*;
 
+import org.recompile.mobile.Mobile;
+
 public abstract class MIDlet
 {
 
 	public static HashMap<String, String> properties;
-
-	private Display display = new Display();
 
 	protected MIDlet()
 	{
@@ -72,6 +72,6 @@ public abstract class MIDlet
 
 	protected abstract void startApp() throws MIDletStateChangeException;
 
-	public Display getDisplay() { return display; }
+	public Display getDisplay() { return Mobile.getDisplay(); }
 
 }

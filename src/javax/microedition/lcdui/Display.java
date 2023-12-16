@@ -64,8 +64,6 @@ public class Display
 	{
 		display = this;
 
-		Mobile.setDisplay(this);
-
 		serialCalls = new Vector<Runnable>(16);
 		timer = new Timer();
 		timertask = new SerialCallTimerTask();

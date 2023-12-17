@@ -18,6 +18,7 @@ package org.recompile.freej2me;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.awt.image.BufferedImage;
 
 import java.io.File;
@@ -81,7 +82,7 @@ public class Config
 		};
 	}
 
-	public void init()
+	public void init(Map<String, String> overrides)
 	{
 		String appname = Mobile.getPlatform().loader.suitename;
 		configPath = Mobile.getPlatform().dataPath + "./config/"+appname;
@@ -109,6 +110,8 @@ public class Config
 				settings.put("phone", "Nokia");
 				settings.put("rotate", "off");
 				settings.put("fps", "0");
+
+				settings.putAll(overrides);
 				saveConfig();
 			}
 		}
@@ -149,14 +152,18 @@ public class Config
 			if(!settings.containsKey("rotate")) { settings.put("rotate", "off"); }
 			if(!settings.containsKey("fps")) { settings.put("fps", "0"); }
 
-			width = Integer.parseInt(settings.get("width"));
-			height = Integer.parseInt(settings.get("height"));
 		}
 		catch (Exception e)
 		{
 			System.out.println("Problem Reading Config: "+configFile);
 			System.out.println(e.getMessage());
 		}
+
+		settings.putAll(overrides);
+		saveConfig();
+
+		width = Integer.parseInt(settings.get("width"));
+		height = Integer.parseInt(settings.get("height"));
 
 		doUpdateDisplay(width, height);
 	}

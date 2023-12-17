@@ -58,7 +58,7 @@ public abstract class Canvas extends Displayable
 	{
 		barPadding = uiLineHeight / 5;
 		barHeight = uiLineHeight + barPadding;
-		if (Boolean.getBoolean("freej2me.force.fullscreen")) {
+		if (Boolean.getBoolean("freej2me.forceFullscreen")) {
 			fullscreen = true;
 		}
 	}

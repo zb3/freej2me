@@ -22,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -37,6 +38,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.ArrayList;
@@ -65,12 +67,14 @@ public class MIDletLoader extends URLClassLoader
 	private Class<?> mainClass;
 	private MIDlet mainInst;
 
-	private HashMap<String, String> properties = new HashMap<String, String>(32);
+	private HashMap<String, String> properties = new HashMap<String, String>();
 
 
-	public MIDletLoader(URL urls[])
+	public MIDletLoader(URL urls[], Map<String, String> descriptorProperties, String mainClassOverride)
 	{
 		super(urls);
+		
+		className = mainClassOverride;
 
 		try {
 			String jarName = Paths.get(urls[0].toURI()).getFileName().toString().replace('.', '_');
@@ -81,11 +85,21 @@ public class MIDletLoader extends URLClassLoader
 
 		try
 		{
-			System.setProperty("microedition.platform", "j2me");
-			System.setProperty("microedition.profiles", "MIDP-2.0");
-			System.setProperty("microedition.configuration", "CLDC-1.0");
-			System.setProperty("microedition.locale", "en-US");
-			System.setProperty("microedition.encoding", "file.encoding");
+			if (System.getProperty("microedition.platform") == null) { // allow -Dkey=value override
+				System.setProperty("microedition.platform", "j2me");
+			}
+			if (System.getProperty("microedition.profiles") == null) {
+				System.setProperty("microedition.profiles", "MIDP-2.0");
+			}
+			if (System.getProperty("microedition.configuration") == null) {
+				System.setProperty("microedition.configuration", "CLDC-1.1");
+			}
+			if (System.getProperty("microedition.locale") == null) {
+				System.setProperty("microedition.locale", "en-US");
+			}
+			if (System.getProperty("microedition.encoding") == null) {
+				System.setProperty("microedition.encoding", "file.encoding");
+			}
 		}
 		catch (Exception e)
 		{
@@ -101,15 +115,12 @@ public class MIDletLoader extends URLClassLoader
 			System.out.println("Can't Read Manifest!");
 		}
 
-		properties.put("microedition.platform", "j2me");
-		properties.put("microedition.profiles", "MIDP-2.0");
-		properties.put("microedition.configuration", "CLDC-1.0");
-		properties.put("microedition.locale", "en-US");
-		properties.put("microedition.encoding", "file.encoding");
-
 		if (className == null) {
 			className = findMainClassInJars(urls);
 		}
+
+		// so finally overrides > descriptor > manifest
+		properties.putAll(descriptorProperties);
 	}
 
 	public static String findMainClassInJars(URL[] urls) {
@@ -245,84 +256,72 @@ public class MIDletLoader extends URLClassLoader
 		}
 	}
 
+	public static void parseDescriptorInto(InputStream is, Map<String, String> keyValueMap) {
+        String currentKey = null;
+        StringBuilder currentValue = new StringBuilder();
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+				if (line.trim().isEmpty()) {
+					continue;
+				}
+                if (line.startsWith(" ")) {
+                    currentValue.append(line, 1, line.length());
+                } else {
+                    if (currentKey != null) {
+                        keyValueMap.put(currentKey, currentValue.toString().trim());
+                        currentValue.setLength(0);
+                    }
+
+                    int colonIndex = line.indexOf(':');
+                    if (colonIndex != -1) {
+                        currentKey = line.substring(0, colonIndex).trim();
+                        currentValue.append(line.substring(colonIndex + 1).trim());
+                    }
+                }
+            }
+
+            if (currentKey != null) {
+                keyValueMap.put(currentKey, currentValue.toString().trim());
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 	private void loadManifest()
 	{
 		String resource = "META-INF/MANIFEST.MF";
-		URL url = findResource(resource);
-		if(url==null)
-		{
-			resource = "meta-inf/MANIFEST.MF";
-			url = findResource(resource);
-			if(url==null)
-			{
-				resource = "META-INF/manifest.fm";
-				url = findResource(resource);
-				if(url==null)
-				{
-					resource = "meta-inf/manifest.fm";
-					url = findResource(resource);
-					if(url==null)
-					{
-						return;
-					}	
-				}	
-			}
+		URL url = findResource(resource); // this has a case-insensitive fallback
+		if (url == null) {
+			return;
 		}
 
-		String line;
-		String[] parts;
-		int split;
-		String key;
-		String value;
-		try
-		{
-			InputStream is = url.openStream();
-			BufferedReader br = new BufferedReader(new InputStreamReader(is));
-			
-			ArrayList<String> lines = new ArrayList<String>();
-			while ((line = br.readLine()) != null) 
-			{
-				if(line.startsWith(" "))
-				{
-					line = lines.get(lines.size()-1) + line.trim();
-					lines.remove(lines.size()-1);
-				}
-				lines.add(line);
-			}
-
-			for (int i=0; i<lines.size(); i++)
-			{
-				line = lines.get(i);
-				if(line.startsWith("MIDlet-1:"))
-				{
-					System.out.println(line);
-					line = line.substring(9);
-					parts = line.split(",");
-					if(parts.length == 3)
-					{
-						name = parts[0].trim();
-						icon = parts[1].trim();
-						className = parts[2].trim();
-						suitename = name;
-					}
-					//System.out.println("Loading " + name);
-				}
-
-				split = line.indexOf(":");
-				if(split>0)
-				{
-					key = line.substring(0, split).trim();
-					value = line.substring(split+1).trim();
-					properties.put(key, value);
-				}
-			}
-			// for RecordStore, remove illegal chars from name
-			suitename = suitename.replace(":","");
-		}
-		catch (Exception e)
-		{
+		try {
+			parseDescriptorInto(url.openStream(), properties);
+		} catch (Exception e) {
 			System.out.println("Can't Read Jar Manifest!");
 			e.printStackTrace();
+		}
+
+		if (properties.containsKey("MIDlet-1")) {
+			String val = properties.get("MIDlet-1");
+			
+			String[] parts = val.split(",");
+			if (parts.length == 3) {
+				name = parts[0].trim();
+				icon = parts[1].trim();
+				
+				if (className == null) {
+					className = parts[2].trim();
+				}
+				
+				suitename = name;
+				suitename = suitename.replace(":","");
+			}
 		}
 	}
 
@@ -557,11 +556,6 @@ public class MIDletLoader extends URLClassLoader
 		{
 			return super.getResourceAsStream(resource);
 		}
-	}
-
-	public void setProperty(String key, String value)
-	{
-		properties.put(key, value);
 	}
 
 	private class SiemensInputStream extends InputStream

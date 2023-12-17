@@ -17,8 +17,16 @@
 package org.recompile.mobile;
 
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 
 import java.awt.event.KeyEvent;
@@ -214,12 +222,29 @@ public class MobilePlatform
 	******** Jar Loading ********
 */
 
-	public boolean loadJar(String jarurl)
+	public boolean load(String fileName, Map<String, String> propertyOverrides, String mainClass)
 	{
+		Map<String, String> descriptorProperties = new HashMap<>();
+		boolean isJad = fileName.toLowerCase().endsWith(".jad");
+
+		if (isJad) {
+			try (InputStream targetStream = new FileInputStream(fileName)) {
+				MIDletLoader.parseDescriptorInto(targetStream, descriptorProperties);				
+			} catch(IOException e) {
+				e.printStackTrace();
+			}
+
+			String jarUrl = descriptorProperties.getOrDefault("MIDlet-Jar-URL", fileName.replace(".jad", ".jar"));
+			Path jarPath = Paths.get(fileName).getParent().resolve(jarUrl);
+			fileName = jarPath.toString();
+		}
+
+		descriptorProperties.putAll(propertyOverrides);
+
 		try
 		{
-			URL jar = new URL(jarurl);
-			loader = new MIDletLoader(new URL[]{jar});
+			URL jar = new URL(new File(fileName).toURI().toString());
+			loader = new MIDletLoader(new URL[]{jar}, descriptorProperties, mainClass);
 			return true;
 		}
 		catch (Exception e)
@@ -265,13 +290,6 @@ public class MobilePlatform
 
 		//System.gc();
 	}
-
-	public void setPlatformProperty(String value)
-	{
-		loader.setProperty("microedition.platform", value);
-		System.setProperty("microedition.platform", value);
-	}
-
 
 	static class PlatformEvent
 	{

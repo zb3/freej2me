@@ -30,12 +30,25 @@ import java.io.FilenameFilter;
 import javax.imageio.ImageIO;
 import javax.microedition.lcdui.Display;
 import javax.sound.sampled.AudioSystem;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FreeJ2ME
 {
 	public static void main(String args[])
 	{
+		for (String arg: args) {
+			if (arg.equals("-help") || arg.equals("--help")) {
+				printHelp();
+				return;
+			}
+		}
+
 		FreeJ2ME app = new FreeJ2ME(args);
+	}
+
+	private static void printHelp() {
+		System.out.println("java [-Dprop=value] -jar freej2me.jar [-w width] [-h height] [-scale x] [-prop key=value]... [-config key=value]... [-m main_class] [-ff | --force-fullscreen] [-fv | --force-volatile] JAR_OR_JAD_FILE");
 	}
 
 	private Frame main;
@@ -61,6 +74,69 @@ public class FreeJ2ME
 
 	public FreeJ2ME(String args[])
 	{
+		lcdWidth = 240;
+        lcdHeight = 320;
+        scaleFactor = Toolkit.getDefaultToolkit().getScreenSize().height > 980 ? 3 : 2;
+        Map<String, String> appProperties = new HashMap<>();
+        Map<String, String> configOverrides = new HashMap<>();
+        String fileName = null;
+		String mainClassOverride = null;
+		boolean dimensionsSet = false;
+		boolean forceFullscreen = false;
+		boolean forceVolatile = false;
+
+        for (int i = 0; i < args.length; i++) {
+            switch (args[i]) {
+                case "-w":
+                case "--width":
+                    lcdWidth = Integer.parseInt(args[++i]);
+					dimensionsSet = true;
+                    break;
+                case "-h":
+                case "--height":
+                    lcdHeight = Integer.parseInt(args[++i]);
+					dimensionsSet = true;
+                    break;
+                case "-s":
+                case "--scale":
+                    scaleFactor = Integer.parseInt(args[++i]);
+                    break;
+				case "-m":
+                case "--main-class":
+                    mainClassOverride = args[++i];
+                    break;
+				case "-ff":
+                case "--force-fullscreen":
+                    forceFullscreen = true;
+                    break;
+				case "-fv":
+                case "--force-volatile":
+                    forceVolatile = true;
+                    break;
+                case "-prop":
+                    processKeyValuePairs(args, appProperties, ++i);
+                    break;
+                case "-config":
+                    processKeyValuePairs(args, configOverrides, ++i);
+                    break;
+                default:
+                    fileName = args[i];
+            }
+        }
+
+		if (dimensionsSet) {
+			configOverrides.put("width", ""+lcdWidth);
+			configOverrides.put("height", ""+lcdHeight);		
+		}
+
+		if (forceFullscreen) {
+			System.setProperty("freej2me.forceFullscreen", "true");
+		}
+		
+		if (forceVolatile) {
+			System.setProperty("freej2me.forceVolatileFields", "true");
+		}
+
 		main = new Frame("FreeJ2ME");
 		main.setSize(350,450);
 		main.setBackground(new Color(0,0,64));
@@ -79,27 +155,6 @@ public class FreeJ2ME
 		});
 
 		// Setup Device //
-
-		lcdWidth = 240;
-		lcdHeight = 320;
-
-		String jarfile = "";
-		if(args.length>=1)
-		{
-			jarfile = args[0];
-			if (!jarfile.contains("://")) {
-				jarfile = new File(jarfile).toURI().toString();
-			}
-		}
-		if(args.length>=3)
-		{
-			lcdWidth = Integer.parseInt(args[1]);
-			lcdHeight = Integer.parseInt(args[2]);
-		}
-		if(args.length>=4)
-		{
-			scaleFactor = Integer.parseInt(args[3]);
-		}
 
 		Mobile.setPlatform(new MobilePlatform(lcdWidth, lcdHeight));
 
@@ -158,7 +213,7 @@ public class FreeJ2ME
 						}
 					break;
 				}
-				
+								
 				if(config.isRunning)
 				{
 					config.keyPressed(mobikey);
@@ -178,7 +233,7 @@ public class FreeJ2ME
 				}
 
 				if (mobikey != 0) {
-				pressedKeys[mobikeyN] = true;
+					pressedKeys[mobikeyN] = true;
 				}
 				
 			}
@@ -191,7 +246,7 @@ public class FreeJ2ME
 				if (mobikey != 0) {
 					pressedKeys[mobikeyN] = false;
 				}
-				
+								
 				if(config.isRunning)
 				{
 					config.keyReleased(mobikey);
@@ -221,7 +276,7 @@ public class FreeJ2ME
 					y = (int)((e.getX()-lcd.cx) * lcd.scalex);
 				}
 
-				Mobile.getPlatform().pointerPressed(x, y);
+				Mobile.getPlatform().pointerPressed(x, y);				
 			}
 
 			public void mouseReleased(MouseEvent e)
@@ -235,7 +290,7 @@ public class FreeJ2ME
 					y = (int)((e.getX()-lcd.cx) * lcd.scalex);
 				}
 
-				Mobile.getPlatform().pointerReleased(x, y);
+				Mobile.getPlatform().pointerReleased(x, y);				
 			}
 
 			public void mouseExited(MouseEvent e) { }
@@ -257,7 +312,7 @@ public class FreeJ2ME
 					y = (int)((e.getX()-lcd.cx) * lcd.scalex);
 				}
 				
-				Mobile.getPlatform().pointerDragged(x, y); 
+				Mobile.getPlatform().pointerDragged(x, y);				
 			}
 		});
 
@@ -275,31 +330,23 @@ public class FreeJ2ME
 		resize();
 		main.setSize(lcdWidth*scaleFactor+xborder, lcdHeight*scaleFactor+yborder);
 
-		if(args.length<1)
+		if (fileName == null)
 		{
-			FileDialog t = new FileDialog(main, "Open JAR File", FileDialog.LOAD);
+			FileDialog t = new FileDialog(main, "Open JAR/JAD File", FileDialog.LOAD);
 			t.setFilenameFilter(new FilenameFilter()
 			{
 				public boolean accept(File dir, String name)
 				{
-					return name.toLowerCase().endsWith(".jar");
+					//System.out.println(name);
+					return name.toLowerCase().endsWith(".jar") || name.toLowerCase().endsWith(".jad");
 				}
 			});
 			t.setVisible(true);
-			jarfile = new File(t.getDirectory()+File.separator+t.getFile()).toURI().toString();
+			fileName = t.getDirectory()+File.separator+t.getFile();
 		}
-		if(Mobile.getPlatform().loadJar(jarfile))
+		if(Mobile.getPlatform().load(fileName, appProperties, mainClassOverride))
 		{
-			config.init();
-
-			/* Allows FreeJ2ME to set the width and height passed as cmd arguments. */
-			if(args.length>=3)
-			{
-				lcdWidth = Integer.parseInt(args[1]);
-				lcdHeight = Integer.parseInt(args[2]);
-				config.settings.put("width",  ""+lcdWidth);
-				config.settings.put("height", ""+lcdHeight);
-			}
+			config.init(configOverrides);
 
 			settingsChanged();
 
@@ -308,6 +355,15 @@ public class FreeJ2ME
 		else
 		{
 			System.out.println("Couldn't load jar...");
+		}
+	}
+
+	private static void processKeyValuePairs(String[] args, Map<String, String> map, int index) {
+		if (index < args.length) {
+			String[] pair = args[index].split("=");
+			if (pair.length == 2) {
+				map.put(pair[0], pair[1]);
+			}
 		}
 	}
 
@@ -369,8 +425,8 @@ public class FreeJ2ME
 			main.setSize(lcdWidth*scaleFactor+xborder , lcdHeight*scaleFactor+yborder);
 		}
 
-		if (Mobile.sonyEricsson) {
-			Mobile.getPlatform().setPlatformProperty("SonyEricssonK750/JAVASDK");
+		if (Mobile.sonyEricsson && System.getProperty("microedition.platform") == "j2me") {
+			System.setProperty("microedition.platform", "SonyEricssonK750/JAVASDK");
 		}
 
 	}
@@ -556,7 +612,7 @@ public class FreeJ2ME
 					if(limitFPS>0)
 					{
 						// this is of course a simplification
-						Thread.sleep(limitFPS);
+						Thread.sleep(limitFPS);						
 					}
 				}
 			}

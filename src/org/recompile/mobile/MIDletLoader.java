@@ -85,21 +85,11 @@ public class MIDletLoader extends URLClassLoader
 
 		try
 		{
-			if (System.getProperty("microedition.platform") == null) { // allow -Dkey=value override
-				System.setProperty("microedition.platform", "j2me");
-			}
-			if (System.getProperty("microedition.profiles") == null) {
-				System.setProperty("microedition.profiles", "MIDP-2.0");
-			}
-			if (System.getProperty("microedition.configuration") == null) {
-				System.setProperty("microedition.configuration", "CLDC-1.1");
-			}
-			if (System.getProperty("microedition.locale") == null) {
-				System.setProperty("microedition.locale", "en-US");
-			}
-			if (System.getProperty("microedition.encoding") == null) {
-				System.setProperty("microedition.encoding", "file.encoding");
-			}
+			Mobile.getPlatform().addSystemProperty("microedition.platform", "j2me");
+			Mobile.getPlatform().addSystemProperty("microedition.profiles", "MIDP-2.0");
+			Mobile.getPlatform().addSystemProperty("microedition.configuration", "CLDC-1.1");
+			Mobile.getPlatform().addSystemProperty("microedition.locale", "en-US");
+			Mobile.getPlatform().addSystemProperty("microedition.encoding", "file.encoding");
 		}
 		catch (Exception e)
 		{

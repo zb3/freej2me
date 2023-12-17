@@ -48,7 +48,7 @@ public class FreeJ2ME
 	}
 
 	private static void printHelp() {
-		System.out.println("java [-Dprop=value] -jar freej2me.jar [-w width] [-h height] [-scale x] [-prop key=value]... [-config key=value]... [-m main_class] [-ff | --force-fullscreen] [-fv | --force-volatile] JAR_OR_JAD_FILE");
+		System.out.println("freej2me.jar [-w width] [-h height] [-scale x] [-ap | --app-property key=value]... [-sp | --system-property key=value]... [-c | --config key=value]... [-m main_class] [-ff | --force-fullscreen] [-fv | --force-volatile] JAR_OR_JAD_FILE");
 	}
 
 	private Frame main;
@@ -78,6 +78,7 @@ public class FreeJ2ME
 		lcdHeight = 320;
 		scaleFactor = Toolkit.getDefaultToolkit().getScreenSize().height > 980 ? 3 : 2;
 		Map<String, String> appProperties = new HashMap<>();
+		Map<String, String> systemPropertyOverrides = new HashMap<>();
 		Map<String, String> configOverrides = new HashMap<>();
 		String fileName = null;
 		String mainClassOverride = null;
@@ -113,10 +114,16 @@ public class FreeJ2ME
 				case "--force-volatile":
 					forceVolatile = true;
 					break;
-				case "-prop":
+				case "-ap":
+				case "--app-property":
 					processKeyValuePairs(args, appProperties, ++i);
 					break;
-				case "-config":
+				case "-sp":
+				case "--system-property":
+					processKeyValuePairs(args, systemPropertyOverrides, ++i);
+					break;
+				case "-c":
+				case "--config":
 					processKeyValuePairs(args, configOverrides, ++i);
 					break;
 				default:
@@ -176,6 +183,8 @@ public class FreeJ2ME
 		Mobile.setDisplay(new Display());
 
 		Mobile.getPlatform().startEventQueue();		
+
+		Mobile.getPlatform().setSystemPropertyOverrides(systemPropertyOverrides);
 
 		lcd.addKeyListener(new KeyListener()
 		{
@@ -425,10 +434,9 @@ public class FreeJ2ME
 			main.setSize(lcdWidth*scaleFactor+xborder , lcdHeight*scaleFactor+yborder);
 		}
 
-		if (Mobile.sonyEricsson && System.getProperty("microedition.platform") == "j2me") {
-			System.setProperty("microedition.platform", "SonyEricssonK750/JAVASDK");
+		if (Mobile.sonyEricsson) {
+			Mobile.getPlatform().addSystemProperty("microedition.platform", "SonyEricssonK750/JAVASDK");
 		}
-
 	}
 
 	private int getMobileKey(int keycode)

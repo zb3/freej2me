@@ -55,6 +55,8 @@ public class MobilePlatform
 	public int lcdWidth;
 	public int lcdHeight;
 
+	Map<String, String> systemPropertyOverrides;
+
 	public MIDletLoader loader;
 	EventQueue eventQueue;
 
@@ -216,6 +218,25 @@ public class MobilePlatform
 		keyState |= mask;
 		keyState ^= mask;
 		if(val==1) { keyState |= mask; }
+	}
+
+	public void setSystemPropertyOverrides(Map<String, String> systemPropertyOverrides) {
+		this.systemPropertyOverrides = systemPropertyOverrides;
+
+		if (systemPropertyOverrides != null) {
+			for (String key: systemPropertyOverrides.keySet()) {
+				System.setProperty(key, systemPropertyOverrides.get(key));
+			}
+		}
+	}
+
+	public void addSystemProperty(String key, String value) {
+		if (this.systemPropertyOverrides != null && this.systemPropertyOverrides.containsKey(key)) {
+			// overrides have the highest priority
+			return;
+		}
+		
+		System.setProperty(key, value);
 	}
 
 /*

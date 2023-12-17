@@ -75,54 +75,54 @@ public class FreeJ2ME
 	public FreeJ2ME(String args[])
 	{
 		lcdWidth = 240;
-        lcdHeight = 320;
-        scaleFactor = Toolkit.getDefaultToolkit().getScreenSize().height > 980 ? 3 : 2;
-        Map<String, String> appProperties = new HashMap<>();
-        Map<String, String> configOverrides = new HashMap<>();
-        String fileName = null;
+		lcdHeight = 320;
+		scaleFactor = Toolkit.getDefaultToolkit().getScreenSize().height > 980 ? 3 : 2;
+		Map<String, String> appProperties = new HashMap<>();
+		Map<String, String> configOverrides = new HashMap<>();
+		String fileName = null;
 		String mainClassOverride = null;
 		boolean dimensionsSet = false;
 		boolean forceFullscreen = false;
 		boolean forceVolatile = false;
 
-        for (int i = 0; i < args.length; i++) {
-            switch (args[i]) {
-                case "-w":
-                case "--width":
-                    lcdWidth = Integer.parseInt(args[++i]);
+		for (int i = 0; i < args.length; i++) {
+			switch (args[i]) {
+				case "-w":
+				case "--width":
+					lcdWidth = Integer.parseInt(args[++i]);
 					dimensionsSet = true;
-                    break;
-                case "-h":
-                case "--height":
-                    lcdHeight = Integer.parseInt(args[++i]);
+					break;
+				case "-h":
+				case "--height":
+					lcdHeight = Integer.parseInt(args[++i]);
 					dimensionsSet = true;
-                    break;
-                case "-s":
-                case "--scale":
-                    scaleFactor = Integer.parseInt(args[++i]);
-                    break;
+					break;
+				case "-s":
+				case "--scale":
+					scaleFactor = Integer.parseInt(args[++i]);
+					break;
 				case "-m":
-                case "--main-class":
-                    mainClassOverride = args[++i];
-                    break;
+				case "--main-class":
+					mainClassOverride = args[++i];
+					break;
 				case "-ff":
-                case "--force-fullscreen":
-                    forceFullscreen = true;
-                    break;
+				case "--force-fullscreen":
+					forceFullscreen = true;
+					break;
 				case "-fv":
-                case "--force-volatile":
-                    forceVolatile = true;
-                    break;
-                case "-prop":
-                    processKeyValuePairs(args, appProperties, ++i);
-                    break;
-                case "-config":
-                    processKeyValuePairs(args, configOverrides, ++i);
-                    break;
-                default:
-                    fileName = args[i];
-            }
-        }
+				case "--force-volatile":
+					forceVolatile = true;
+					break;
+				case "-prop":
+					processKeyValuePairs(args, appProperties, ++i);
+					break;
+				case "-config":
+					processKeyValuePairs(args, configOverrides, ++i);
+					break;
+				default:
+					fileName = args[i];
+			}
+		}
 
 		if (dimensionsSet) {
 			configOverrides.put("width", ""+lcdWidth);

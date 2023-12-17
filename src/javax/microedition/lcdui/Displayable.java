@@ -79,7 +79,7 @@ public abstract class Displayable
 	
 	public String getTitle() { return title; }
 
-	public void setTitle(String text) { title = text; }        
+	public void setTitle(String text) { title = text; }		
 
 	public boolean isShown() { return true; }
 
@@ -301,7 +301,7 @@ public abstract class Displayable
 		{
 			if(commandlistener!=null)
 			{
-                commandlistener.commandAction(commands.get(index), this);
+				commandlistener.commandAction(commands.get(index), this);
 			}
 		}
 	}

@@ -129,30 +129,30 @@ public class MIDletLoader extends URLClassLoader
 		// the class might be abstract though..
 
 
-        for (URL url : urls) {
+		for (URL url : urls) {
 			File file;
 			try {
 				file = new File(url.toURI());
 			} catch (URISyntaxException e) {
 				return null;
 			}
-            try (JarFile jarFile = new JarFile(file)) {
-                Enumeration<JarEntry> entries = jarFile.entries();
-                while (entries.hasMoreElements()) {
-                    JarEntry entry = entries.nextElement();
-                    if (entry.getName().endsWith(".class")) {
-                        String className = entry.getName().replace('/', '.').replace(".class", "");
-                        if (hasStartApp(className, jarFile.getInputStream(entry))) {
-                            return className;
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
+			try (JarFile jarFile = new JarFile(file)) {
+				Enumeration<JarEntry> entries = jarFile.entries();
+				while (entries.hasMoreElements()) {
+					JarEntry entry = entries.nextElement();
+					if (entry.getName().endsWith(".class")) {
+						String className = entry.getName().replace('/', '.').replace(".class", "");
+						if (hasStartApp(className, jarFile.getInputStream(entry))) {
+							return className;
+						}
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
 
 	private static boolean hasStartApp(String className, InputStream is) {
 		byte[] pattern = "startApp".getBytes();
@@ -179,18 +179,18 @@ public class MIDletLoader extends URLClassLoader
 				e.printStackTrace();
 			}
 		} 
-        return false;
-    }
+		return false;
+	}
 
 	private static byte[] readBytes(InputStream is) throws IOException {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        int nRead;
-        byte[] data = new byte[1024];
-        while ((nRead = is.read(data, 0, data.length)) != -1) {
-            buffer.write(data, 0, nRead);
-        }
-        return buffer.toByteArray();
-    }
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		int nRead;
+		byte[] data = new byte[1024];
+		while ((nRead = is.read(data, 0, data.length)) != -1) {
+			buffer.write(data, 0, nRead);
+		}
+		return buffer.toByteArray();
+	}
 
 	public void start() throws MIDletStateChangeException
 	{
@@ -257,39 +257,39 @@ public class MIDletLoader extends URLClassLoader
 	}
 
 	public static void parseDescriptorInto(InputStream is, Map<String, String> keyValueMap) {
-        String currentKey = null;
-        StringBuilder currentValue = new StringBuilder();
+		String currentKey = null;
+		StringBuilder currentValue = new StringBuilder();
 
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-            String line;
-            while ((line = br.readLine()) != null) {
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+			String line;
+			while ((line = br.readLine()) != null) {
 				if (line.trim().isEmpty()) {
 					continue;
 				}
-                if (line.startsWith(" ")) {
-                    currentValue.append(line, 1, line.length());
-                } else {
-                    if (currentKey != null) {
-                        keyValueMap.put(currentKey, currentValue.toString().trim());
-                        currentValue.setLength(0);
-                    }
+				if (line.startsWith(" ")) {
+					currentValue.append(line, 1, line.length());
+				} else {
+					if (currentKey != null) {
+						keyValueMap.put(currentKey, currentValue.toString().trim());
+						currentValue.setLength(0);
+					}
 
-                    int colonIndex = line.indexOf(':');
-                    if (colonIndex != -1) {
-                        currentKey = line.substring(0, colonIndex).trim();
-                        currentValue.append(line.substring(colonIndex + 1).trim());
-                    }
-                }
-            }
+					int colonIndex = line.indexOf(':');
+					if (colonIndex != -1) {
+						currentKey = line.substring(0, colonIndex).trim();
+						currentValue.append(line.substring(colonIndex + 1).trim());
+					}
+				}
+			}
 
-            if (currentKey != null) {
-                keyValueMap.put(currentKey, currentValue.toString().trim());
-            }
+			if (currentKey != null) {
+				keyValueMap.put(currentKey, currentValue.toString().trim());
+			}
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 
 	private void loadManifest()
@@ -388,45 +388,45 @@ public class MIDletLoader extends URLClassLoader
 	}
 
 	@Override
-    public URL findResource(String name) {
-        // First, try to find the resource with the original, case-sensitive name
-        URL resource = super.findResource(name);
-        if (resource != null) {
-            return resource;
-        }
+	public URL findResource(String name) {
+		// First, try to find the resource with the original, case-sensitive name
+		URL resource = super.findResource(name);
+		if (resource != null) {
+			return resource;
+		}
 
-        // For each URL, check if it is a JAR file and perform a case-insensitive search
-        for (URL url : getURLs()) {
-            resource = findResourceInJar(url, name);
-            if (resource != null) {
-                return resource;
-            }
-        }
+		// For each URL, check if it is a JAR file and perform a case-insensitive search
+		for (URL url : getURLs()) {
+			resource = findResourceInJar(url, name);
+			if (resource != null) {
+				return resource;
+			}
+		}
 
-        // If not found, return null
-        return null;
-    }
+		// If not found, return null
+		return null;
+	}
 
-    private URL findResourceInJar(URL jarUrl, String resourceName) {
-        if (jarUrl.getProtocol().equals("file") && jarUrl.getPath().endsWith(".jar")) {
-            try (JarFile jarFile = new JarFile(new File(jarUrl.toURI()))) {
-                Enumeration<JarEntry> entries = jarFile.entries();
-                while (entries.hasMoreElements()) {
-                    JarEntry entry = entries.nextElement();
-                    String entryName = entry.getName();
-                    if (entryName.equalsIgnoreCase(resourceName)) {
-                        // Construct the URL for the found resource
-                        String jarEntryUrl = "jar:" + jarUrl.toExternalForm() + "!/" + entryName;
-                        return new URL(jarEntryUrl);
-                    }
-                }
-            } catch (URISyntaxException | IOException e) {
-                // Handle exceptions as needed
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
+	private URL findResourceInJar(URL jarUrl, String resourceName) {
+		if (jarUrl.getProtocol().equals("file") && jarUrl.getPath().endsWith(".jar")) {
+			try (JarFile jarFile = new JarFile(new File(jarUrl.toURI()))) {
+				Enumeration<JarEntry> entries = jarFile.entries();
+				while (entries.hasMoreElements()) {
+					JarEntry entry = entries.nextElement();
+					String entryName = entry.getName();
+					if (entryName.equalsIgnoreCase(resourceName)) {
+						// Construct the URL for the found resource
+						String jarEntryUrl = "jar:" + jarUrl.toExternalForm() + "!/" + entryName;
+						return new URL(jarEntryUrl);
+					}
+				}
+			} catch (URISyntaxException | IOException e) {
+				// Handle exceptions as needed
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
 
 	/*
 		********  loadClass Modifies Methods with ObjectWeb ASM  ********

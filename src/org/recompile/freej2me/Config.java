@@ -81,7 +81,7 @@ public class Config
 
 		menuMap = new HashMap<String, Item[]>() {{
 			put("main", new Item[] {
-				new Item("resume", "Resume Game"),
+				new Item("back", "Return to Game"),
 				new Item("size", "Display Size"),
 				new Item("sound", "Sound"),
 				new Item("fps", "Limit FPS"),
@@ -330,11 +330,8 @@ public class Config
 		gc.drawLine(0, 20, width, 20);
 		gc.drawLine(0, height-20, width, height-20);
 
-
-		if (!currentMenu.equals("main")) {
-			gc.setColor(0xFFFFFF);
-			gc.drawString("Back", 3, height-17, Graphics.LEFT);
-		}
+		gc.setColor(0xFFFFFF);
+		gc.drawString("Back", 3, height-17, Graphics.LEFT);
 
 		int ah = (int)((height-50)/(items.length+1));
 		if(ah<15) { ah=15; }
@@ -381,7 +378,7 @@ public class Config
 			case "main":
 				switch(activeItem.id)
 				{
-					case "resume": stop(); break;
+					case "back": stop(); break;
 					case "size": 
 						currentMenu = "size"; 
 						currentItem = findItemIndex(menuMap.get(currentMenu), width+"x"+height);

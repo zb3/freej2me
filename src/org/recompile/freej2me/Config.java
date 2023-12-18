@@ -18,7 +18,9 @@ package org.recompile.freej2me;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 
 import java.io.File;
@@ -37,6 +39,20 @@ import javax.microedition.lcdui.Graphics;
 import org.recompile.mobile.Mobile;
 import org.recompile.mobile.PlatformImage;
 
+class Item {
+	public String id;
+	public String label;
+
+	public Item(String idAndLabel) {
+		this(idAndLabel, idAndLabel);
+	}
+
+	public Item(String id, String label) {
+		this.id = id;
+		this.label = label;
+	}
+}
+
 public class Config
 {
 	public boolean isRunning = false;
@@ -46,9 +62,9 @@ public class Config
 	private int width;
 	private int height;
 
-	private ArrayList<String[]> menu;
-	private int menuid = 0;
-	private int itemid = 0;
+	private Map<String, Item[]> menuMap;
+	private String currentMenu = "main";
+	private int currentItem = 0;
 
 	private File file;
 	private String configPath = "";
@@ -63,14 +79,44 @@ public class Config
 		width = Mobile.getPlatform().lcdWidth;
 		height = Mobile.getPlatform().lcdHeight;
 
-		menu = new ArrayList<String[]>();
-		menu.add(new String[]{"Resume Game", "Display Size", "Sound", "Limit FPS", "Phone", "Rotate", "Exit"}); // 0 - Main Menu
-		menu.add(new String[]{"96x65","96x96","104x80","128x128","132x176","128x160","176x208","176x220", "208x208", "240x320", "320x240", "240x400", "352x416", "360x640", "640x360" ,"480x800", "800x480"}); // 1 - Size
-		menu.add(new String[]{"Quit", "Main Menu"}); // 2 - Restart Notice
-		menu.add(new String[]{"On", "Off"}); // 3 - sound
-		menu.add(new String[]{"Standard", "Nokia", "Siemens","Motorola", "SonyEricsson"}); // 4 - Phone 
-		menu.add(new String[]{"On", "Off"}); // 5 - rotate 
-		menu.add(new String[]{"Auto", "60 - Fast", "30 - Slow", "15 - Turtle"}); // 6 - FPS
+		menuMap = new HashMap<String, Item[]>() {{
+			put("main", new Item[] {
+				new Item("resume", "Resume Game"),
+				new Item("size", "Display Size"),
+				new Item("sound", "Sound"),
+				new Item("fps", "Limit FPS"),
+				new Item("phone", "Phone"),
+				new Item("compat", "Compatibility"),
+				new Item("rotate", "Rotate"),
+				new Item("exit", "Exit")
+			});
+			
+			put("size", new Item[] {
+				new Item("96x65"), new Item("96x96"), new Item("104x80"), new Item("128x128"), new Item("132x176"), new Item("128x160"), new Item("176x208"), new Item("176x220"), new Item("208x208"), new Item("240x320"), new Item("320x240"), new Item("240x400"), new Item("352x416"), new Item("360x640"), new Item("640x360"), new Item("480x800"), new Item("800x480")
+			});
+
+			put("restart", new Item[]{new Item("quit", "Quit"), new Item("main", "Main Menu")});
+			put("rotate", new Item[]{new Item("On"), new Item("Off")});
+
+			put("phone", new Item[]{new Item("Standard"), new Item("Nokia"), new Item("Siemens"), new Item("Motorola"), new Item("SonyEricsson")});
+
+			put("compat", new Item[]{
+				new Item("forceFullscreen", "Force fullscreen canvas"),
+				new Item("forceVolatileFields", "Force volatile fields"),
+				new Item("dgFormat", "DG native format")}
+			);
+
+			put("compat/dgFormat", new Item[]{
+				new Item("default", "Default"),
+				new Item("444", "444 RGB"),
+				new Item("4444", "4444 ARGB"),
+				new Item("565", "565 RGB")}
+			);
+
+			put("fps", new Item[]{new Item("auto", "Auto"), new Item("60", "60 - Fast"), new Item("30", "30 - Slow"), new Item("15", "15 - Turtle")});
+			
+		}};
+  
 
 
 		onChange = new Runnable()
@@ -98,21 +144,13 @@ public class Config
 			System.out.println(e.getMessage());
 		}
 
-		try // Check Config File
+		// Check Config File
+		try
 		{
 			file = new File(configFile);
 			if(!file.exists())
 			{
 				file.createNewFile();
-				settings.put("width", ""+width);
-				settings.put("height", ""+height);
-				settings.put("sound", "on");
-				settings.put("phone", "Nokia");
-				settings.put("rotate", "off");
-				settings.put("fps", "0");
-
-				settings.putAll(overrides);
-				saveConfig();
 			}
 		}
 		catch (Exception e)
@@ -123,32 +161,27 @@ public class Config
 
 		try // Read Records
 		{
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			String line;
-			String[] parts;
-			while((line = reader.readLine())!=null)
-			{
-				parts = line.split(":");
-				if(parts.length==2)
+			try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+				String line;
+				String[] parts;
+				while((line = reader.readLine())!=null)
 				{
-					parts[0] = parts[0].trim();
-					parts[1] = parts[1].trim();
-					if(parts[0]!="" && parts[1]!="")
+					parts = line.split(":");
+					if(parts.length==2)
 					{
-						//Compatibility with the deprecated "nokia" boolean setting
-						if(parts[0].equals("nokia"))
+						parts[0] = parts[0].trim();
+						parts[1] = parts[1].trim();
+						if(parts[0]!="" && parts[1]!="")
 						{
-							parts[0] = "phone";
-							if(parts[1].equals("on")) { parts[1] = "Nokia"; } else { parts[0] = "Standard"; }
+							settings.put(parts[0], parts[1]);
 						}
-						settings.put(parts[0], parts[1]);
 					}
 				}
 			}
 			if(!settings.containsKey("width")) { settings.put("width", ""+width); }
 			if(!settings.containsKey("height")) { settings.put("height", ""+height); }
 			if(!settings.containsKey("sound")) { settings.put("sound", "on"); }
-			if(!settings.containsKey("phone")) { settings.put("phone", "Standard"); }
+			if(!settings.containsKey("phone")) { settings.put("phone", "Nokia"); }
 			if(!settings.containsKey("rotate")) { settings.put("rotate", "off"); }
 			if(!settings.containsKey("fps")) { settings.put("fps", "0"); }
 
@@ -162,10 +195,7 @@ public class Config
 		settings.putAll(overrides);
 		saveConfig();
 
-		width = Integer.parseInt(settings.get("width"));
-		height = Integer.parseInt(settings.get("height"));
-
-		doUpdateDisplay(width, height);
+		doUpdateDisplay(Integer.parseInt(settings.get("width")), Integer.parseInt(settings.get("height")));
 	}
 
 	public void saveConfig()
@@ -202,24 +232,42 @@ public class Config
 		Mobile.getPlatform().painter.run();
 	}
 
-	public void keyPressed(int platKey)
+	public void keyPressed(int platKey, int keyCode)
 	{
-		int key = Mobile.normalizeKey(platKey);
-		switch(key)
-		{
-			case Mobile.NOKIA_UP: itemid--; break;
-			case Mobile.NOKIA_DOWN: itemid++; break;
-			case Mobile.NOKIA_SOFT1: menuid=0; break;
-			case Mobile.NOKIA_SOFT3: doMenuAction(); break;
+		int mobiKey = Mobile.normalizeKey(platKey);
+
+		if (mobiKey == Mobile.NOKIA_UP) {
+			currentItem--;
+		} else if (mobiKey == Mobile.NOKIA_DOWN) {
+			currentItem++;
+		} else if (mobiKey == Mobile.NOKIA_SOFT1 || keyCode == KeyEvent.VK_ESCAPE) {
+			if (currentMenu.equals("main")) {
+				stop();
+				return;
+			}
+
+			int slashIdx = currentMenu.lastIndexOf('/');
+			String lastPart;
+
+			if (slashIdx == -1) {
+				lastPart = currentMenu;
+				currentMenu = "main";
+			} else {
+				lastPart = currentMenu.substring(slashIdx + 1);
+				currentMenu = currentMenu.substring(0, slashIdx);
+			}
+
+			currentItem = findItemIndex(menuMap.get(currentMenu), lastPart);
+		} else if (mobiKey == Mobile.NOKIA_SOFT3) {
+			doMenuAction();
 		}
-		if (menuid<0) { menuid=0; itemid=0; }
-		if (itemid>=menu.get(menuid).length) { itemid = menu.get(menuid).length-1; }
-		if (itemid<0) { itemid = 0; }
+
+		currentItem = Math.max(0, Math.min(currentItem, menuMap.get(currentMenu).length-1));
 
 		render();
 	}
 
-	public void keyReleased(int key) { }
+	public void keyReleased(int platKey, int keyCode) { }
 	public void mousePressed(int key) { }
 	public void mouseReleased(int key) { }
 
@@ -230,14 +278,49 @@ public class Config
 
 	public void render()
 	{
-		String label;
+		if (!isRunning) {
+			return;
+		}
+		/*
+		 * technically we'd want title, list of labels and showBack
+		 * 
+		 */
 		String title = "Game Options";
+		String[] items = null;
 
-		switch(menuid)
-		{
-			case 1: title = "Screen Size"; break;
-			case 2: title = "Restart Required"; break;
-			case 3: title = "Sound"; break;
+		switch(currentMenu) {
+			case "size": title = "Screen Size"; break;
+			case "restart": title = "Restart Required"; break;
+			case "rotate": title = "Rotate"; break;
+			case "phone": title = "Phone type"; break;
+			case "compat": title = "Compatibility flags"; break;
+			case "compat/dgFormat": title = "DirectGraphics pixel format"; break;
+			case "fps": title = "Max FPS"; break;
+		}
+
+		Item[] itemObjects = menuMap.get(currentMenu);
+		items = new String[itemObjects.length];
+
+		for (int t=0; t<items.length; t++) {
+			String id = itemObjects[t].id;
+			String label = itemObjects[t].label;
+
+			switch (currentMenu) {
+				case "main":
+					switch (id) {
+						case "sound": label += ": "+ settings.get(id); break;
+						case "fps": label += ": "+ settings.get(id); break;
+						case "phone": label += ": "+ settings.get(id); break;
+						case "rotate": label += ": "+ settings.get(id); break;
+					}
+				break;
+
+				case "compat":
+					label += ": " + settings.getOrDefault(id, id.equals("dgFormat") ? "default" : "off");
+				break;
+			}
+
+			items[t] = label;
 		}
 
 		gc.setColor(0x000080);
@@ -247,31 +330,22 @@ public class Config
 		gc.drawLine(0, 20, width, 20);
 		gc.drawLine(0, height-20, width, height-20);
 
-		/*
-		gc.setColor(0x00FF00);
-		gc.drawRect(0, 0, 128, 128);
-		height = 128;
-		width = 128;
-		*/
 
-		if (menuid>0)
-		{
+		if (!currentMenu.equals("main")) {
 			gc.setColor(0xFFFFFF);
 			gc.drawString("Back", 3, height-17, Graphics.LEFT);
 		}
 
-		String[] t = menu.get(menuid);
-
-		int ah = (int)((height-50)/(t.length+1));
+		int ah = (int)((height-50)/(items.length+1));
 		if(ah<15) { ah=15; }
 
 		int space = 0;
 		if(ah>15) { space = (ah-15) / 2; }
 
 		int max = (int)Math.floor((height-50)/ah);
-		int page = (int)Math.floor(itemid/max);
+		int page = (int)Math.floor(currentItem/max);
 		int start = (int)(max*page);
-		int pages = (int)Math.ceil(t.length/max);
+		int pages = (int)Math.ceil(items.length/max);
 
 		if(pages>=1)
 		{
@@ -279,20 +353,11 @@ public class Config
 			gc.drawString("Page "+(page+1)+" of "+(pages+1), width-3, height-17, Graphics.RIGHT);
 		}
 
-		for(int i=start; (i<(start+max))&(i<t.length); i++)
+		for(int i=start; (i<(start+max))&(i<items.length); i++)
 		{
-			label = t[i];
-			if(menuid==0 && i>1 && i<7)
-			{
-				switch(i)
-				{
-					case 2: label = label+": "+settings.get("sound"); break;
-					case 3: label = label+": "+settings.get("fps"); break;
-					case 4: label = label+": "+settings.get("phone"); break;
-					case 5: label = label+": "+settings.get("rotate"); break;
-				}
-			}
-			if(i==itemid)
+			String label = items[i];
+
+			if(i==currentItem)
 			{
 				gc.setColor(0xFFFF00);
 				gc.drawString("> "+label+" <", width/2, (25+space)+(ah*(i-start)), Graphics.HCENTER);
@@ -309,69 +374,104 @@ public class Config
 
 	private void doMenuAction()
 	{
-		switch(menuid)
+		Item activeItem = menuMap.get(currentMenu)[currentItem];
+
+		switch(currentMenu)
 		{
-			case 0:  // Main Menu
-				switch(itemid)
+			case "main":
+				switch(activeItem.id)
 				{
-					case 0: stop(); break; // resume
-					case 1: menuid=1; itemid=0; break; // display size
-					case 2: menuid=3; itemid=0; break; // sound
-					case 3: menuid=6; itemid=0; break; // fps
-					case 4: menuid=4; itemid=0; break; // phone
-					case 5: menuid=5; itemid=0; break; // rotate
-					case 6: System.exit(0); break;
+					case "resume": stop(); break;
+					case "size": 
+						currentMenu = "size"; 
+						currentItem = findItemIndex(menuMap.get(currentMenu), width+"x"+height);
+					break;
+					case "sound": toggleSound(); break;
+					case "fps":
+						currentMenu = "fps";
+						currentItem = findItemIndex(menuMap.get(currentMenu), settings.get("fps"));
+					break;
+					case "phone":
+						currentMenu = "phone";
+						currentItem = findItemIndex(menuMap.get(currentMenu), settings.get("phone"));
+					break;
+					case "compat": currentMenu = "compat"; currentItem = 0; break;
+					case "rotate": currentMenu = "rotate"; currentItem = 0; break;
+					case "exit": System.exit(0); break;
 				}
 			break;
 
-			case 1: // Display Size
-				String[] t = menu.get(1)[itemid].split("x");
+			case "size":
+				String[] t = activeItem.id.split("x");
 
 				updateDisplaySize(Integer.parseInt(t[0]), Integer.parseInt(t[1]));
 
-				menuid=2; itemid=0;
+				currentMenu = "restart"; currentItem = 0;
 			break;
 
-			case 2: // Restart Required Notice
-				switch(itemid)
+			case "restart":
+				switch (activeItem.id)
 				{
-					case 0: System.exit(0); break;
-					case 1: menuid=0; itemid=0;
+					case "quit": System.exit(0); break;
+					case "main": currentMenu = "main"; currentItem = 0;
 				}
 			break;
 
-			case 3: // Turn Sound On/Off
-				if(itemid==0) { updateSound("on"); }
-				if(itemid==1) { updateSound("off"); }
-				menuid=0; itemid=0;
+			case "phone":
+				updatePhone(activeItem.id);
+				currentMenu = "main"; currentItem = findItemIndex(menuMap.get("main"), "phone");
 			break;
 
-			case 4: // Switch Phone Mode
-				if(itemid==0) { updatePhone("Standard"); }
-				if(itemid==1) { updatePhone("Nokia"); }
-				if(itemid==2) { updatePhone("Siemens"); }
-				if(itemid==3) { updatePhone("Motorola"); }
-				if(itemid==4) { updatePhone("SonyEricsson"); }
-				menuid=0; itemid=0;
+			case "compat":
+				switch (activeItem.id) {
+					case "dgFormat":
+						currentMenu += "/" + activeItem.id;
+						currentItem = findItemIndex(menuMap.get(currentMenu), settings.getOrDefault(activeItem.id, "default"));
+					break;
+					case "forceVolatileFields":
+						currentMenu = "restart"; currentItem = 0;
+					default:
+						toggleCompatFlag(activeItem.id);
+				}				
 			break;
 
-			case 5: // Turn Rotation On/Off
-				if(itemid==0) { updateRotate("on"); }
-				if(itemid==1) { updateRotate("off"); }
-				menuid=0; itemid=0;
+			case "compat/dgFormat":
+				updateDGFormat(activeItem.id);
+				currentMenu = "compat";
+				currentItem = findItemIndex(menuMap.get(currentMenu), "dgFormat");			
 			break;
 
-			case 6: // FPS
-				if(itemid==0) { updateFPS("0"); }
-				if(itemid==1) { updateFPS("60"); }
-				if(itemid==2) { updateFPS("30"); }
-				if(itemid==3) { updateFPS("15"); }
-				menuid=0; itemid=0;
+			case "rotate":
+				switch (activeItem.id)
+				{
+					case "On": updateRotate("on"); break;
+					case "Off": updateRotate("off"); break;
+				}
+				
+				currentMenu = "main"; currentItem = findItemIndex(menuMap.get("main"), "rotate");
+			break;
+
+			case "fps":
+				updateFPS(activeItem.id.equals("auto") ? "0" : activeItem.id);
+				currentMenu = "main"; currentItem = findItemIndex(menuMap.get("main"), "fps");
 			break;
 
 		}
 
 		render();
+	}
+
+	private int findItemIndex(Item[] items, String id) {
+		int index = 0;
+
+		for (int t=0; t<items.length; t++) {
+			if (items[t].id.equals(id)) {
+				index = t;
+				break;
+			}
+		}
+
+		return index;
 	}
 
 	private final void doUpdateDisplay(int w, int h) {
@@ -391,10 +491,13 @@ public class Config
 		doUpdateDisplay(w, h);
 	}
 
-	private void updateSound(String value)
+	private void toggleSound()
 	{
-		System.out.println("Config: sound "+value);
-		settings.put("sound", value);
+		if (settings.getOrDefault("sound", "off").equals("on")) {
+			settings.put("sound", "off");
+		} else {
+			settings.put("sound", "on");
+		}
 		saveConfig();
 		onChange.run();
 	}
@@ -419,6 +522,25 @@ public class Config
 	{
 		System.out.println("Config: fps "+value);
 		settings.put("fps", value);
+		saveConfig();
+		onChange.run();
+	}
+
+	private void toggleCompatFlag(String value)
+	{
+		if (settings.getOrDefault(value, "off").equals("on")) {
+			settings.remove(value);
+		} else {
+			settings.put(value, "on");
+		}
+
+		saveConfig();
+		onChange.run();
+	}
+
+	private void updateDGFormat(String value)
+	{
+		settings.put("dgFormat", value);
 		saveConfig();
 		onChange.run();
 	}

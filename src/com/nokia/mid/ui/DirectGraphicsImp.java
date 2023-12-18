@@ -37,8 +37,7 @@ import javax.microedition.lcdui.game.Sprite;
 public class DirectGraphicsImp implements DirectGraphics {
     private static final String TAG = DirectGraphicsImp.class.getName();
     private final PlatformGraphics graphics;
-    private static final String KEY_FORMAT = "com.nokia.mid.ui.DirectGraphics.PIXEL_FORMAT";
-    private static final int PIXEL_FORMAT = Integer.getInteger(KEY_FORMAT, TYPE_USHORT_565_RGB);
+    private static final String KEY_FORMAT = "freej2me.dgFormat";
     private int alphaComponent;
 
     public DirectGraphicsImp(PlatformGraphics g) {
@@ -72,7 +71,7 @@ public class DirectGraphicsImp implements DirectGraphics {
 
     @Override
     public int getNativePixelFormat() {
-        return PIXEL_FORMAT;
+        return Integer.getInteger(KEY_FORMAT, TYPE_USHORT_565_RGB);
     }
 
     @Override

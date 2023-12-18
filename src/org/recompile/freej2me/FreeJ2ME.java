@@ -137,11 +137,11 @@ public class FreeJ2ME
 		}
 
 		if (forceFullscreen) {
-			System.setProperty("freej2me.forceFullscreen", "true");
+			configOverrides.put("forceFullscreen", "on");
 		}
 		
 		if (forceVolatile) {
-			System.setProperty("freej2me.forceVolatileFields", "true");
+			configOverrides.put("forceVolatileFields", "on");
 		}
 
 		main = new Frame("FreeJ2ME");
@@ -192,6 +192,12 @@ public class FreeJ2ME
 			{
 				int keycode = e.getKeyCode();
 				int mobikey = getMobileKey(keycode);
+
+				if (config.isRunning) {
+					config.keyPressed(mobikey, keycode);
+					return;
+				}
+
 				int mobikeyN = (mobikey + 64) & 0x7F; //Normalized value for indexing the pressedKeys array
 				
 				switch(keycode) // Handle emulator control keys
@@ -200,7 +206,7 @@ public class FreeJ2ME
 					case KeyEvent.VK_ESCAPE:
 						Mobile.getPlatform().dropQueuedEvents();
 						config.start();
-						break;
+						return;
 
 					case KeyEvent.VK_PLUS:
 					case KeyEvent.VK_ADD:
@@ -223,22 +229,17 @@ public class FreeJ2ME
 					break;
 				}
 								
-				if(config.isRunning)
+
+				
+				if (pressedKeys[mobikeyN] == false)
 				{
-					config.keyPressed(mobikey);
+					//~ System.out.println("keyPressed:  " + Integer.toString(mobikey));
+					Mobile.getPlatform().keyPressed(mobikey, e);
 				}
 				else
 				{
-					if (pressedKeys[mobikeyN] == false)
-					{
-						//~ System.out.println("keyPressed:  " + Integer.toString(mobikey));
-						Mobile.getPlatform().keyPressed(mobikey, e);
-					}
-					else
-					{
-						//~ System.out.println("keyRepeated:  " + Integer.toString(mobikey));
-						Mobile.getPlatform().keyRepeated(mobikey, e);
-					}
+					//~ System.out.println("keyRepeated:  " + Integer.toString(mobikey));
+					Mobile.getPlatform().keyRepeated(mobikey, e);
 				}
 
 				if (mobikey != 0) {
@@ -249,22 +250,22 @@ public class FreeJ2ME
 
 			public void keyReleased(KeyEvent e)
 			{
-				int mobikey = getMobileKey(e.getKeyCode());
+				int keycode = e.getKeyCode();
+				int mobikey = getMobileKey(keycode);
+
+				if (config.isRunning) {
+					config.keyReleased(mobikey, keycode);
+					return;
+				}
+				
 				int mobikeyN = (mobikey + 64) & 0x7F; //Normalized value for indexing the pressedKeys array
 				
 				if (mobikey != 0) {
 					pressedKeys[mobikeyN] = false;
 				}
 								
-				if(config.isRunning)
-				{
-					config.keyReleased(mobikey);
-				}
-				else
-				{
-					//~ System.out.println("keyReleased: " + Integer.toString(mobikey));
-					Mobile.getPlatform().keyReleased(mobikey, e);
-				}
+				//~ System.out.println("keyReleased: " + Integer.toString(mobikey));
+				Mobile.getPlatform().keyReleased(mobikey, e);
 			}
 
 			public void keyTyped(KeyEvent e) { }
@@ -411,6 +412,19 @@ public class FreeJ2ME
 		String rotate = config.settings.get("rotate");
 		if(rotate.equals("on")) { rotateDisplay = true; }
 		if(rotate.equals("off")) { rotateDisplay = false; }
+
+		boolean isForceFullscreen = config.settings.getOrDefault("forceFullscreen", "off").equals("on");
+		boolean isForceVolatile = config.settings.getOrDefault("forceVolatileFields", "off").equals("on");
+		String dgFormat = config.settings.getOrDefault("dgFormat", "default");
+
+		System.setProperty("freej2me.forceFullscreen", isForceFullscreen ? "true" : "false");
+		System.setProperty("freej2me.forceVolatileFields", isForceVolatile ? "true" : "false");
+
+		if (dgFormat.equals("default")) {
+			System.clearProperty("freej2me.dgFormat");
+		} else {
+			System.setProperty("freej2me.dgFormat", dgFormat);
+		}
 
 		// Create a standard size LCD if not rotated, else invert window's width and height.
 		if(!rotateDisplay) 

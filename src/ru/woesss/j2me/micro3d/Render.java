@@ -146,7 +146,7 @@ public class Render extends ClassWithNatives {
 
 		if (env.width != width || env.height != height) {
 
-			System.out.format("log: new surface %d %d  %d %d  %d %d\n", graphics.getClipX(), graphics.getClipY(), graphics.getTranslateX(), graphics.getTranslateY(), graphics.getClipWidth(), graphics.getClipHeight());
+			//System.out.format("log: new surface %d %d  %d %d  %d %d\n", graphics.getClipX(), graphics.getClipY(), graphics.getTranslateX(), graphics.getTranslateY(), graphics.getClipWidth(), graphics.getClipHeight());
 			_eglMakeSurface(eglHandle, width, height);
 
 			_eglBind(eglHandle);
@@ -605,7 +605,7 @@ public class Render extends ClassWithNatives {
 					setCenter(cmds[i++], cmds[i++]);
 					break;
 				case Graphics3D.COMMAND_CLIP:
-					System.out.println("zb3: clip used");
+					System.out.println("log: m3d clip used");
 					Rectangle tmp = clip.intersection(new Rectangle(cmds[i++], cmds[i++], cmds[i++], cmds[i++]));
 					clip.x = tmp.x;
 					clip.y = tmp.y;

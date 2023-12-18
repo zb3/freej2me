@@ -115,7 +115,6 @@ public class Loader {
 	}
 
 	public static Object3D[] load(String name) throws IOException {
-		System.out.println("loadin in loader: "+ name);
 		if (name == null) {
 			throw new NullPointerException();
 		}

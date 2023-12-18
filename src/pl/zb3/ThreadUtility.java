@@ -22,7 +22,6 @@ public class ThreadUtility {
     public static Thread run(Runnable task) {
         if (SUPPORTS_VIRTUAL_THREADS) {
             try {
-                System.out.println("runnin on a virtual thread");
                 return (Thread) startVirtualThreadMethod.invoke(null, task);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException("Failed to start virtual thread", e);

@@ -109,7 +109,6 @@ public class FFPlayer extends BasePlayer implements LineListener
 	public void doSetMediaTime(long now) {
 		if (clip == null) return;
 
-		System.out.println("KOKO clip set position "+now);
 		clip.setMicrosecondPosition(now);
 	}
 

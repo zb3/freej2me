@@ -200,10 +200,7 @@ public class MIDletLoader extends URLClassLoader
 		catch (Exception e)
 		{
 			System.out.println("Problem Constructing " + name + " class: " +className);
-			System.out.println("Reason: "+e.getMessage());
-			e.printStackTrace();
-			System.exit(0);
-			return;
+			throw new RuntimeException(e);
 		}
 
 		try
@@ -230,9 +227,7 @@ public class MIDletLoader extends URLClassLoader
 		catch (Exception e)
 		{
 			System.out.println("Can't Find startApp Method");
-			e.printStackTrace();
-			System.exit(0);
-			return;
+			throw new RuntimeException(e);
 		}
 
 		try
@@ -241,8 +236,7 @@ public class MIDletLoader extends URLClassLoader
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
-			System.exit(0);
+			throw new RuntimeException(e);
 		}
 	}
 

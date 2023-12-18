@@ -34,6 +34,7 @@ import java.awt.event.KeyEvent;
 import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Font;
+import javax.microedition.lcdui.Graphics;
 import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.game.GameCanvas;
 import javax.microedition.lcdui.Image;
@@ -287,6 +288,14 @@ public class MobilePlatform
 		{
 			System.out.println("Error Running Jar");
 			e.printStackTrace();
+
+			// todo: paint proper BSOD
+			gc.setColor(0x000080);
+			gc.fillRect(0,0, lcdWidth, lcdHeight);
+
+			gc.setColor(0xFFFFFF);
+			gc.drawString("Game crashed :(", lcdWidth/2, lcdHeight/2, Graphics.HCENTER | Graphics.VCENTER);
+			painter.run();
 		}
 	}
 

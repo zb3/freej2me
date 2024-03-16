@@ -1,36 +1,48 @@
 /*
-	This file is part of FreeJ2ME.
+ *  MicroEmulator
+ *  Copyright (C) 2006 Bartek Teodorczyk <barteo@barteo.net>
+ *
+ *  It is licensed under the following two licenses as alternatives:
+ *    1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version
+ *    2. Apache License (the "AL") Version 2.0
+ *
+ *  You may not use this file except in compliance with at least one of
+ *  the above two licenses.
+ *
+ *  You may obtain a copy of the LGPL at
+ *      http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+ *
+ *  You may obtain a copy of the AL at
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the LGPL or the AL for the specific language governing permissions and
+ *  limitations.
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.wireless.messaging;
 
-public interface MessageConnection extends javax.microedition.io.Connection
-{
-	public static final String BINARY_MESSAGE = "binary";
-	public static final String MULTIPART_MESSAGE = "multipart";
-	public static final String TEXT_MESSAGE = "text";
+import java.io.IOException;
+import java.io.InterruptedIOException;
 
-	public Message newMessage(String type);
+import javax.microedition.io.Connection;
 
-	public Message newMessage(String type, String address);
+public interface MessageConnection extends Connection {
+	String BINARY_MESSAGE = "binary";
+	String MULTIPART_MESSAGE = "multipart";
+	String TEXT_MESSAGE = "text";
 
-	public int numberOfSegments(Message msg);
+	Message newMessage(String type);
 
-	public Message receive();
+	Message newMessage(String type, String address);
 
-	public void send(Message msg);
+	int numberOfSegments(Message message);
 
-	public void setMessageListener(MessageListener l);
+	Message receive() throws IOException, InterruptedIOException;
+
+	void send(Message message) throws IOException, InterruptedIOException;
+
+	void setMessageListener(MessageListener listener) throws IOException;
 }

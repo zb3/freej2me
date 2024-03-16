@@ -14,8 +14,37 @@
  * limitations under the License.
  */
 
-package com.siemens.mp.io.file;
+package org.microemu.cldc.sms;
 
-public class FileSystemRegistry extends javax.microedition.io.file.FileSystemRegistry {
+import java.util.Date;
 
+import javax.wireless.messaging.Message;
+
+public class MessageImpl implements Message {
+
+	private String address;
+	private final long timestamp;
+
+	public MessageImpl(String address, long timestamp) {
+		this.address = address;
+		this.timestamp = timestamp;
+	}
+
+	@Override
+	public String getAddress() {
+		return address;
+	}
+
+	@Override
+	public Date getTimestamp() {
+		if (timestamp == 0) {
+			return null;
+		}
+		return new Date(timestamp);
+	}
+
+	@Override
+	public void setAddress(String address) {
+		this.address = address;
+	}
 }

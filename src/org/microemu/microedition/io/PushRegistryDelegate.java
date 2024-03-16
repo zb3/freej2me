@@ -1,6 +1,7 @@
 /**
  * MicroEmulator
- * Copyright (C) 2001 Bartek Teodorczyk <barteo@barteo.net>
+ * Copyright (C) 2006-2007 Bartek Teodorczyk <barteo@barteo.net>
+ * Copyright (C) 2006-2007 Vlad Skarzhevskyy
  * <p>
  * It is licensed under the following two licenses as alternatives:
  * 1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version
@@ -23,13 +24,27 @@
  *
  * @version $Id$
  */
-
-package javax.microedition.io;
+package org.microemu.microedition.io;
 
 import java.io.IOException;
 
-public interface StreamConnectionNotifier extends Connection {
+import javax.microedition.io.ConnectionNotFoundException;
 
-	StreamConnection acceptAndOpen() throws IOException;
+public interface PushRegistryDelegate {
+
+	public void registerConnection(String connection, String midlet, String filter) throws ClassNotFoundException,
+			IOException;
+
+	public boolean unregisterConnection(String connection);
+
+	public String[] listConnections(boolean available);
+
+	public String getMIDlet(String connection);
+
+	public String getFilter(String connection);
+
+	public long registerAlarm(String midlet, long time)
+
+			throws ClassNotFoundException, ConnectionNotFoundException;
 
 }

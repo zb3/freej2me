@@ -1,94 +1,76 @@
-/*
-	This file is part of FreeJ2ME.
+/**
+ * MicroEmulator
+ * Copyright (C) 2001-2007 Bartek Teodorczyk <barteo@barteo.net>
+ * Copyright (C) 2006-2007 Vlad Skarzhevskyy
+ * <p>
+ * It is licensed under the following two licenses as alternatives:
+ * 1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version
+ * 2. Apache License (the "AL") Version 2.0
+ * <p>
+ * You may not use this file except in compliance with at least one of
+ * the above two licenses.
+ * <p>
+ * You may obtain a copy of the LGPL at
+ * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+ * <p>
+ * You may obtain a copy of the AL at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the LGPL or the AL for the specific language governing permissions and
+ * limitations.
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.io;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import org.microemu.microedition.ImplFactory;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-import org.recompile.mobile.Mobile;
-
-public class Connector
-{
+public class Connector {
 
 	public static final int READ = 1;
-	public static final int READ_WRITE = 3;
+
 	public static final int WRITE = 2;
 
-	
-	public static InputStream openInputStream(String name)
-	{
-		//System.out.println("Connector: " + name);
-		if(name.startsWith("resource:")) // older Siemens phones?
-		{
-			return Mobile.getPlatform().loader.getMIDletResourceAsSiemensStream(name.substring(9).replaceAll("\\\\", "/"));
-		}
-		else
-		{
-			//return Mobile.getPlatform().loader.getMIDletResourceAsStream(name); // possible
-			System.out.println("Faked InputStream for "+name); // just in case //
-			return new fakeIS();
-		}
+	public static final int READ_WRITE = 3;
+
+	private Connector() {
+
 	}
 
-
-	public static DataInputStream openDataInputStream(String name)
-	{
-		System.out.println("Faked DataInputStream: "+name);
-		return new DataInputStream(new fakeIS());
+	public static Connection open(String name) throws IOException {
+		return ImplFactory.getCGFImplementation(name).open(name);
 	}
 
-	private static class DummyOutputStream extends OutputStream
-	{
-		public void write(int a) {}
+	public static Connection open(String name, int mode) throws IOException {
+		return ImplFactory.getCGFImplementation(name).open(name, mode);
 	}
 
-	public static Connection open(String name) throws IOException { throw new ConnectionNotFoundException(); }
+	public static Connection open(String name, int mode, boolean timeouts) throws IOException {
+		return ImplFactory.getCGFImplementation(name).open(name, mode, timeouts);
+	}
 
-	public static Connection open(String name, int mode) throws IOException { throw new ConnectionNotFoundException(); }
+	public static DataInputStream openDataInputStream(String name) throws IOException {
+		return ImplFactory.getCGFImplementation(name).openDataInputStream(name);
+	}
 
-	public static Connection open(String name, int mode, boolean timeouts) throws IOException { throw new ConnectionNotFoundException(); }
+	public static DataOutputStream openDataOutputStream(String name) throws IOException {
+		return ImplFactory.getCGFImplementation(name).openDataOutputStream(name);
+	}
 
-	public static DataOutputStream openDataOutputStream(String name) { return new DataOutputStream(new DummyOutputStream()); }
+	public static InputStream openInputStream(String name) throws IOException {
+		return ImplFactory.getCGFImplementation(name).openInputStream(name);
+	}
 
-	public static OutputStream openOutputStream(String name) { return new DummyOutputStream(); }
-
-	// fake inputstream 
-	private static class fakeIS extends InputStream
-	{
-		public int avaliable() { return 0; }
-
-		public void close() { }
-
-		public void mark() { }
-
-		public boolean markSupported() { return false; }
-
-		public int read() { return 0; }
-
-		public int read(byte[] b) { return 0; }
-		
-		public int read(byte[] b, int off, int len) { return 0; }
-
-		public void reset() { }
-
-		public long skip(long n) { return (long)0; }
+	public static OutputStream openOutputStream(String name) throws IOException {
+		return ImplFactory.getCGFImplementation(name).openOutputStream(name);
 	}
 
 }

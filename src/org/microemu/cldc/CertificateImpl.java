@@ -22,34 +22,50 @@
  *  limitations.
  */
 
-package javax.microedition.io;
+package org.microemu.cldc;
 
-import java.io.IOException;
+import java.security.cert.X509Certificate;
 
-public interface SocketConnection extends StreamConnection {
+import javax.microedition.pki.Certificate;
 
-	public static final byte DELAY = 0;
+public class CertificateImpl implements Certificate {
 
-	public static final byte LINGER = 1;
+	private X509Certificate cert;
 
-	public static final byte KEEPALIVE = 2;
+	public CertificateImpl(X509Certificate cert) {
+		this.cert = cert;
+	}
 
-	public static final byte RCVBUF = 3;
+	public String getIssuer() {
+		return cert.getIssuerDN().getName();
+	}
 
-	public static final byte SNDBUF = 4;
+	public long getNotAfter() {
+		return cert.getNotAfter().getTime();
+	}
 
-	public void setSocketOption(byte option, int value)
-			throws IllegalArgumentException, IOException;
+	public long getNotBefore() {
+		return cert.getNotBefore().getTime();
+	}
 
-	public int getSocketOption(byte option) throws IllegalArgumentException,
-			IOException;
+	public String getSerialNumber() {
+		return cert.getSerialNumber().toString();
+	}
 
-	public String getLocalAddress() throws IOException;
+	public String getSigAlgName() {
+		return cert.getSigAlgName();
+	}
 
-	public int getLocalPort() throws IOException;
+	public String getSubject() {
+		return cert.getSubjectDN().getName();
+	}
 
-	public String getAddress() throws IOException;
+	public String getType() {
+		return cert.getType();
+	}
 
-	public int getPort() throws IOException;
+	public String getVersion() {
+		return Integer.toString(cert.getVersion());
+	}
 
 }

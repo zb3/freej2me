@@ -1,108 +1,133 @@
 /*
-	This file is part of FreeJ2ME.
+ *  MicroEmulator
+ *  Copyright (C) 2001 Bartek Teodorczyk <barteo@barteo.net>
+ *
+ *  It is licensed under the following two licenses as alternatives:
+ *    1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version
+ *    2. Apache License (the "AL") Version 2.0
+ *
+ *  You may not use this file except in compliance with at least one of
+ *  the above two licenses.
+ *
+ *  You may obtain a copy of the LGPL at
+ *      http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+ *
+ *  You may obtain a copy of the AL at
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the LGPL or the AL for the specific language governing permissions and
+ *  limitations.
+ */
 
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
 package javax.microedition.io;
 
-
-public interface HttpConnection extends ContentConnection
-{
-
-	public static final String GET = "GET";
-	public static final String HEAD = "HEAD";
-	public static final int HTTP_ACCEPTED = 202;
-	public static final int HTTP_BAD_GATEWAY = 502;
-	public static final int HTTP_BAD_METHOD = 405;
-	public static final int HTTP_BAD_REQUEST = 400;
-	public static final int HTTP_CLIENT_TIMEOUT = 408;
-	public static final int HTTP_CONFLICT = 409;
-	public static final int HTTP_CREATED = 201;
-	public static final int HTTP_ENTITY_TOO_LARGE = 413;
-	public static final int HTTP_EXPECT_FAILED = 417;
-	public static final int HTTP_FORBIDDEN = 403;
-	public static final int HTTP_GATEWAY_TIMEOUT = 504;
-	public static final int HTTP_GONE = 410;
-	public static final int HTTP_INTERNAL_ERROR = 500;
-	public static final int HTTP_LENGTH_REQUIRED = 411;
-	public static final int HTTP_MOVED_PERM = 301;
-	public static final int HTTP_MOVED_TEMP = 302;
-	public static final int HTTP_MULT_CHOICE = 300;
-	public static final int HTTP_NO_CONTENT = 204;
-	public static final int HTTP_NOT_ACCEPTABLE = 406;
-	public static final int HTTP_NOT_AUTHORITATIVE = 203;
-	public static final int HTTP_NOT_FOUND = 404;
-	public static final int HTTP_NOT_IMPLEMENTED = 501;
-	public static final int HTTP_NOT_MODIFIED = 304;
-	public static final int HTTP_OK = 200;
-	public static final int HTTP_PARTIAL = 206;
-	public static final int HTTP_PAYMENT_REQUIRED = 402;
-	public static final int HTTP_PRECON_FAILED = 412;
-	public static final int HTTP_PROXY_AUTH = 407;
-	public static final int HTTP_REQ_TOO_LONG = 414;
-	public static final int HTTP_RESET = 205;
-	public static final int HTTP_SEE_OTHER = 303;
-	public static final int HTTP_TEMP_REDIRECT = 307;
-	public static final int HTTP_UNAUTHORIZED = 401;
-	public static final int HTTP_UNAVAILABLE = 503;
-	public static final int HTTP_UNSUPPORTED_RANGE = 416;
-	public static final int HTTP_UNSUPPORTED_TYPE = 415;
-	public static final int HTTP_USE_PROXY = 305;
-	public static final int HTTP_VERSION = 505;
-	public static final String POST = "POST";
+import java.io.IOException;
 
 
-	long getDate();
+public interface HttpConnection extends ContentConnection {
 
-	public long getExpiration();
+	static final String HEAD = "HEAD";
+	static final String GET = "GET";
+	static final String POST = "POST";
 
-	public String getFile();
+	static final int HTTP_OK = 200;
+	static final int HTTP_CREATED = 201;
+	static final int HTTP_ACCEPTED = 202;
+	static final int HTTP_NOT_AUTHORITATIVE = 203;
+	static final int HTTP_NO_CONTENT = 204;
+	static final int HTTP_RESET = 205;
+	static final int HTTP_PARTIAL = 206;
 
-	public String getHeaderField(int n);
+	static final int HTTP_MULT_CHOICE = 300;
+	static final int HTTP_MOVED_PERM = 301;
+	static final int HTTP_MOVED_TEMP = 302;
+	static final int HTTP_SEE_OTHER = 303;
+	static final int HTTP_NOT_MODIFIED = 304;
+	static final int HTTP_USE_PROXY = 305;
+	static final int HTTP_TEMP_REDIRECT = 307;
 
-	public String getHeaderField(String name);
+	static final int HTTP_BAD_REQUEST = 400;
+	static final int HTTP_UNAUTHORIZED = 401;
+	static final int HTTP_PAYMENT_REQUIRED = 402;
+	static final int HTTP_FORBIDDEN = 403;
+	static final int HTTP_NOT_FOUND = 404;
+	static final int HTTP_BAD_METHOD = 405;
+	static final int HTTP_NOT_ACCEPTABLE = 406;
+	static final int HTTP_PROXY_AUTH = 407;
+	static final int HTTP_CLIENT_TIMEOUT = 408;
+	static final int HTTP_CONFLICT = 409;
+	static final int HTTP_GONE = 410;
+	static final int HTTP_LENGTH_REQUIRED = 411;
+	static final int HTTP_PRECON_FAILED = 412;
+	static final int HTTP_ENTITY_TOO_LARGE = 413;
+	static final int HTTP_REQ_TOO_LONG = 414;
+	static final int HTTP_UNSUPPORTED_TYPE = 415;
+	static final int HTTP_UNSUPPORTED_RANGE = 416;
+	static final int HTTP_EXPECT_FAILED = 417;
 
-	public long getHeaderFieldDate(String name, long def);
+	static final int HTTP_INTERNAL_ERROR = 500;
+	static final int HTTP_NOT_IMPLEMENTED = 501;
+	static final int HTTP_BAD_GATEWAY = 502;
+	static final int HTTP_UNAVAILABLE = 503;
+	static final int HTTP_GATEWAY_TIMEOUT = 504;
+	static final int HTTP_VERSION = 505;
 
-	public int getHeaderFieldInt(String name, int def);
 
-	public String getHeaderFieldKey(int n);
+	String getURL();
 
-	public String getHost();
+	String getProtocol();
 
-	public long getLastModified();
+	String getHost();
 
-	public int getPort();
+	String getFile();
 
-	public String getProtocol();
+	String getRef();
 
-	public String getQuery();
+	String getQuery();
 
-	public String getRef();
+	int getPort();
 
-	public String getRequestMethod();
+	String getRequestMethod();
 
-	public String getRequestProperty(String key);
+	void setRequestMethod(String method)
+			throws IOException;
 
-	public int getResponseCode();
+	String getRequestProperty(String key);
 
-	public String getResponseMessage();
+	void setRequestProperty(String key, String value)
+			throws IOException;
 
-	public String getURL();
+	int getResponseCode()
+			throws IOException;
 
-	public void setRequestMethod(String method);
+	String getResponseMessage()
+			throws IOException;
 
-	public void setRequestProperty(String key, String value);
+	long getExpiration()
+			throws IOException;
+
+	long getDate()
+			throws IOException;
+
+	long getLastModified()
+			throws IOException;
+
+	String getHeaderField(String name)
+			throws IOException;
+
+	int getHeaderFieldInt(String name, int def)
+			throws IOException;
+
+	long getHeaderFieldDate(String name, long def)
+			throws IOException;
+
+	String getHeaderField(int n)
+			throws IOException;
+
+	String getHeaderFieldKey(int n)
+			throws IOException;
 
 }

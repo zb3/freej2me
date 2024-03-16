@@ -22,34 +22,43 @@
  *  limitations.
  */
 
-package javax.microedition.io;
+
+package org.microemu.cldc.socket;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 
-public interface SocketConnection extends StreamConnection {
+import javax.microedition.io.StreamConnection;
 
-	public static final byte DELAY = 0;
+public class ServerSocketConnection implements
+		javax.microedition.io.ServerSocketConnection {
 
-	public static final byte LINGER = 1;
+	private ServerSocket serverSocket;
 
-	public static final byte KEEPALIVE = 2;
+	public ServerSocketConnection() throws IOException {
+		serverSocket = new ServerSocket();
+	}
 
-	public static final byte RCVBUF = 3;
+	public ServerSocketConnection(int port) throws IOException {
+		serverSocket = new ServerSocket(port);
+	}
 
-	public static final byte SNDBUF = 4;
+	public String getLocalAddress() throws IOException {
+		InetAddress localHost = InetAddress.getLocalHost();
+		return localHost.getHostAddress();
+	}
 
-	public void setSocketOption(byte option, int value)
-			throws IllegalArgumentException, IOException;
+	public int getLocalPort() throws IOException {
+		return serverSocket.getLocalPort();
+	}
 
-	public int getSocketOption(byte option) throws IllegalArgumentException,
-			IOException;
+	public StreamConnection acceptAndOpen() throws IOException {
+		return new SocketConnection(serverSocket.accept());
+	}
 
-	public String getLocalAddress() throws IOException;
-
-	public int getLocalPort() throws IOException;
-
-	public String getAddress() throws IOException;
-
-	public int getPort() throws IOException;
+	public void close() throws IOException {
+		serverSocket.close();
+	}
 
 }

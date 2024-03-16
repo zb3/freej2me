@@ -1,6 +1,7 @@
 /**
  * MicroEmulator
- * Copyright (C) 2001 Bartek Teodorczyk <barteo@barteo.net>
+ * Copyright (C) 2006-2007 Bartek Teodorczyk <barteo@barteo.net>
+ * Copyright (C) 2006-2007 Vlad Skarzhevskyy
  * <p>
  * It is licensed under the following two licenses as alternatives:
  * 1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version
@@ -23,13 +24,14 @@
  *
  * @version $Id$
  */
-
 package javax.microedition.io;
 
-import java.io.IOException;
+/**
+ * @author vlads
+ */
+public interface ImplementationUnloadable {
 
-public interface StreamConnectionNotifier extends Connection {
-
-	StreamConnection acceptAndOpen() throws IOException;
+	public void unregisterImplementation();
 
 }
+

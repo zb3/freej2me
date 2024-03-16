@@ -1,6 +1,7 @@
 /**
  * MicroEmulator
- * Copyright (C) 2001 Bartek Teodorczyk <barteo@barteo.net>
+ * Copyright (C) 2006-2007 Bartek Teodorczyk <barteo@barteo.net>
+ * Copyright (C) 2006-2007 Vlad Skarzhevskyy
  * <p>
  * It is licensed under the following two licenses as alternatives:
  * 1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version
@@ -23,13 +24,18 @@
  *
  * @version $Id$
  */
+package org.microemu.cldc.file;
 
-package javax.microedition.io;
+import java.util.Enumeration;
 
-import java.io.IOException;
+import javax.microedition.io.file.FileSystemListener;
 
-public interface StreamConnectionNotifier extends Connection {
+public interface FileSystemRegistryDelegate {
 
-	StreamConnection acceptAndOpen() throws IOException;
+	public boolean addFileSystemListener(FileSystemListener listener);
+
+	public boolean removeFileSystemListener(FileSystemListener listener);
+
+	public Enumeration listRoots();
 
 }

@@ -396,4 +396,16 @@ public class PlatformGraphics extends javax.microedition.lcdui.Graphics
 		//System.out.println("getPixels B");
 		canvas.getRGB(x, y, width, height, pixels, offset, scanlength);
 	}
+
+	// these methods are not Direct Graphics specific
+
+	@Override
+	public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
+		drawPolygon(new int[]{x1, x2, x3}, 0, new int[]{y1, y2, y3}, 0, 3);
+	}
+
+	@Override
+	public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
+		fillPolygon(new int[]{x1, x2, x3}, 0, new int[]{y1, y2, y3}, 0, 3);
+	}
 }

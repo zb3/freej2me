@@ -18,6 +18,9 @@ package javax.microedition.io;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import javax.wireless.messaging.impl.MessageConnectionImpl;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -59,11 +62,17 @@ public class Connector
 		public void write(int a) {}
 	}
 
-	public static Connection open(String name) throws IOException { throw new ConnectionNotFoundException(); }
+	public static Connection open(String name) throws IOException { 
+		if (name != null && name.startsWith("sms://")) {
+			return new MessageConnectionImpl(name);
+		} else {
+			throw new ConnectionNotFoundException();
+		}
+	}
 
-	public static Connection open(String name, int mode) throws IOException { throw new ConnectionNotFoundException(); }
+	public static Connection open(String name, int mode) throws IOException { return open(name); }
 
-	public static Connection open(String name, int mode, boolean timeouts) throws IOException { throw new ConnectionNotFoundException(); }
+	public static Connection open(String name, int mode, boolean timeouts) throws IOException { return open(name); }
 
 	public static DataOutputStream openDataOutputStream(String name) { return new DataOutputStream(new DummyOutputStream()); }
 

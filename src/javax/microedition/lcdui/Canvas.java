@@ -232,7 +232,9 @@ public abstract class Canvas extends Displayable
 			isInsidePaint = true;
 			try {
 				paint(gc);
-			} finally {
+			} catch(Exception e) {
+				System.out.println("WARN: exception in paint" + e);
+			}  finally {
 				isInsidePaint = false;
 			}
 			

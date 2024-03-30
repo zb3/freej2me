@@ -89,7 +89,11 @@ public class MIDletLoader extends URLClassLoader
 			Mobile.getPlatform().addSystemProperty("microedition.profiles", "MIDP-2.0");
 			Mobile.getPlatform().addSystemProperty("microedition.configuration", "CLDC-1.1");
 			Mobile.getPlatform().addSystemProperty("microedition.locale", "en-US");
-			Mobile.getPlatform().addSystemProperty("microedition.encoding", "file.encoding");
+			Mobile.getPlatform().addSystemProperty("microedition.encoding", "ISO-8859-1");
+			Mobile.getPlatform().addSystemProperty("microedition.m3g.version", "1.1");
+			Mobile.getPlatform().addSystemProperty("wireless.messaging.sms.smsc", "+8613800010000");
+			Mobile.getPlatform().addSystemProperty("device.imei", "000000000000000");
+
 		}
 		catch (Exception e)
 		{

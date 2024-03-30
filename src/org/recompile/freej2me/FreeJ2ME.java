@@ -448,8 +448,14 @@ public class FreeJ2ME
 			main.setSize(lcdWidth*scaleFactor+xborder , lcdHeight*scaleFactor+yborder);
 		}
 
-		if (Mobile.sonyEricsson) {
+		if (Mobile.nokia) {
+			Mobile.getPlatform().addSystemProperty("microedition.platform", "Nokia6233/05.10");
+		} else if (Mobile.sonyEricsson) {
 			Mobile.getPlatform().addSystemProperty("microedition.platform", "SonyEricssonK750/JAVASDK");
+			Mobile.getPlatform().addSystemProperty("com.sonyericsson.imei", "IMEI 00460101-501594-5-00");
+		} else if (Mobile.siemens) {
+			Mobile.getPlatform().addSystemProperty("com.siemens.OSVersion", "11");
+			Mobile.getPlatform().addSystemProperty("com.siemens.IMEI", "000000000000000");
 		}
 	}
 

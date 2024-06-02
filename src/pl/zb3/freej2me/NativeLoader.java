@@ -13,12 +13,12 @@ import java.util.jar.JarFile;
 /**
  * This loader is tricky, there are so called "main" libraries (not all need to be loaded)
  * and "deps" (all of them need to be loaded).
- * 
+ *
  * The loadLibrary function is given the "main" library name. If it was called
  * for the first time, it extracts all natives into a temporary directory,
  * then it loads all "deps" in alphabetical order, and then loads the "main"
  * library.
- * 
+ *
  * This design was choosen because:
  * a) These libraries need to be loaded explicitly (I'll admit: I have no idea whether they would be without this design)
  * b) We can't modify java.library.path, not in an official, forward-compatible manner..
@@ -42,10 +42,13 @@ public class NativeLoader {
             } else if (javaOsName.contains("Mac OS")) {
                 osName = "macos";
             }
-            
+
             String arch = System.getProperty("os.arch");
             if (arch.equals("x86_64")) { // this happens on mac
                 arch = "amd64";
+            }
+            if (arch.equals("aarch64")) {
+                arch = "arm64";
             }
 
             String sourceLibraryDir = String.format("natives/%s-%s", osName, arch);
@@ -113,7 +116,7 @@ public class NativeLoader {
         if (!directoryToExtract.endsWith("/")) {
             directoryToExtract += "/";
         }
-        
+
         File jarFile = null;
 
         try {
@@ -121,7 +124,7 @@ public class NativeLoader {
         } catch(URISyntaxException e) {
             e.printStackTrace();
         }
-        
+
         Path tempDirPath = tempDir.toPath();
 
         try (JarFile jar = new JarFile(jarFile)) {

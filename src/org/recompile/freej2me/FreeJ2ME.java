@@ -176,7 +176,8 @@ public class FreeJ2ME
 		{
 			public void run()
 			{
-				lcd.paint(lcd.getGraphics());
+				lcd.repaint();
+				//lcd.paint(lcd.getGraphics());
 			}
 		});
 
@@ -606,11 +607,17 @@ public class FreeJ2ME
 			scaley = (double)lcdHeight/(double)vh;
 		}
 
+		@Override
+        public void update(Graphics g) {
+            // Use paint method directly to avoid flicker
+            paint(g);
+        }
+
 		public void paint(Graphics g)
 		{
 			try
 			{
-				Graphics2D cgc = (Graphics2D)this.getGraphics();
+				Graphics2D cgc = (Graphics2D)g;
 				if (config.isRunning)
 				{
 					if(!rotateDisplay)

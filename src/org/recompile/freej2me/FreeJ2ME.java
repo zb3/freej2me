@@ -608,10 +608,10 @@ public class FreeJ2ME
 		}
 
 		@Override
-        public void update(Graphics g) {
-            // Use paint method directly to avoid flicker
-            paint(g);
-        }
+		public void update(Graphics g) {
+			// Use paint method directly to avoid flicker
+			paint(g);
+		}
 
 		public void paint(Graphics g)
 		{

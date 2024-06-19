@@ -59,6 +59,8 @@ In most cases, that should be it. Have fun :)
 | <kbd>←</kbd> | Left |
 | <kbd>→</kbd> | Right |
 | <kbd>⏎ Enter</kbd> | Action key (OK button) |
+| <kbd>+</kbd> | Scale up (nearest integer factor) |
+| <kbd>-</kbd> | Scale down (nearest integer factor) |
 
 #### Phone types and key mappings
 Keys like left/right soft, arrows and the action key have different vendor-specific mappings. By default, freej2me uses the most common **Nokia** mapping, but this can be changed in settings by changing the `Phone type`. Note that in the `Standard` phone, arrow keys are mapped to 2, 4, 6, 8 and the enter key is mapped to 5.

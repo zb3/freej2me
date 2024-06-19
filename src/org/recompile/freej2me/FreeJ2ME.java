@@ -48,7 +48,7 @@ public class FreeJ2ME
 	}
 
 	private static void printHelp() {
-		System.out.println("freej2me.jar [-w width] [-h height] [-scale x] [-ap | --app-property key=value]... [-sp | --system-property key=value]... [-c | --config key=value]... [-m main_class] [-ff | --force-fullscreen] [-fv | --force-volatile] JAR_OR_JAD_FILE");
+		System.out.println("freej2me.jar [-w width] [-h height] [-s scale] [-ap | --app-property key=value]... [-sp | --system-property key=value]... [-c | --config key=value]... [-m main_class] [-ff | --force-fullscreen] [-fv | --force-volatile] JAR_OR_JAD_FILE");
 	}
 
 	private Frame main;

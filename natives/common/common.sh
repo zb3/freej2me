@@ -35,7 +35,19 @@ elif [ "$variant" = "linux-arm64" ]; then
     host_arch=aarch64
     host_os=linux
 
-elif [ "$variant" = "windows-x86" ]; then
+elif [ "$variant" = "linux-x86" ]; then
+    export HOST=i686-linux-gnu
+    export CROSS_COMPILE=/usr/bin/$HOST-
+
+    export PATH=/usr/$HOST/bin:"$PREFIX/bin":$PATH
+    export PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig
+    export CPPFLAGS="-I/usr/$HOST/include -I$PREFIX/include"
+    export LDFLAGS="-L/usr/$HOST/lib -L$PREFIX/lib"
+
+    host_arch=i686
+    host_os=linux
+
+elif [ "$variant" = "windows-x86" ] || [ "$variant" = "windows-xp-x86" ]; then
     export HOST=i686-w64-mingw32
     export CROSS_COMPILE=/usr/bin/$HOST-
 
@@ -77,7 +89,7 @@ elif [[ $variant == "macos-"* ]]; then
 
         # let's not set CPPFLAGS.. will ffmpeg build?
         host_arch=x86_64
-        
+
 
     elif [ "$variant" = "macos-arm64" ]; then
         export HOST=aarch64-apple-${DARWIN_VERSION}

@@ -27,7 +27,7 @@ RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 # RUN dpkg --add-architecture i386 && apt-get update && apt-get -y install wine32 wine64
 # RUN su zb3 -c "wine wineboot"
 
-RUN apt-get install -y binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-aarch64-linux-gnu 
+RUN apt-get install -y binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
 # OSXCross for Mac Builds
 
@@ -52,3 +52,7 @@ RUN sed -i -E 's/deb(-src)? (http|file|mirror)/deb\1 [arch=amd64,i386] \2/' /etc
         apt-get update
 
 RUN apt-get install -y --no-install-recommends zlib1g-dev:arm64
+
+# dpkg --add-architecture i386
+# apt-get install -y gcc-i686-linux-gnu g++-i686-linux-gnu libc6-dev-i386
+# apt-get install -y zlib1g-dev:i386

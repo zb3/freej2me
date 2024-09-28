@@ -3,7 +3,7 @@
 cd "$(realpath "$(dirname "$0")")"
 export COMMONDIR=$(realpath common)
 
-variants=({linux,macos}-{amd,arm}64 windows-{x86,amd64})
+variants=({linux,macos}-{amd,arm}64 windows-{x86,amd64} linux-x86 windows-xp-x86)
 cmds=(build clean)
 
 variant="$1"
@@ -40,7 +40,7 @@ else
     jni_platform=linux
     [[ $variant == "windows-"* ]] && jni_platform=win32
     [[ $variant == "macos-"* ]] && jni_platform=darwin
-    
+
     mkdir -p temp/$variant/prefix/java_platform_include
     cp projects/jni_headers/$jni_platform/* temp/$variant/prefix/java_platform_include
 
@@ -56,7 +56,7 @@ else
 
     shopt -s nullglob
     deps_to_copy=(temp/$variant/prefix/lib/*.{so,dll,dylib})
-    
+
     [ -n "$deps_to_copy" ] && cp -r "${deps_to_copy[@]}" dist/$variant/deps
 
     # HACK: this works because winpthreads are only needed by "main" libraries

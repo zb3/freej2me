@@ -50,6 +50,9 @@ public class NativeLoader {
             if (arch.equals("aarch64")) {
                 arch = "arm64";
             }
+            if (arch.equals("i386")) {
+                arch = "x86";
+            }
 
             String sourceLibraryDir = String.format("natives/%s-%s", osName, arch);
             File tempDir = createTempDirectory(osName.equals("windows"));
@@ -61,6 +64,19 @@ public class NativeLoader {
             File depsDir = new File(tempDir, "deps");
             File[] files = depsDir.listFiles();
             if (files != null) {
+                File innerDepsDir = new File(depsDir, "deps");
+                File[] innerDepFiles = innerDepsDir.listFiles();
+                if (innerDepFiles != null) {
+                    Arrays.sort(innerDepFiles);
+
+                    for (File file : innerDepFiles) {
+                        if (!file.isDirectory() && !file.getName().endsWith(".json")) {
+                            System.out.println("loading inner dep library: " + file.getAbsolutePath());
+                            System.load(file.getAbsolutePath());
+                        }
+                    }
+                }
+
                 /*
                  * yes, we rely on this
                  * the alternative is to append to java.library.path
@@ -69,8 +85,8 @@ public class NativeLoader {
                 Arrays.sort(files);
 
                 for (File file : files) {
-                    if (!file.getName().endsWith(".json")) {
-                        // System.out.println("loading dep library: " + file.getAbsolutePath());
+                    if (!file.isDirectory() && !file.getName().endsWith(".json")) {
+                        System.out.println("loading dep library: " + file.getAbsolutePath());
                         System.load(file.getAbsolutePath());
                     }
                 }

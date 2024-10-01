@@ -3,7 +3,7 @@
 cd "$(realpath "$(dirname "$0")")"
 export COMMONDIR=$(realpath common)
 
-variants=({linux,macos}-{amd,arm}64 windows-{x86,amd64} linux-x86 windows-xp-x86)
+variants=({linux,macos}-{amd,arm}64 windows-{x86,amd64} linux-x86)
 cmds=(build clean)
 
 variant="$1"

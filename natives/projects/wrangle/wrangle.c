@@ -2,7 +2,7 @@
 
 #include <wrangle.h>
 
-#define logmsg(...) do {fprintf(stderr, "wrangle: ");fprintf(stderr, __VA_ARGS__);fwrite("\n", 1, 1, stderr);fflush(stdout);} while (0)
+#define logmsg(...) do {fprintf(stderr, "wrangle: ");fprintf(stderr, __VA_ARGS__);fwrite("\n", 1, 1, stderr);fflush(stderr);} while (0)
 
 static struct WrappedDisplay {
     EGLDisplay display;
@@ -22,6 +22,7 @@ static EGLDisplay getNativeDisplay() {
 
     #if defined(_WIN32) || defined (_WIN64)
     // second chance - D3D9
+    logmsg("wrangle: trying to use d3d9 angle");
 
     EGLAttrib d3d_attribs[] = {
         EGL_PLATFORM_ANGLE_TYPE_ANGLE,
@@ -62,13 +63,13 @@ static int checkGLES3Supported(EGLDisplay display) {
         logmsg("eglCreateContext failed");
         return 0;
     }
-    
+
     if (!EGL_MakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, context)) {
         logmsg("eglMakeCurrent failed");
         display = EGL_NO_DISPLAY;
         goto clean_ctx;
     }
-    
+
     EGL_MakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 
     clean_ctx:
@@ -81,7 +82,9 @@ WRANGLEAPI void WRANGLECALL wrangleHintGLESVersion(int version) {
     __requestedGLESVersion = version;
 }
 
-WRANGLEAPI EGLDisplay WRANGLECALL eglGetDisplay(EGLNativeDisplayType display_id) {
+WRANGLEAPI EGLDisplay WRANGLECALL __wrangle_egl_helper_get_display(EGLNativeDisplayType display_id) {
+    logmsg("wrangle: called egl get display");
+
     if (display_id != EGL_DEFAULT_DISPLAY) {
         return EGL_GetDisplay(display_id);
     }
@@ -104,13 +107,15 @@ WRANGLEAPI EGLDisplay WRANGLECALL eglGetDisplay(EGLNativeDisplayType display_id)
 
     }
     #endif
-    
+
     if (nativeDisplay) {
+        logmsg("wrangle: egl have native display");
         __defaultEGLDisplay.display = nativeDisplay;
         __defaultEGLDisplay.initialized = 1;
 
         return nativeDisplay;
     } else {
+        logmsg("wrangle: no native display, trying swiftshader...");
         EGLAttrib ss_attribs[] = {
             EGL_PLATFORM_ANGLE_TYPE_ANGLE,
             EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
@@ -118,20 +123,23 @@ WRANGLEAPI EGLDisplay WRANGLECALL eglGetDisplay(EGLNativeDisplayType display_id)
             EGL_PLATFORM_ANGLE_DEVICE_TYPE_SWIFTSHADER_ANGLE,
             EGL_NONE
         };
-    
+
         EGLDisplay display = EGL_GetPlatformDisplay(EGL_PLATFORM_ANGLE_ANGLE, EGL_DEFAULT_DISPLAY, ss_attribs);
-    
+
         if (display != EGL_NO_DISPLAY && EGL_Initialize(display, &__defaultEGLDisplay.major, &__defaultEGLDisplay.minor)) {
             logmsg("Using swiftshader fallback");
             __defaultEGLDisplay.display = display;
             __defaultEGLDisplay.initialized = 1;
-    
+
             return display;
         }
-    }    
+
+        logmsg("wrangle: FAIL: no swiftshader...");
+    }
 }
 
-WRANGLEAPI EGLBoolean WRANGLECALL eglInitialize(EGLDisplay dpy, EGLint *major, EGLint *minor) {
+WRANGLEAPI EGLBoolean WRANGLECALL __wrangle_egl_helper_initialize(EGLDisplay dpy, EGLint *major, EGLint *minor) {
+    logmsg("wrangle: called egl initialize");
     if (dpy != __defaultEGLDisplay.display) {
         return EGL_Initialize(dpy, major, minor);
     }
@@ -145,11 +153,11 @@ WRANGLEAPI EGLBoolean WRANGLECALL eglInitialize(EGLDisplay dpy, EGLint *major, E
     return EGL_TRUE;
 }
 
-WRANGLEAPI EGLBoolean WRANGLECALL eglTerminate(EGLDisplay dpy) {
+WRANGLEAPI EGLBoolean WRANGLECALL __wrangle_egl_helper_terminate(EGLDisplay dpy) {
     if (dpy != __defaultEGLDisplay.display) {
         return EGL_Terminate(dpy);
     }
-    
+
     if (__defaultEGLDisplay.initialized) {
         EGL_Terminate(__defaultEGLDisplay.display);
         __defaultEGLDisplay.initialized = 0;

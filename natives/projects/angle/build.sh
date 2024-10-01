@@ -2,9 +2,6 @@
 
 mkdir -p $PREFIX/lib
 cp -a "prebuilts/$variant"/* $PREFIX/lib
-if [[ $variant == "windows-xp-x86" ]]; then
-    cp -a "prebuilts/$variant"/deps/* $PREFIX/lib
-fi
 cp -a -r "prebuilts/$variant"/* $DIST/deps
 
 mkdir -p $PREFIX/include/angle

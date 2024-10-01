@@ -47,7 +47,7 @@ elif [ "$variant" = "linux-x86" ]; then
     host_arch=i686
     host_os=linux
 
-elif [ "$variant" = "windows-x86" ] || [ "$variant" = "windows-xp-x86" ]; then
+elif [ "$variant" = "windows-x86" ]; then
     export HOST=i686-w64-mingw32
     export CROSS_COMPILE=/usr/bin/$HOST-
 

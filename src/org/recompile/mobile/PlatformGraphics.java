@@ -43,6 +43,8 @@ public class PlatformGraphics extends javax.microedition.lcdui.Graphics
 	public PlatformGraphics platformGraphics;
 	public PlatformImage platformImage;
 
+	protected int barHeight = 0;
+
 	public PlatformGraphics(PlatformImage image)
 	{
 		canvas = image.getCanvas();
@@ -123,7 +125,7 @@ public class PlatformGraphics extends javax.microedition.lcdui.Graphics
 			{
 				str[i-offset] = data[i];
 			}
-		}	
+		}
 		drawString(new String(str), x, y, anchor);
 	}
 
@@ -219,7 +221,7 @@ public class PlatformGraphics extends javax.microedition.lcdui.Graphics
 		// Copy from new image.  This avoids some problems with games that don't
 		// properly adapt to different display sizes.
 		BufferedImage temp = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		temp.setRGB(0, 0, width, height, rgbData, offset, scanlength);	
+		temp.setRGB(0, 0, width, height, rgbData, offset, scanlength);
 		gc.drawImage(temp, x, y, null);
 	}
 
@@ -248,7 +250,7 @@ public class PlatformGraphics extends javax.microedition.lcdui.Graphics
 			int height = gc.getFontMetrics().getHeight();
 
 			y += ascent;
-			
+
 			if((anchor & VCENTER)>0) { y = y+height/2; }
 			if((anchor & BOTTOM)>0) { y = y-height; }
 			if((anchor & BASELINE)>0) { y = y-ascent; }
@@ -407,5 +409,14 @@ public class PlatformGraphics extends javax.microedition.lcdui.Graphics
 	@Override
 	public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
 		fillPolygon(new int[]{x1, x2, x3}, 0, new int[]{y1, y2, y3}, 0, 3);
+	}
+
+	// hack for m3g
+	public void setBarHeight(int height) {
+		barHeight = height;
+	}
+
+	public int getSafeHeight() {
+		return canvas.getHeight() - barHeight;
 	}
 }

@@ -250,18 +250,18 @@ public class PlatformImage extends javax.microedition.lcdui.Image
 			case Sprite.TRANS_NONE:
 				break;
 
-			case Sprite.TRANS_ROT90: 
+			case Sprite.TRANS_ROT90:
 				af.translate(height, 0);
 				af.rotate(Math.PI / 2);
 				out_width = height;
 				out_height = width;
 				break;
 
-			case Sprite.TRANS_ROT180: 
+			case Sprite.TRANS_ROT180:
 				af.translate(width, height);
 				af.rotate(Math.PI);
 				break;
-			
+
 			case Sprite.TRANS_ROT270:
 				af.translate(0, width);
 				af.rotate(Math.PI * 3 / 2);
@@ -269,12 +269,12 @@ public class PlatformImage extends javax.microedition.lcdui.Image
 				out_height = width;
 				break;
 
-			case Sprite.TRANS_MIRROR: 
+			case Sprite.TRANS_MIRROR:
 				af.translate(width, 0);
 				af.scale(-1, 1);
 				break;
 
-			case Sprite.TRANS_MIRROR_ROT90: 
+			case Sprite.TRANS_MIRROR_ROT90:
 				af.translate(height, 0);
 				af.rotate(Math.PI / 2);
 				af.translate(width, 0);
@@ -283,14 +283,14 @@ public class PlatformImage extends javax.microedition.lcdui.Image
 				out_height = width;
 				break;
 
-			case Sprite.TRANS_MIRROR_ROT180: 
+			case Sprite.TRANS_MIRROR_ROT180:
 				af.translate(width, 0);
 				af.scale(-1, 1);
 				af.translate(width, height);
 				af.rotate(Math.PI);
 				break;
 
-			case Sprite.TRANS_MIRROR_ROT270: 
+			case Sprite.TRANS_MIRROR_ROT270:
 				af.translate(0, width);
 				af.rotate(Math.PI * 3 / 2);
 				af.translate(width, 0);

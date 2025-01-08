@@ -58,15 +58,13 @@ public abstract class Canvas extends Displayable
 	{
 		barPadding = uiLineHeight / 5;
 		barHeight = uiLineHeight + barPadding;
-		if (Boolean.getBoolean("freej2me.forceFullscreen")) {
-			fullscreen = true;
-		}
+		setFullScreenInternal(Boolean.getBoolean("freej2me.forceFullscreen"));
 	}
 
 	protected Canvas(boolean fullscreen)
 	{
 		this();
-		this.fullscreen = fullscreen;
+		setFullScreenInternal(fullscreen);
 	}
 
 	public int getGameAction(int platKeyCode)
@@ -234,15 +232,16 @@ public abstract class Canvas extends Displayable
 				paint(gc);
 			} catch(Exception e) {
 				System.out.println("WARN: exception in paint" + e);
+				e.printStackTrace();
 			}  finally {
 				isInsidePaint = false;
 			}
-			
+
 			if (shouldRepaintBar) {
 				paintCommandsBar();
 				shouldRepaintBar = false;
 			}
-			
+
 			Mobile.getPlatform().repaint(platformImage, x, y, width, height);
 		} finally {
 			Display.LCDUILock.unlock();
@@ -250,10 +249,11 @@ public abstract class Canvas extends Displayable
 	}
 
 	private void paintCommandsBar() {
+		System.out.println("koko: paintin bar");
 		if (fullscreen) {
 			return;
 		}
-		
+
 		gc.reset();
 
 		gc.setFont(uiFont);
@@ -278,11 +278,17 @@ public abstract class Canvas extends Displayable
 		}
 	}
 
+	private final void setFullScreenInternal(boolean mode) {
+		fullscreen = mode;
+		gc.setBarHeight(mode ? 0 : barHeight);
+		shouldRepaintBar = true;
+	}
+
 	public void setFullScreenMode(boolean mode)
 	{
 		//System.out.print("Set Canvas Full Screen Mode ");
 		if (mode != fullscreen) {
-			fullscreen = mode;
+			setFullScreenInternal(mode);
 			_invalidate();
 		}
 	}
@@ -295,14 +301,14 @@ public abstract class Canvas extends Displayable
 
 	public int getWidth() { return width; }
 
-	public int getHeight() { 
+	public int getHeight() {
 		// this is quite problematic because games check this before adding commands
 		// so if we'd only include the bar if there are commands, games could
 		// get invalid resolution
 		return fullscreen ? height : height - barHeight;
 	}
 
-	public void addCommand(Command cmd)	{ 
+	public void addCommand(Command cmd)	{
 		commands.add(cmd);
 		shouldRepaintBar = true;
 		_invalidate();

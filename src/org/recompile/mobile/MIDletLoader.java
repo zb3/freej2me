@@ -73,7 +73,7 @@ public class MIDletLoader extends URLClassLoader
 	public MIDletLoader(URL urls[], Map<String, String> descriptorProperties, String mainClassOverride)
 	{
 		super(urls);
-		
+
 		className = mainClassOverride;
 
 		try {
@@ -118,7 +118,7 @@ public class MIDletLoader extends URLClassLoader
 	}
 
 	public static String findMainClassInJars(URL[] urls) {
-		// we search for a class file containing "startApp" 
+		// we search for a class file containing "startApp"
 		// note this is just an approximation, but it often works
 		// the class might be abstract though..
 
@@ -172,7 +172,7 @@ public class MIDletLoader extends URLClassLoader
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		} 
+		}
 		return false;
 	}
 
@@ -297,16 +297,16 @@ public class MIDletLoader extends URLClassLoader
 
 		if (properties.containsKey("MIDlet-1")) {
 			String val = properties.get("MIDlet-1");
-			
+
 			String[] parts = val.split(",");
 			if (parts.length == 3) {
 				name = parts[0].trim();
 				icon = parts[1].trim();
-				
+
 				if (className == null) {
 					className = parts[2].trim();
 				}
-				
+
 				suitename = name;
 				suitename = suitename.replace(":","");
 			}
@@ -433,9 +433,9 @@ public class MIDletLoader extends URLClassLoader
 		try
 		{
 			InputStream stream = url.openStream();
-			
+
 			// zb3: why not return a stream? or a bufferedinputstream for marks?
-			
+
 			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 			int count=0;
 			byte[] data = new byte[4096];
@@ -484,6 +484,11 @@ public class MIDletLoader extends URLClassLoader
 		String resource;
 		byte[] code;
 
+		Class c = this.findLoadedClass(name);
+		if (c != null) {
+			return c;
+		}
+
 		// System.out.println("Load Class "+name);
 
 		// zb3: this needs to be improved as this won't transform games
@@ -494,8 +499,7 @@ public class MIDletLoader extends URLClassLoader
 			name.startsWith("java.") || name.startsWith("javax.") || name.startsWith("com.nokia") ||
 			name.startsWith("com.mascotcapsule") || name.startsWith("com.samsung") || name.startsWith("sun.") ||
 			name.startsWith("com.siemens") || name.startsWith("org.recompile") || name.startsWith("jdk.") ||
-			name.startsWith("com.vodafone.") || name.startsWith("com.jblend.") || name.startsWith("com.motorola.") || name.startsWith("com.sprintpcs.")
-			)
+			name.startsWith("com.vodafone.") || name.startsWith("com.jblend.") || name.startsWith("com.motorola.") || name.startsWith("com.sprintpcs.") || name.startsWith("org."))
 		{
 			return loadClass(name, true);
 		}
@@ -570,7 +574,7 @@ public class MIDletLoader extends URLClassLoader
 	}
 
 
-/* ************************************************************** 
+/* **************************************************************
  * Instrumentation
  * ************************************************************** */
 

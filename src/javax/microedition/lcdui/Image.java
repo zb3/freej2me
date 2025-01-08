@@ -32,6 +32,7 @@ public class Image
 	public int width;
 	public int height;
 	private boolean hasSiemensAlpha = false;
+	private boolean mutable = false;
 
 	public static Image createImage(byte[] imageData, int imageOffset, int imageLength)
 	{
@@ -72,7 +73,9 @@ public class Image
 	{
 		//System.out.println("Create Image w,h " + width + ", " + height);
 		if (width <= 0 || height <= 0) {throw new IllegalArgumentException();}
-		return new PlatformImage(width, height);
+		Image ret = new PlatformImage(width, height);
+		ret.mutable = true;
+		return ret;
 	}
 
 	public static Image createImage(int width, int height, int argb)
@@ -107,7 +110,7 @@ public class Image
 
 	public int getWidth() { return width; }
 
-	public boolean isMutable() { return true; }
+	public boolean isMutable() { return mutable; }
 
 	public boolean hasSiemensAlpha() {
 		return hasSiemensAlpha;

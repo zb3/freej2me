@@ -1,151 +1,92 @@
-/*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
-
 package javax.microedition.m3g;
 
-public class Appearance extends Object3D {
-	//------------------------------------------------------------------
-	// Instance data
-	//------------------------------------------------------------------
+import kemulator.m3g.gles2.Emulator3D;
 
-	private CompositingMode compositingMode;
-	private Fog fog;
-	private Material material;
-	private PolygonMode polygonMode;
+public class Appearance extends Object3D {
+	private int layer = 0;
+	private PolygonMode polygonMode = null;
+	private CompositingMode compositingMode = null;
+	private Material material = null;
+	private Fog fog = null;
 	private Texture2D[] textures;
 
-	//------------------------------------------------------------------
-	// Constructor(s)
-	//------------------------------------------------------------------
-
 	public Appearance() {
-		super(_ctor(Interface.getHandle()));
+		this.textures = new Texture2D[Emulator3D.NumTextureUnits];
 	}
 
-	/**
-	 */
-	Appearance(long handle) {
-		super(handle);
+	protected Object3D duplicateObject() {
+		Appearance var1;
+		(var1 = (Appearance) super.duplicateObject()).textures = (Texture2D[]) this.textures.clone();
+		return var1;
+	}
 
-		compositingMode = (CompositingMode) getInstance(_getCompositingMode(handle));
-		fog = (Fog) getInstance(_getFog(handle));
-		material = (Material) getInstance(_getMaterial(handle));
-		polygonMode = (PolygonMode) getInstance(_getPolygonMode(handle));
-
-		textures = new Texture2D[Defs.NUM_TEXTURE_UNITS];
-
-		for (int i = 0; i < Defs.NUM_TEXTURE_UNITS; ++i) {
-			textures[i] = (Texture2D) getInstance(_getTexture(handle, i));
+	public void setLayer(int var1) {
+		if (var1 >= -63 && var1 <= 63) {
+			this.layer = var1;
+		} else {
+			throw new IndexOutOfBoundsException();
 		}
-	}
-
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
-
-	public void setCompositingMode(CompositingMode compositingMode) {
-		_setCompositingMode(handle,
-				compositingMode != null
-						? compositingMode.handle
-						: 0);
-		this.compositingMode = compositingMode;
-	}
-
-	public CompositingMode getCompositingMode() {
-		return compositingMode;
-	}
-
-	public void setFog(Fog fog) {
-		_setFog(handle, fog != null ? fog.handle : 0);
-		this.fog = fog;
-	}
-
-	public Fog getFog() {
-		return fog;
-	}
-
-	public void setPolygonMode(PolygonMode polygonMode) {
-		_setPolygonMode(handle, polygonMode != null ? polygonMode.handle : 0);
-		this.polygonMode = polygonMode;
-	}
-
-	public PolygonMode getPolygonMode() {
-		return polygonMode;
-	}
-
-	public void setLayer(int index) {
-		_setLayer(handle, index);
 	}
 
 	public int getLayer() {
-		return _getLayer(handle);
+		return this.layer;
 	}
 
-	public void setMaterial(Material material) {
-		_setMaterial(handle, material != null ? material.handle : 0);
-		this.material = material;
+	public void setFog(Fog var1) {
+		this.removeReference(this.fog);
+		this.fog = var1;
+		this.addReference(this.fog);
+	}
+
+	public Fog getFog() {
+		return this.fog;
+	}
+
+	public void setPolygonMode(PolygonMode var1) {
+		this.removeReference(this.polygonMode);
+		this.polygonMode = var1;
+		this.addReference(this.polygonMode);
+	}
+
+	public PolygonMode getPolygonMode() {
+		return this.polygonMode;
+	}
+
+	public void setCompositingMode(CompositingMode var1) {
+		this.removeReference(this.compositingMode);
+		this.compositingMode = var1;
+		this.addReference(this.compositingMode);
+	}
+
+	public CompositingMode getCompositingMode() {
+		return this.compositingMode;
+	}
+
+	public void setTexture(int var1, Texture2D var2) {
+		if (var1 >= 0 && var1 < Emulator3D.NumTextureUnits) {
+			this.removeReference(this.textures[var1]);
+			this.textures[var1] = var2;
+			this.addReference(this.textures[var1]);
+		} else {
+			throw new IndexOutOfBoundsException();
+		}
+	}
+
+	public Texture2D getTexture(int var1) {
+		if (var1 >= 0 && var1 < Emulator3D.NumTextureUnits) {
+			return this.textures[var1];
+		} else {
+			throw new IndexOutOfBoundsException();
+		}
+	}
+
+	public void setMaterial(Material var1) {
+		this.removeReference(this.material);
+		this.material = var1;
+		this.addReference(this.material);
 	}
 
 	public Material getMaterial() {
-		return material;
+		return this.material;
 	}
-
-	public void setTexture(int unit, Texture2D texture) {
-		_setTexture(handle, unit, texture != null ? texture.handle : 0);
-
-		if (textures == null) {
-			textures = new Texture2D[Defs.NUM_TEXTURE_UNITS];
-		}
-		textures[unit] = texture;
-	}
-
-	public Texture2D getTexture(int unit) {
-		return (Texture2D) getInstance(_getTexture(handle, unit));
-	}
-
-	//------------------------------------------------------------------
-	// Private methods
-	//------------------------------------------------------------------
-
-	private static native long _ctor(long hInterface);
-
-	private static native long _getCompositingMode(long hApp);
-
-	private static native long _getFog(long hApp);
-
-	private static native int _getLayer(long hApp);
-
-	private static native long _getMaterial(long hApp);
-
-	private static native long _getPolygonMode(long hApp);
-
-	private static native long _getTexture(long hApp, int unit);
-
-	private static native void _setCompositingMode(long hApp, long hMode);
-
-	private static native void _setFog(long hApp, long hFog);
-
-	private static native void _setLayer(long hApp, int layer);
-
-	private static native void _setMaterial(long hApp, long hMaterial);
-
-	private static native void _setPolygonMode(long hApp, long hMode);
-
-	private static native void _setTexture(long hApp,
-										   int unit,
-										   long hTexture);
 }

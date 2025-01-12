@@ -1,158 +1,156 @@
-/*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
-
 package javax.microedition.m3g;
 
+import kemulator.m3g.utils.Transform3D;
+
 public class Transform {
-	//------------------------------------------------------------------
-	// Static data
-	//------------------------------------------------------------------
-
-	//------------------------------------------------------------------
-	// Instance data
-	//------------------------------------------------------------------
-
-	// Check size from m3g_math.h Matrix
-	byte[] matrix = new byte[72];
-
-	//------------------------------------------------------------------
-	// Constructor(s)
-	//------------------------------------------------------------------
+	private Transform3D impl;
 
 	public Transform() {
-		if (!Platform.uiThreadAvailable()) {
-			throw new Error("UI thread not initialized");
-		}
-		setIdentity();
+		this.impl = new Transform3D();
 	}
 
-	/**
-	 */
-	public Transform(Transform other) {
-		if (!Platform.uiThreadAvailable()) {
-			throw new Error("UI thread not initialized");
+	public Transform(Transform var1) {
+		if (var1 == null) {
+			throw new NullPointerException();
+		} else {
+			this.impl = new Transform3D();
+			this.impl.set(var1.impl);
 		}
-		set(other);
 	}
 
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
+	Transform3D getImpl_() {
+		return this.impl;
+	}
+
+	public Object getImpl() {
+		return this.impl;
+	}
 
 	public void setIdentity() {
-		_setIdentity(matrix);
+		this.impl.setIdentity();
 	}
 
-	public void set(Transform transform) {
-		System.arraycopy(transform.matrix, 0,
-				this.matrix, 0,
-				this.matrix.length);
+	public void set(Transform var1) {
+		if (var1 == null) {
+			throw new NullPointerException();
+		} else {
+			this.impl.set(var1.impl);
+		}
 	}
 
-	public void set(float[] matrix) {
-		_setMatrix(this.matrix, matrix);
+	public void set(float[] var1) {
+		if (var1 == null) {
+			throw new NullPointerException();
+		} else if (var1.length < 16) {
+			throw new IllegalArgumentException();
+		} else {
+			this.impl.set(var1);
+		}
 	}
 
-	public void get(float[] matrix) {
-		_getMatrix(this.matrix, matrix);
+	public void get(float[] var1) {
+		if (var1 == null) {
+			throw new NullPointerException();
+		} else if (var1.length < 16) {
+			throw new IllegalArgumentException();
+		} else {
+			this.impl.get(var1);
+		}
 	}
 
 	public void invert() {
-		_invert(matrix);
+		this.impl.invert();
 	}
 
 	public void transpose() {
-		_transpose(matrix);
+		this.impl.transpose();
 	}
 
-	public void postMultiply(Transform transform) {
-		_mul(this.matrix, this.matrix, transform.matrix);
+	public void postMultiply(Transform var1) {
+		if (var1 == null) {
+			throw new NullPointerException();
+		} else {
+			this.impl.postMultiply(var1.impl, false);
+		}
 	}
 
-	public void postScale(float sx, float sy, float sz) {
-		_scale(matrix, sx, sy, sz);
+	public void preMultiply(Transform var1) {
+		this.impl.postMultiply(var1.impl, true);
 	}
 
-	/**
-	 */
-	public void postRotate(float angle, float ax, float ay, float az) {
-		_rotate(matrix, angle, ax, ay, az);
+	public void postScale(float var1, float var2, float var3) {
+		this.impl.postScale(var1, var2, var3);
 	}
 
-	/**
-	 */
-	public void postRotateQuat(float qx, float qy, float qz, float qw) {
-		_rotateQuat(matrix, qx, qy, qz, qw);
-	}
-
-	/**
-	 */
-	public void postTranslate(float tx, float ty, float tz) {
-		_translate(matrix, tx, ty, tz);
-	}
-
-	/**
-	 */
-	public void transform(float[] v) {
-		if ((v.length % 4) != 0) {
+	public void postRotate(float var1, float var2, float var3, float var4) {
+		if (var2 == 0.0F && var3 == 0.0F && var4 == 0.0F && var1 != 0.0F) {
 			throw new IllegalArgumentException();
-		}
-
-		if (v.length != 0) {
-			_transformTable(matrix, v);
+		} else {
+			this.impl.postRotate(var1, var2, var3, var4);
 		}
 	}
 
-	/**
-	 */
-	public void transform(VertexArray in, float[] out, boolean W) {
-		if (in == null || out == null) {
+	public void postRotateQuat(float var1, float var2, float var3, float var4) {
+		if (var1 == 0.0F && var2 == 0.0F && var3 == 0.0F && var4 == 0.0F) {
+			throw new IllegalArgumentException();
+		} else {
+			this.impl.postRotateQuat(var1, var2, var3, var4);
+		}
+	}
+
+	public void postTranslate(float var1, float var2, float var3) {
+		this.impl.postTranslate(var1, var2, var3);
+	}
+
+	public void transform(VertexArray var1, float[] var2, boolean var3) {
+		if (var1 != null && var2 != null) {
+			if (var1.getComponentCount() != 4 && var2.length >= 4 * var1.getVertexCount()) {
+				int var4 = var3 ? 1 : 0;
+				int var5 = var1.getVertexCount();
+				int var6 = var1.getComponentCount();
+				int var7 = var5 * 4;
+				int var8 = 0;
+				int var9 = 0;
+				if (var1.getComponentType() == 1) {
+					byte[] var10 = new byte[var5 * var6];
+					var1.get(0, var5, var10);
+
+					while (var8 < var7) {
+						if (var8 % 4 < var6) {
+							var2[var8++] = (float) var10[var9++];
+						} else {
+							var2[var8++] = (float) var4;
+						}
+					}
+				} else {
+					short[] var11 = new short[var5 * var6];
+					var1.get(0, var5, var11);
+
+					while (var8 < var7) {
+						if (var8 % 4 < var6) {
+							var2[var8++] = (float) var11[var9++];
+						} else {
+							var2[var8++] = (float) var4;
+						}
+					}
+				}
+
+				this.impl.transform(var2);
+			} else {
+				throw new IllegalArgumentException();
+			}
+		} else {
 			throw new NullPointerException();
 		}
-
-		_transformArray(matrix, in.handle, out, W);
 	}
 
-	//------------------------------------------------------------------
-	// Private methods
-	//------------------------------------------------------------------
-
-	// Native methods
-	private static native void _mul(byte[] prod, byte[] left, byte[] right);
-
-	private static native void _setIdentity(byte[] matrix);
-
-	private static native void _setMatrix(byte[] matrix, float[] srcMatrix);
-
-	private static native void _getMatrix(byte[] matrix, float[] dstMatrix);
-
-	private static native void _invert(byte[] matrix);
-
-	private static native void _transpose(byte[] matrix);
-
-	private static native void _rotate(byte[] matrix, float angle, float ax, float ay, float az);
-
-	private static native void _rotateQuat(byte[] matrix, float qx, float qy, float qz, float qw);
-
-	private static native void _scale(byte[] matrix, float sx, float sy, float sz);
-
-	private static native void _translate(byte[] matrix, float tx, float ty, float tz);
-
-	private static native void _transformTable(byte[] matrix, float[] v);
-
-	private static native void _transformArray(byte[] matrix, long handle, float[] out, boolean W);
+	public void transform(float[] var1) {
+		if (var1 == null) {
+			throw new NullPointerException();
+		} else if (var1.length % 4 != 0) {
+			throw new IllegalArgumentException();
+		} else {
+			this.impl.transform(var1);
+		}
+	}
 }

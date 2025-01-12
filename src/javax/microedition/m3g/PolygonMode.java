@@ -1,134 +1,77 @@
-/*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
-
 package javax.microedition.m3g;
 
 public class PolygonMode extends Object3D {
+	public static final int CULL_BACK = 160;
+	public static final int CULL_FRONT = 161;
+	public static final int CULL_NONE = 162;
+	public static final int SHADE_FLAT = 164;
+	public static final int SHADE_SMOOTH = 165;
+	public static final int WINDING_CCW = 168;
+	public static final int WINDING_CW = 169;
+	private int culling = 160;
+	private int shading = 165;
+	private int winding = 168;
+	private boolean twoSidedLighting = false;
+	private boolean localCameraLighting = false;
+	private boolean perspectiveCorrection = false;
 
-	//------------------------------------------------------------------
-	// Static data
-	//------------------------------------------------------------------
-
-	public static final int CULL_BACK = 0xA0;
-	public static final int CULL_FRONT = CULL_BACK + 1;
-	public static final int CULL_NONE = CULL_FRONT + 1;
-	public static final int SHADE_FLAT = 0xA4;
-	public static final int SHADE_SMOOTH = SHADE_FLAT + 1;
-	public static final int WINDING_CCW = 0xA8;
-	public static final int WINDING_CW = WINDING_CCW + 1;
-
-	//------------------------------------------------------------------
-	// Constructor(s)
-	//------------------------------------------------------------------
-
-	public PolygonMode() {
-		super(_ctor(Interface.getHandle()));
-	}
-
-	/**
-	 */
-	PolygonMode(long handle) {
-		super(handle);
-	}
-
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
-
-	public void setCulling(int mode) {
-		_setCulling(handle, mode);
+	public void setCulling(int var1) {
+		if (var1 >= 160 && var1 <= 162) {
+			this.culling = var1;
+		} else {
+			throw new IllegalArgumentException();
+		}
 	}
 
 	public int getCulling() {
-		return _getCulling(handle);
+		return this.culling;
 	}
 
-	public void setWinding(int mode) {
-		_setWinding(handle, mode);
+	public void setWinding(int var1) {
+		if (var1 != 169 && var1 != 168) {
+			throw new IllegalArgumentException();
+		} else {
+			this.winding = var1;
+		}
 	}
 
 	public int getWinding() {
-		return _getWinding(handle);
+		return this.winding;
 	}
 
-	public void setShading(int mode) {
-		_setShading(handle, mode);
+	public void setShading(int var1) {
+		if (var1 != 164 && var1 != 165) {
+			throw new IllegalArgumentException();
+		} else {
+			this.shading = var1;
+		}
 	}
 
 	public int getShading() {
-		return _getShading(handle);
+		return this.shading;
 	}
 
-	public void setTwoSidedLightingEnable(boolean enable) {
-		_setTwoSidedLightingEnable(handle, enable);
+	public void setTwoSidedLightingEnable(boolean var1) {
+		this.twoSidedLighting = var1;
 	}
 
 	public boolean isTwoSidedLightingEnabled() {
-		return _isTwoSidedLightingEnabled(handle);
+		return this.twoSidedLighting;
 	}
 
-	public void setLocalCameraLightingEnable(boolean enable) {
-		_setLocalCameraLightingEnable(handle, enable);
+	public void setLocalCameraLightingEnable(boolean var1) {
+		this.localCameraLighting = var1;
 	}
 
-	public void setPerspectiveCorrectionEnable(boolean enable) {
-		_setPerspectiveCorrectionEnable(handle, enable);
-	}
-
-	// M3G 1.1 Maintenance release getters
 	public boolean isLocalCameraLightingEnabled() {
-		return _isLocalCameraLightingEnabled(handle);
+		return this.localCameraLighting;
+	}
+
+	public void setPerspectiveCorrectionEnable(boolean var1) {
+		this.perspectiveCorrection = var1;
 	}
 
 	public boolean isPerspectiveCorrectionEnabled() {
-		return _isPerspectiveCorrectionEnabled(handle);
+		return this.perspectiveCorrection;
 	}
-
-
-	//------------------------------------------------------------------
-	// Private methods
-	//------------------------------------------------------------------
-
-	private native static long _ctor(long hInterface);
-
-	private native static void _setLocalCameraLightingEnable(long handle, boolean enable);
-
-	private native static void _setPerspectiveCorrectionEnable(long handle, boolean enable);
-
-	private native static void _setCulling(long handle, int mode);
-
-	private native static int _getCulling(long handle);
-
-	private native static void _setWinding(long handle, int mode);
-
-	private native static int _getWinding(long handle);
-
-	private native static void _setShading(long handle, int mode);
-
-	private native static int _getShading(long handle);
-
-	private native static void _setTwoSidedLightingEnable(long handle, boolean enable);
-
-	private native static boolean _isTwoSidedLightingEnabled(long handle);
-
-	// M3G 1.1 Maintenance release getters
-	private native static boolean _isLocalCameraLightingEnabled(long handle);
-
-	private native static boolean _isPerspectiveCorrectionEnabled(long handle);
-
 }
-

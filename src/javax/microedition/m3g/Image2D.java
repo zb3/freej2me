@@ -1,103 +1,155 @@
-/*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
-
 package javax.microedition.m3g;
 
 import javax.microedition.lcdui.Image;
 
-public class Image2D extends Object3D {
-	//------------------------------------------------------------------
-	// Static data
-	//------------------------------------------------------------------
+import kemulator.m3g.gles2.Emulator3D;
+import pl.zb3.freej2me.bridge.gles2.TextureHolder;
 
+public class Image2D extends Object3D implements TextureHolder {
 	public static final int ALPHA = 96;
 	public static final int LUMINANCE = 97;
 	public static final int LUMINANCE_ALPHA = 98;
 	public static final int RGB = 99;
 	public static final int RGBA = 100;
+	private int type;
+	private int width;
+	private int height;
+	private byte[] imageData;
+	private boolean mutable;
+	private static byte[] tmp;
+	public boolean loaded;
+	private int id;
 
-	static long tempHandle;
-
-	//------------------------------------------------------------------
-	// Constructor(s)
-	//------------------------------------------------------------------
-
-	public Image2D(int format, Object image) {
-		// If image is instance of lcdui.Image then checkAndCreate
-		// builds the image and returns the handle to native image,
-		// otherwise throws exception Done this way because class of
-		// image cannot be checked befor calling super()
-		super(Image2D.checkAndCreate(format, image));
+	public Image2D(int var1, Object var2) {
+		if (var2 == null) {
+			throw new NullPointerException();
+		} else if (!checkType(var1)) {
+			throw new IllegalArgumentException();
+		} else if (var2 instanceof Image) {
+			Image var3 = (Image) var2;
+			this.width = var3.getWidth();
+			this.height = var3.getHeight();
+			this.mutable = false;
+			this.type = var1;
+			this.imageData = convert(var1, var3);
+		} else {
+			throw new IllegalArgumentException();
+		}
 	}
 
-	public Image2D(int format, int width, int height, byte[] image) {
-		super(createHandle(format, width, height, image));
+	public Image2D(int var1, int var2, int var3, byte[] var4) {
+		if (var4 == null) {
+			throw new NullPointerException();
+		} else if (var2 > 0 && var3 > 0 && checkType(var1)) {
+			int var5 = var2 * var3 * bytesPerPixel(var1);
+			if (var4.length < var5) {
+				throw new IllegalArgumentException();
+			} else {
+				this.width = var2;
+				this.height = var3;
+				this.mutable = false;
+				this.type = var1;
+				this.imageData = new byte[var5];
+				System.arraycopy(var4, 0, this.imageData, 0, var5);
+//				allocateBuffer(var5);
+			}
+		} else {
+			throw new IllegalArgumentException();
+		}
 	}
 
-	public Image2D(int format,
-				   int width, int height,
-				   byte[] image,
-				   byte[] palette) {
-		super(createHandle(format, width, height, image, palette));
-	}
+	public Image2D(int var1, int var2, int var3, byte[] var4, byte[] var5) {
+		if (var4 != null && var5 != null) {
+			int var6 = var2 * var3;
+			if (var2 > 0 && var3 > 0 && checkType(var1) && var4.length >= var6) {
+				int var7 = bytesPerPixel(var1);
+				if (var5.length < 256 * var7 && var5.length % var7 != 0) {
+					throw new IllegalArgumentException();
+				} else {
+					this.width = var2;
+					this.height = var3;
+					this.mutable = false;
+					this.type = var1;
+					this.imageData = new byte[var6 * var7];
 
-	public Image2D(int format, int width, int height) {
-		super(createHandle(format, width, height));
-	}
-
-	Image2D(long handle) {
-		super(handle);
-	}
-
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
-
-	public void set(int x, int y, int width, int height, byte[] image) {
-		if (image == null) {
+					for (int var8 = 0; var8 < var6; ++var8) {
+						System.arraycopy(var5, (var4[var8] & 255) * var7, this.imageData, var8 * var7, var7);
+					}
+				}
+			} else {
+				throw new IllegalArgumentException();
+			}
+		} else {
 			throw new NullPointerException();
 		}
-		_set(handle, x, y, width, height, image);
+	}
+
+	public Image2D(int var1, int var2, int var3) {
+		if (var2 > 0 && var3 > 0 && checkType(var1)) {
+			this.width = var2;
+			this.height = var3;
+			this.mutable = true;
+			this.type = var1;
+			int var4 = var2 * bytesPerPixel(var1);
+			this.imageData = new byte[var4 * var3];
+			int var5;
+			if (tmp == null || tmp.length < var4) {
+				tmp = new byte[var4];
+
+				for (var5 = var4 - 1; var5 >= 0; --var5) {
+					tmp[var5] = -1;
+				}
+			}
+
+			for (var5 = 0; var5 < var3; ++var5) {
+				System.arraycopy(tmp, 0, this.imageData, var5 * var4, var4);
+			}
+		} else {
+			throw new IllegalArgumentException();
+		}
+	}
+
+	public void set(int var1, int var2, int var3, int var4, byte[] var5) {
+		if (var5 == null) {
+			throw new NullPointerException();
+		} else if (this.mutable && var1 >= 0 && var2 >= 0 && var3 > 0 && var4 > 0 && var1 + var3 <= this.width && var2 + var4 <= this.height) {
+			int var6 = this.getBitsPerColor();
+			if (var5.length < var3 * var4 * var6) {
+				throw new IllegalArgumentException();
+			} else {
+				for (int var7 = 0; var7 < var4; ++var7) {
+					System.arraycopy(var5, var7 * var3 * var6, this.imageData, ((var2 + var7) * this.width + var1) * var6, var3 * var6);
+				}
+				this.invalidate();
+			}
+		} else {
+			throw new IllegalArgumentException();
+		}
 	}
 
 	public boolean isMutable() {
-		return _isMutable(handle);
+		return this.mutable;
 	}
 
 	public int getFormat() {
-		return _getFormat(handle);
+		return this.type;
 	}
 
 	public int getWidth() {
-		return _getWidth(handle);
+		return this.width;
 	}
 
 	public int getHeight() {
-		return _getHeight(handle);
+		return this.height;
 	}
 
-	//------------------------------------------------------------------
-	// Private methods
-	//------------------------------------------------------------------
+	public int getBitsPerColor() {
+		return bytesPerPixel(this.type);
+	}
 
-	private static int getBytesPerPixel(int format) {
-		switch (format) {
+	private static int bytesPerPixel(int type) {
+		switch (type) {
 			case ALPHA:
-				return 1;
 			case LUMINANCE:
 				return 1;
 			case LUMINANCE_ALPHA:
@@ -107,161 +159,197 @@ public class Image2D extends Object3D {
 			case RGBA:
 				return 4;
 			default:
-				throw new RuntimeException("Invalid format on image");
+				throw new IllegalArgumentException();
 		}
 	}
 
-	private static long checkAndCreate(int format, Object image) {
-		if (image == null) {
-			throw new NullPointerException();
-		}
-		if (!(image instanceof Image)) {
-			throw new IllegalArgumentException();
-		}
-		Image cgfxImage = (Image) image;
+	private static boolean checkType(int var0) {
+		return var0 >= 96 && var0 <= 100;
+	}
 
-		final int finalFormat = format;
-		tempHandle = 0;
+	public final byte[] getImageData() {
+		return this.imageData;
+	}
 
-		final int width = cgfxImage.getWidth();
-		final int height = cgfxImage.getHeight();
-		int[] argbArr = new int[width * height];
-		final byte[] byteArr = new byte[width * height * getBytesPerPixel(finalFormat)];
+	private static byte[] convert(int type, Image image) {
 
-		cgfxImage.getRGB(argbArr, 0, width, 0, 0, width, height);
+		byte[] var3 = null;
 
-		int index = 0;
-		switch (format) {
-			case ALPHA:
-				if (cgfxImage.isMutable()){
-					for (int argb : argbArr) {
-						int r = argb >> 16 & 0xFF;
-						int g = argb >> 8 & 0xFF;
-						int b = argb & 0xFF;
-						byteArr[index++] = (byte) (0x4CB2 * r + 0x9691 * g + 0x1D3E * b >> 16);
+		final int width = image.getWidth();
+		final int height = image.getHeight();
+
+		int[] data = new int[width * height];
+		image.getRGB(data, 0, width, 0, 0, width, height);
+
+		int var4 = data.length;
+		int var5;
+		if (image.isMutable()) {
+			switch (type) {
+				case 96:
+				case 97:
+					var3 = new byte[var4];
+
+					for (var5 = var4 - 1; var5 >= 0; --var5) {
+						var3[var5] = (byte) (((data[var5] >> 16 & 255) + (data[var5] >> 8 & 255) + (data[var5] & 255)) / 3 & 255);
 					}
-				} else {
-					for (int argb : argbArr) {
-						byteArr[index++] = ((byte) ((argb >> 24) & 0xFF));
+
+					return var3;
+				case 98:
+					var3 = new byte[var4 * 2];
+
+					for (var5 = var4 - 1; var5 >= 0; --var5) {
+						var3[var5 * 2] = (byte) (((data[var5] >> 16 & 255) + (data[var5] >> 8 & 255) + (data[var5] & 255)) / 3 & 255);
+						var3[var5 * 2 + 1] = -1;
 					}
-				}
-				break;
-			case LUMINANCE:
-				for (int argb : argbArr) {
-					int r = argb >> 16 & 0xFF;
-					int g = argb >> 8 & 0xFF;
-					int b = argb & 0xFF;
-					byteArr[index++] = (byte) (0x4CB2 * r + 0x9691 * g + 0x1D3E * b >> 16);
-				}
-				break;
-			case LUMINANCE_ALPHA:
-				for (int argb : argbArr) {
-					int r = argb >> 16 & 0xFF;
-					int g = argb >> 8 & 0xFF;
-					int b = argb & 0xFF;
-					byteArr[index++] = (byte) (0x4CB2 * r + 0x9691 * g + 0x1D3E * b >> 16);
-					byteArr[index++] = ((byte) ((argb >> 24) & 0xFF));
-				}
-				break;
-			case RGB:
-				for (int argb : argbArr) {
-					byteArr[index++] = ((byte) ((argb >> 16) & 0xFF));
-					byteArr[index++] = ((byte) ((argb >> 8) & 0xFF));
-					byteArr[index++] = ((byte) ((argb) & 0xFF));
-				}
-				break;
-			case RGBA:
-				for (int argb : argbArr) {
-					byteArr[index++] = ((byte) ((argb >> 16) & 0xFF));
-					byteArr[index++] = ((byte) ((argb >> 8) & 0xFF));
-					byteArr[index++] = ((byte) ((argb) & 0xFF));
-					byteArr[index++] = ((byte) ((argb >> 24) & 0xFF));
-				}
-				break;
+
+					return var3;
+				case 99:
+					var3 = new byte[var4 * 3];
+
+					for (var5 = var4 - 1; var5 >= 0; --var5) {
+						var3[var5 * 3] = (byte) (data[var5] >> 16 & 255);
+						var3[var5 * 3 + 1] = (byte) (data[var5] >> 8 & 255);
+						var3[var5 * 3 + 2] = (byte) (data[var5] & 255);
+					}
+
+					return var3;
+				case 100:
+					var3 = new byte[var4 * 4];
+
+					for (var5 = var4 - 1; var5 >= 0; --var5) {
+						var3[var5 * 4] = (byte) (data[var5] >> 16 & 255);
+						var3[var5 * 4 + 1] = (byte) (data[var5] >> 8 & 255);
+						var3[var5 * 4 + 2] = (byte) (data[var5] & 255);
+						var3[var5 * 4 + 3] = -1;
+					}
+			}
+		} else {
+			switch (type) {
+				case 96:
+					var3 = new byte[var4];
+
+					for (var5 = var4 - 1; var5 >= 0; --var5) {
+						var3[var5] = (byte) (data[var5] >> 24 & 255);
+					}
+
+					return var3;
+				case 97:
+					var3 = new byte[var4];
+
+					for (var5 = var4 - 1; var5 >= 0; --var5) {
+						var3[var5] = (byte) (((data[var5] >> 16 & 255) + (data[var5] >> 8 & 255) + (data[var5] & 255)) / 3 & 255);
+					}
+
+					return var3;
+				case 98:
+					var3 = new byte[var4 * 2];
+
+					for (var5 = var4 - 1; var5 >= 0; --var5) {
+						var3[var5 * 2] = (byte) (((data[var5] >> 16 & 255) + (data[var5] >> 8 & 255) + (data[var5] & 255)) / 3 & 255);
+						var3[var5 * 2 + 1] = (byte) (data[var5] >> 24 & 255);
+					}
+
+					return var3;
+				case 99:
+					var3 = new byte[var4 * 3];
+
+					for (var5 = var4 - 1; var5 >= 0; --var5) {
+						var3[var5 * 3] = (byte) (data[var5] >> 16 & 255);
+						var3[var5 * 3 + 1] = (byte) (data[var5] >> 8 & 255);
+						var3[var5 * 3 + 2] = (byte) (data[var5] & 255);
+					}
+
+					return var3;
+				case 100:
+					var3 = new byte[var4 * 4];
+
+					for (var5 = var4 - 1; var5 >= 0; --var5) {
+						var3[var5 * 4] = (byte) (data[var5] >> 16 & 255);
+						var3[var5 * 4 + 1] = (byte) (data[var5] >> 8 & 255);
+						var3[var5 * 4 + 2] = (byte) (data[var5] & 255);
+						var3[var5 * 4 + 3] = (byte) (data[var5] >> 24 & 255);
+					}
+			}
 		}
 
-		// excute in UI thread
-		Platform.executeInUIThread(
-				new M3gRunnable() {
-					@Override
-					void doRun() {
-						tempHandle = createHandle(finalFormat, width, height, byteArr);
-					}
-				});
-		return tempHandle;
+		return var3;
 	}
 
-	//Platform.heuristicGC();
-	//ToolkitInvoker invoker = ToolkitInvoker.getToolkitInvoker();
-
-	// Decide if trueAlpha
-	//Image i = (Image)image;
-	//boolean trueAlpha = !(i.isMutable() && format == ALPHA);
-
-	//Platform.sync((Image) image);
-
-//        Platform.getUIThread().syncExec(
-//                    new Runnable() {
-//                        public void run() {
-//                                               tempHandle = _ctorImage(/*Interface.getEventSourceHandle(),*/ Interface.getHandle(), finalFormat, /*invoker.imageGetHandle(image)*/ 5);
-//                                          }
-//                                  });
-//          return tempHandle;
-
-
-	private static long createHandle(int format, int width, int height, byte[] image) {
-		Platform.heuristicGC();
-		return _ctorSizePixels(Interface.getHandle(),
-				format,
-				width, height,
-				image);
+	protected Object3D duplicateObject() {
+		Image2D var1 = (Image2D) super.duplicateObject();
+		var1.imageData = (byte[]) this.imageData.clone();
+		return var1;
 	}
 
-	private static long createHandle(int format,
-									int width, int height,
-									byte[] image,
-									byte[] palette) {
-		Platform.heuristicGC();
-		return _ctorSizePixelsPalette(Interface.getHandle(),
-				format,
-				width, height,
-				image, palette);
+	public void invalidate() {
+		this.setLoaded(false);
 	}
 
-	private static long createHandle(int format, int width, int height) {
-		Platform.heuristicGC();
-		return _ctorSize(Interface.getHandle(), format, width, height);
+	public void dispose() {
+		if (id == 0) return;
+
+		((Emulator3D) Graphics3D.getImpl()).textureResourceManager.resetHolder(this);
 	}
 
-	// Native methods
-/*	private native static long _ctorImage(*//*int eventSourceHandle,*//*
-			long hInterface,
-			int format,
-			long imageHandle);*/
+	public boolean isLoaded() {
+		return loaded;
+	}
 
-	private native static long _ctorSizePixels(long hInterface,
-											  int format,
-											  int width, int height,
-											  byte[] image);
+	public void setLoaded(boolean b) {
+		loaded = b;
+	}
 
-	private native static long _ctorSizePixelsPalette(long hInterface,
-													 int format,
-													 int width, int height,
-													 byte[] image,
-													 byte[] palette);
+	public void setId(int id) {
+		this.id = id;
+		this.loaded = false;
+	}
 
-	private native static long _ctorSize(long hInterface,
-										int format,
-										int width, int height);
+	public int getId() {
+		return id;
+	}
 
-	private native static void _set(long handle, int x, int y, int width,
-									int height, byte[] image);
+	public int size() {
+		return imageData.length;
+	}
 
-	private native static boolean _isMutable(long handle);
+	public void getPixels(byte[] dist) {
+		byte[] b = getImageData();
+		System.arraycopy(b, 0, dist, 0, b.length);
+	}
 
-	private native static int _getFormat(long handle);
+	public boolean isPalettized() {
+		// zb3: is it accurate?
+		return false;
+	}
 
-	private native static int _getWidth(long handle);
+	public void getPalette(byte[] array) {
+	}
 
-	private native static int _getHeight(long handle);
+	void setRGB(Image image) {
+
+		final int width = image.getWidth();
+		final int height = image.getHeight();
+
+		int[] data = new int[width * height];
+		image.getRGB(data, 0, width, 0, 0, width, height);
+
+		int l = data.length;
+		if (imageData == null || imageData.length != l * 3) {
+			imageData = new byte[l * 3];
+		}
+
+		byte[] var3 = imageData;
+
+		for (int var5 = l - 1; var5 >= 0; --var5) {
+			var3[var5 * 3] = (byte) (data[var5] >> 16 & 255);
+			var3[var5 * 3 + 1] = (byte) (data[var5] >> 8 & 255);
+			var3[var5 * 3 + 2] = (byte) (data[var5] & 255);
+		}
+
+		this.invalidate();
+	}
+
+	public void clearId() {
+		setId(0);
+	}
 }

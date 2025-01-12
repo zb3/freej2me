@@ -1,121 +1,159 @@
-/*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
-
 package javax.microedition.m3g;
 
-/**
- *
- */
+import kemulator.m3g.utils.Quaternion;
+
 public abstract class Transformable extends Object3D {
-	//------------------------------------------------------------------
-	// Constructor(s)
-	//------------------------------------------------------------------
+	float[] scale = new float[3];
+	float[] translation = new float[3];
+	Quaternion rotation = new Quaternion(0.0F, 0.0F, 0.0F, 1.0F);
+	Transform transform = new Transform();
 
-	Transformable(long handle) {
-		super(handle);
+	Transformable() {
+		this.scale[0] = this.scale[1] = this.scale[2] = 1.0F;
 	}
 
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
-
-
-	public void setOrientation(float angle, float ax, float ay, float az) {
-		_setOrientation(handle, angle, ax, ay, az, true);
+	public void setOrientation(float var1, float var2, float var3, float var4) {
+		if (var1 != 0.0F && var2 == 0.0F && var3 == 0.0F && var4 == 0.0F) {
+			throw new IllegalArgumentException();
+		} else {
+			this.rotation.setAngleAxis(var1, var2, var3, var4);
+		}
 	}
 
-	public void postRotate(float angle, float ax, float ay, float az) {
-		_setOrientation(handle, angle, ax, ay, az, false);
+	public void getOrientation(float[] var1) {
+		if (var1 == null) {
+			throw new NullPointerException();
+		} else if (var1.length < 4) {
+			throw new IllegalArgumentException();
+		} else {
+			this.rotation.getAngleAxis(var1);
+		}
 	}
 
-	public void preRotate(float angle, float ax, float ay, float az) {
-		_preRotate(handle, angle, ax, ay, az);
+	public void preRotate(float var1, float var2, float var3, float var4) {
+		if (var1 != 0.0F && var2 == 0.0F && var3 == 0.0F && var4 == 0.0F) {
+			throw new IllegalArgumentException();
+		} else {
+			Quaternion var5;
+			(var5 = new Quaternion()).setAngleAxis(var1, var2, var3, var4);
+			var5.mul(this.rotation);
+			this.rotation.set(var5);
+		}
 	}
 
-	public void getOrientation(float[] angleAxis) {
-		_getOrientation(handle, angleAxis);
+	public void postRotate(float var1, float var2, float var3, float var4) {
+		if (var1 != 0.0F && var2 == 0.0F && var3 == 0.0F && var4 == 0.0F) {
+			throw new IllegalArgumentException();
+		} else {
+			Quaternion var5;
+			(var5 = new Quaternion()).setAngleAxis(var1, var2, var3, var4);
+			this.rotation.mul(var5);
+		}
 	}
 
-	public void setScale(float sx, float sy, float sz) {
-		_setScale(handle, sx, sy, sz, true);
+	public void setScale(float var1, float var2, float var3) {
+		this.scale[0] = var1;
+		this.scale[1] = var2;
+		this.scale[2] = var3;
 	}
 
-	public void scale(float sx, float sy, float sz) {
-		_setScale(handle, sx, sy, sz, false);
+	public void scale(float var1, float var2, float var3) {
+		this.scale[0] *= var1;
+		this.scale[1] *= var2;
+		this.scale[2] *= var3;
 	}
 
-	public void getScale(float[] xyz) {
-		_getScale(handle, xyz);
+	public void getScale(float[] var1) {
+		if (var1 == null) {
+			throw new NullPointerException();
+		} else if (var1.length < 3) {
+			throw new IllegalArgumentException();
+		} else {
+			System.arraycopy(this.scale, 0, var1, 0, 3);
+		}
 	}
 
-	public void setTranslation(float tx, float ty, float tz) {
-		_setTranslation(handle, tx, ty, tz, true);
+	public void setTranslation(float var1, float var2, float var3) {
+		this.translation[0] = var1;
+		this.translation[1] = var2;
+		this.translation[2] = var3;
 	}
 
-	public void translate(float tx, float ty, float tz) {
-		_setTranslation(handle, tx, ty, tz, false);
+	public void translate(float var1, float var2, float var3) {
+		this.translation[0] += var1;
+		this.translation[1] += var2;
+		this.translation[2] += var3;
 	}
 
-	public void getTranslation(float[] xyz) {
-		_getTranslation(handle, xyz);
+	public void getTranslation(float[] var1) {
+		if (var1 == null) {
+			throw new NullPointerException();
+		} else if (var1.length < 3) {
+			throw new IllegalArgumentException();
+		} else {
+			System.arraycopy(this.translation, 0, var1, 0, 3);
+		}
 	}
 
-	public void setTransform(Transform transform) {
-		_setTransform(handle, (transform != null) ? transform.matrix : null);
+	public void setTransform(Transform var1) {
+		if (var1 == null) {
+			this.transform.setIdentity();
+		} else {
+			this.transform.set(var1);
+		}
 	}
 
-	public void getTransform(Transform transform) {
-		_getTransform(handle, transform.matrix);
+	public void getTransform(Transform var1) {
+		if (var1 == null) {
+			throw new NullPointerException();
+		} else {
+			var1.set(this.transform);
+		}
 	}
 
-	public void getCompositeTransform(Transform transform) {
-		_getComposite(handle, transform.matrix);
+	public void getCompositeTransform(Transform var1) {
+		if (var1 == null) {
+			throw new NullPointerException();
+		} else {
+			var1.setIdentity();
+			var1.postTranslate(translation[0], translation[1], translation[2]);
+			var1.postRotateQuat(rotation.x, rotation.y, rotation.z, rotation.w);
+			var1.postScale(scale[0], scale[1], scale[2]);
+			var1.postMultiply(transform);
+		}
 	}
 
-	//------------------------------------------------------------------
-	// Private methods
-	//------------------------------------------------------------------
+	protected void updateProperty(int property, float[] values) {
+		switch (property) {
+			case AnimationTrack.ORIENTATION:
+				rotation.set(values);
+				rotation.normalize();
+				return;
+			case AnimationTrack.SCALE:
+				if (values.length == 1) {
+					scale[0] = scale[1] = scale[2] = values[0];
+				} else {
+					scale[0] = values[0];
+					scale[1] = values[1];
+					scale[2] = values[2];
+				}
+				return;
+			case AnimationTrack.TRANSLATION:
+				translation[0] = values[0];
+				translation[1] = values[1];
+				translation[2] = values[2];
+				return;
+			default:
+				super.updateProperty(property, values);
+		}
+	}
 
-	private static native void _setOrientation(long handle,
-											   float angle,
-											   float ax, float ay, float az,
-											   boolean absolute);
-
-	private static native void _preRotate(long handle,
-										  float angle,
-										  float ax, float ay, float az);
-
-	private static native void _getOrientation(long handle, float[] angleAxis);
-
-	private static native void _setScale(long handle,
-										 float sx, float sy, float sz,
-										 boolean absolute);
-
-	private static native void _getScale(long handle, float[] scale);
-
-	private static native void _setTranslation(long handle,
-											   float tx, float ty, float tz,
-											   boolean absolute);
-
-	private static native void _getTranslation(long handle, float[] translation);
-
-	private static native void _setTransform(long handle, byte[] transform);
-
-	private static native void _getTransform(long handle, byte[] transform);
-
-	private static native void _getComposite(long handle, byte[] transform);
+	protected Object3D duplicateObject() {
+		Transformable var1;
+		(var1 = (Transformable) super.duplicateObject()).rotation = new Quaternion(this.rotation);
+		var1.transform = new Transform(this.transform);
+		var1.translation = (float[]) this.translation.clone();
+		var1.scale = (float[]) this.scale.clone();
+		return var1;
+	}
 }

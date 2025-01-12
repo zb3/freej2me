@@ -1,89 +1,103 @@
-/*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
-
 package javax.microedition.m3g;
 
-public class Material extends Object3D {
-	//------------------------------------------------------------------
-	// Static data
-	//------------------------------------------------------------------
+import kemulator.m3g.utils.G3DUtils;
 
+public class Material extends Object3D {
 	public static final int AMBIENT = 1024;
 	public static final int DIFFUSE = 2048;
 	public static final int EMISSIVE = 4096;
 	public static final int SPECULAR = 8192;
+	private boolean vertexColorTracking = false;
+	private int ambientColor = 3355443;
+	private int diffuseColor = -3355444;
+	private int emissiveColor = 0;
+	private int specularColor = 0;
+	private float shininess = 0.0F;
 
-	//------------------------------------------------------------------
-	// Constructor(s)
-	//------------------------------------------------------------------
+	public void setColor(int var1, int var2) {
+		if ((var1 & 1024) == 0 && (var1 & 2048) == 0 && (var1 & 4096) == 0 && (var1 & 8192) == 0) {
+			throw new IllegalArgumentException();
+		} else {
+			if ((var1 & 1024) != 0) {
+				this.ambientColor = var2;
+			}
 
-	public Material() {
-		super(_ctor(Interface.getHandle()));
+			if ((var1 & 2048) != 0) {
+				this.diffuseColor = var2;
+			}
+
+			if ((var1 & 4096) != 0) {
+				this.emissiveColor = var2;
+			}
+
+			if ((var1 & 8192) != 0) {
+				this.specularColor = var2;
+			}
+
+		}
 	}
 
-	/**
-	 */
-	Material(long handle) {
-		super(handle);
+	public int getColor(int var1) {
+		if (var1 != 1024 && var1 != 2048 && var1 != 4096 && var1 != 8192) {
+			throw new IllegalArgumentException();
+		} else {
+			return var1 == 1024 ? this.ambientColor : (var1 == 2048 ? this.diffuseColor : (var1 == 4096 ? this.emissiveColor : (var1 == 8192 ? this.specularColor : 0)));
+		}
 	}
 
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
-
-	public void setColor(int target, int ARGB) {
-		_setColor(handle, target, ARGB);
-	}
-
-	public int getColor(int target) {
-		return _getColor(handle, target);
-	}
-
-	public void setShininess(float shininess) {
-		_setShininess(handle, shininess);
+	public void setShininess(float var1) {
+		if (var1 >= 0.0F && var1 <= 128.0F) {
+			this.shininess = var1;
+		} else {
+			throw new IllegalArgumentException();
+		}
 	}
 
 	public float getShininess() {
-		return _getShininess(handle);
+		return this.shininess;
 	}
 
-	public void setVertexColorTrackingEnable(boolean enable) {
-		_setVertexColorTrackingEnable(handle, enable);
+	public void setVertexColorTrackingEnable(boolean var1) {
+		this.vertexColorTracking = var1;
 	}
 
 	public boolean isVertexColorTrackingEnabled() {
-		return _isVertexColorTrackingEnabled(handle);
+		return this.vertexColorTracking;
 	}
 
-	//------------------------------------------------------------------
-	// Private methods
-	//------------------------------------------------------------------
-
-	private native static long _ctor(long hInstance);
-
-	private native static void _setColor(long handle, int target, int ARGB);
-
-	private native static int _getColor(long handle, int target);
-
-	private native static void _setShininess(long handle, float shininess);
-
-	private native static float _getShininess(long handle);
-
-	private native static void _setVertexColorTrackingEnable(long handle, boolean enable);
-
-	private native static boolean _isVertexColorTrackingEnabled(long handle);
+	protected void updateProperty(int var1, float[] var2) {
+		switch (var1) {
+			case 256:
+				this.diffuseColor = this.diffuseColor & 16777215 | G3DUtils.getIntColor(var2) & -16777216;
+				return;
+			case 257:
+				this.ambientColor = G3DUtils.getIntColor(var2);
+				return;
+			case 258:
+			case 259:
+			case 260:
+			case 263:
+			case 264:
+			case 265:
+			case 266:
+			case 267:
+			case 268:
+			case 269:
+			case 270:
+			default:
+				super.updateProperty(var1, var2);
+				return;
+			case 261:
+				this.diffuseColor = this.diffuseColor & -16777216 | G3DUtils.getIntColor(var2) & 16777215;
+				return;
+			case 262:
+				this.emissiveColor = G3DUtils.getIntColor(var2);
+				return;
+			case 271:
+				this.shininess = G3DUtils.limit(var2[0], 0.0F, 128.0F);
+				return;
+			case 272:
+				this.specularColor = G3DUtils.getIntColor(var2);
+		}
+	}
 }

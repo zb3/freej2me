@@ -1,118 +1,119 @@
-/*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
-
 package javax.microedition.m3g;
+
+import kemulator.m3g.utils.G3DUtils;
 
 public class Light extends Node {
 	public static final int AMBIENT = 128;
 	public static final int DIRECTIONAL = 129;
 	public static final int OMNI = 130;
 	public static final int SPOT = 131;
+	private int mode = 129;
+	private int color = 16777215;
+	private float intensity = 1.0F;
+	private float constantAttenuation = 1.0F;
+	private float linearAttenuation = 0.0F;
+	private float quadraticAttenuation = 0.0F;
+	private float spotAngle = 45.0F;
+	private float spotExponent = 0.0F;
 
-	public Light() {
-		super(_ctor(Interface.getHandle()));
-	}
-
-	/**
-	 */
-	Light(long handle) {
-		super(handle);
-	}
-
-	public void setIntensity(float intensity) {
-		_setIntensity(handle, intensity);
-	}
-
-	public float getIntensity() {
-		return _getIntensity(handle);
-	}
-
-	public void setColor(int RGB) {
-		_setColor(handle, RGB);
-	}
-
-	public int getColor() {
-		return _getColor(handle);
-	}
-
-	public void setMode(int mode) {
-		_setMode(handle, mode);
+	public void setMode(int var1) {
+		if (var1 >= 128 && var1 <= 131) {
+			this.mode = var1;
+		} else {
+			throw new IllegalArgumentException();
+		}
 	}
 
 	public int getMode() {
-		return _getMode(handle);
+		return this.mode;
 	}
 
-	public void setSpotAngle(float angle) {
-		_setSpotAngle(handle, angle);
+	public void setIntensity(float var1) {
+		this.intensity = var1;
+	}
+
+	public float getIntensity() {
+		return this.intensity;
+	}
+
+	public void setColor(int var1) {
+		this.color = var1;
+	}
+
+	public int getColor() {
+		return this.color;
+	}
+
+	public void setSpotAngle(float var1) {
+		if (var1 >= 0.0F && var1 <= 90.0F) {
+			this.spotAngle = var1;
+		} else {
+			throw new IllegalArgumentException("angle is not in [0, 90]");
+		}
 	}
 
 	public float getSpotAngle() {
-		return _getSpotAngle(handle);
+		return this.spotAngle;
 	}
 
-	public void setSpotExponent(float exponent) {
-		_setSpotExponent(handle, exponent);
+	public void setSpotExponent(float var1) {
+		if (var1 >= 0.0F && var1 <= 128.0F) {
+			this.spotExponent = var1;
+		} else {
+			throw new IllegalArgumentException("exponent is not in [0, 128]");
+		}
 	}
 
 	public float getSpotExponent() {
-		return _getSpotExponent(handle);
+		return this.spotExponent;
 	}
 
-	public void setAttenuation(float constant, float linear, float quadratic) {
-		_setAttenuation(handle, constant, linear, quadratic);
+	public void setAttenuation(float var1, float var2, float var3) {
+		if (var1 >= 0.0F && var2 >= 0.0F && var3 >= 0.0F) {
+			if (var1 == 0.0F && var2 == 0.0F && var3 == 0.0F) {
+				throw new IllegalArgumentException("all of the parameter values are zero");
+			} else {
+				this.constantAttenuation = var1;
+				this.linearAttenuation = var2;
+				this.quadraticAttenuation = var3;
+			}
+		} else {
+			throw new IllegalArgumentException("any of the parameter values are negative");
+		}
 	}
 
 	public float getConstantAttenuation() {
-		return _getAttenuation(handle, Defs.GET_CONSTANT);
+		return this.constantAttenuation;
 	}
 
 	public float getLinearAttenuation() {
-		return _getAttenuation(handle, Defs.GET_LINEAR);
+		return this.linearAttenuation;
 	}
 
 	public float getQuadraticAttenuation() {
-		return _getAttenuation(handle, Defs.GET_QUADRATIC);
+		return this.quadraticAttenuation;
 	}
 
-	// Native methods
-	private static native long _ctor(long hInterface);
+	protected void updateProperty(int property, float[] values) {
+		switch (property) {
+			case 258:
+				this.color = G3DUtils.getIntColor(values);
+				return;
+			case 265:
+				this.intensity = values[0];
+				return;
+			case 273:
+				this.spotAngle = G3DUtils.limit(values[0], 0.0F, 90.0F);
+				return;
+			case 274:
+				this.spotExponent = G3DUtils.limit(values[0], 0.0F, 128.0F);
+				return;
+			default:
+				super.updateProperty(property, values);
+		}
+	}
 
-	private static native void _setIntensity(long handle, float intensity);
-
-	private static native float _getIntensity(long handle);
-
-	private static native void _setColor(long handle, int RGB);
-
-	private static native int _getColor(long handle);
-
-	private static native void _setMode(long handle, int mode);
-
-	private static native int _getMode(long handle);
-
-	private static native void _setSpotAngle(long handle, float angle);
-
-	private static native float _getSpotAngle(long handle);
-
-	private static native void _setSpotExponent(long handle, float exponent);
-
-	private static native float _getSpotExponent(long handle);
-
-	private static native void _setAttenuation(long handle, float constant, float linear, float quadratic);
-
-	private static native float _getAttenuation(long handle, int type);
+	protected boolean rayIntersect(int var1, float[] var2, RayIntersection var3, Transform var4) {
+		return false;
+	}
 }

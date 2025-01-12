@@ -1,169 +1,184 @@
-/*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
-
 package javax.microedition.m3g;
 
 import java.util.Vector;
 
+import kemulator.m3g.utils.Vector4f;
+
 public class Group extends Node {
-	//------------------------------------------------------------------
-	// Instance data
-	//------------------------------------------------------------------
+	Vector children = new Vector();
 
-	// The child links are duplicated on the Java side for the same
-	// reason as the other node->node references; see Node.java
+	protected Object3D duplicateObject() {
+		Group clone = (Group) super.duplicateObject();
+		clone.children = (Vector) children.clone();
 
-	Vector children;
+		for (int i = clone.getChildCount() - 1; i >= 0; --i) {
+			Node oldChild = clone.getChild(i);
+			Node newChild = (Node) clone.getChild(i).duplicateObject();
 
-	//------------------------------------------------------------------
-	// Constructors
-	//------------------------------------------------------------------
+			clone.removeReference(oldChild);
+			clone.addReference(newChild);
 
-	public Group() {
-		super(_ctor(Interface.getHandle()));
-	}
-
-	Group(long handle) {
-		super(handle);
-		int n = _getChildCount(handle);
-		while (n-- > 0) {
-			linkChild((Node) getInstance(_getChild(handle, n)));
+			newChild.parent = clone;
+			clone.children.set(i, newChild);
 		}
-	}
 
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
+		return clone;
+	}
 
 	public void addChild(Node child) {
-		_addChild(handle, child != null ? child.handle : 0);
-		if (child != null) {
-			linkChild(child);
+		if (child == null) {
+			throw new NullPointerException();
+		} else if (child == this) {
+			throw new IllegalArgumentException("child is this Group");
+		} else if (child instanceof World) {
+			throw new IllegalArgumentException("child is a World node");
+		} else if (child.parent != null && child.parent != this) {
+			throw new IllegalArgumentException("child already has a parent other than this Group");
+		} else if (child.isParentOf(this)) {
+			throw new IllegalArgumentException("child is an ancestor of this Group");
+		}
+
+		if (!children.contains(child)) {
+			children.add(child);
+			child.parent = this;
+			addReference(child);
 		}
 	}
 
 	public void removeChild(Node child) {
 		if (child != null) {
-			_removeChild(handle, child.handle);
-			detachChild(child);
+			if (child.isSkinnedMeshBone()) {
+				throw new IllegalArgumentException();
+			}
+
+			if (children.contains(child)) {
+				children.remove(child);
+				child.parent = null;
+				removeReference(child);
+			}
 		}
 	}
 
 	public int getChildCount() {
-		return _getChildCount(handle);
+		return children.size();
 	}
 
 	public Node getChild(int index) {
+		if (index < 0 || index >= getChildCount()) {
+			throw new IndexOutOfBoundsException();
+		}
 
-		/* Instead of trying to match the indexing of children on the
-		 * native side, we just call the native getter. This may have
-		 * some performance penalty, but likely not enough to make it
-		 * worth the extra maintenance burden of duplicating the
-		 * native ordering here. */
-
-		return (Node) getInstance(_getChild(handle, index));
+		return (Node) children.get(index);
 	}
 
-	public boolean pick(int mask,
-						float ox, float oy, float oz,
-						float dx, float dy, float dz,
-						RayIntersection ri) {
-		float[] result = RayIntersection.createResult();
-		float[] ray = {ox, oy, oz, dx, dy, dz};
-		long hIntersected;
+	protected void alignment(Node reference) {
+		super.alignment(reference);
 
-		hIntersected = _pick3D(handle, mask, ray, result);
-
-		if (hIntersected != 0) {
-			if (ri != null) {
-				ri.fill(hIntersected, result);
-			}
-			return true;
-		} else {
-			return false;
+		for (int i = 0; i < children.size(); ++i) {
+			((Node) children.get(i)).alignment(reference);
 		}
 	}
 
-	public boolean pick(int mask, float x, float y, Camera camera, RayIntersection ri) {
-		float[] result = RayIntersection.createResult();
-		long hIntersected;
-
-		hIntersected = _pick2D(handle, mask, x, y, camera != null ? camera.handle : 0, result);
-
-		if (hIntersected != 0) {
-			if (ri != null) {
-				ri.fill(hIntersected, result);
-			}
-			return true;
-		} else {
-			return false;
+	public boolean pick(int scope, float x, float y, Camera camera, RayIntersection ri) {
+		if (camera == null) {
+			throw new NullPointerException();
+		} else if (camera.getRoot() != getRoot()) {
+			throw new IllegalStateException();
 		}
+
+		if (!isPickingEnabled()) return false;
+
+		Vector4f rayStart = new Vector4f(2 * x - 1, 1 - 2 * y, -1, 1);
+		Vector4f rayEnd = new Vector4f(2 * x - 1, 1 - 2 * y, 1, 1);
+
+		Transform invProj = new Transform();
+		camera.getProjection(invProj);
+		invProj.getImpl_().invert();
+
+		invProj.getImpl_().transform(rayStart);
+		invProj.getImpl_().transform(rayEnd);
+		rayStart.mul(1 / rayStart.w);
+		rayEnd.mul(1 / rayEnd.w);
+
+		float[] ray = new float[8];
+		ray[6] = rayStart.z;
+		ray[7] = rayEnd.z;
+
+		Transform camToGroup = new Transform();
+		camera.getTransformTo(this, camToGroup);
+		camToGroup.getImpl_().transform(rayStart);
+		camToGroup.getImpl_().transform(rayEnd);
+		rayStart.mul(1 / rayStart.w);
+		rayEnd.mul(1 / rayEnd.w);
+
+		ray[0] = rayStart.x;
+		ray[1] = rayStart.y;
+		ray[2] = rayStart.z;
+		ray[3] = rayEnd.x;
+		ray[4] = rayEnd.y;
+		ray[5] = rayEnd.z;
+
+		if (ri == null) ri = new RayIntersection();
+
+		ri.startPick(ray, x, y, camera);
+		camToGroup.setIdentity();
+		return rayIntersect(scope, ray, ri, camToGroup);
 	}
 
-	//------------------------------------------------------------------
-	// Private methods
-	//------------------------------------------------------------------
+	public boolean pick(int scope, float ox, float oy, float oz, float dx, float dy, float dz, RayIntersection ri) {
+		if (dx == 0 && dy == 0 && dz == 0) {
+			throw new IllegalArgumentException();
+		}
 
-	/**
-	 * Adds a Java-side child link in this Group.
-	 */
-	private void linkChild(Node child) {
-		if (child == null) {
-			throw new Error(); // DEBUG
-		}
-		if (children == null) {
-			children = new Vector();
-		}
-		children.addElement(child);
-		child.setParent(this);
+		if (!isPickingEnabled()) return false;
+
+		float[] ray = new float[]{ox, oy, oz, ox + dx, oy + dy, oz + dz};
+
+		Transform transform = new Transform();
+
+		if (ri == null) ri = new RayIntersection();
+
+		ri.startPick(ray, 0, 0, null);
+		return rayIntersect(scope, ray, ri, transform);
 	}
 
-	/**
-	 * Removes a Java-side child link from this Group.
-	 */
-	private void detachChild(Node child) {
-		if (children != null) {
-			if (children.removeElement(child)) {
-				/* If no children remain, we delete the array to free some
-				 * memory. If a Group is frequently cleared and
-				 * re-populated, this should be covered by the free list
-				 * used by most VM implementations without causing
-				 * significant performance degradation. */
-				if (children.isEmpty()) {
-					children = null;
+	protected boolean rayIntersect(int scope, float[] ray, RayIntersection ri, Transform transform) {
+		boolean hit = false;
+		Transform childTransform = new Transform();
+		Transform tmpTrans = new Transform();
+
+		for (int i = 0; i < children.size(); ++i) {
+			Node child = (Node) children.get(i);
+
+			if (child.isPickingEnabled()) {
+				childTransform.set(transform);
+				child.getCompositeTransform(tmpTrans);
+				childTransform.postMultiply(tmpTrans);
+
+				if (child.rayIntersect(scope, ray, ri, childTransform)) {
+					hit = true;
 				}
-
-				child.setParent(null);
 			}
 		}
+
+		return hit;
 	}
 
-	// Native methods
-	private static native long _ctor(long hInterface);
+	protected void updateAlignReferences() {
+		super.updateAlignReferences();
 
-	private static native void _addChild(long handle, long hNode);
+		for (int var1 = 0; var1 < this.children.size(); ++var1) {
+			((Node) this.children.get(var1)).updateAlignReferences();
+		}
 
-	private static native void _removeChild(long handle, long hNode);
+	}
 
-	private static native int _getChildCount(long handle);
+	protected void clearAlignReferences() {
+		super.clearAlignReferences();
 
-	private static native long _getChild(long handle, int index);
+		for (int var1 = 0; var1 < this.children.size(); ++var1) {
+			((Node) this.children.get(var1)).clearAlignReferences();
+		}
 
-	private static native long _pick3D(long handle, int mask, float[] ray, float[] result);
-
-	private static native long _pick2D(long handle, int mask, float x, float y, long hCamera, float[] result);
+	}
 }

@@ -1,185 +1,130 @@
-/*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
-
 package javax.microedition.m3g;
 
+import kemulator.m3g.impl.MeshMorph;
+
 public class MorphingMesh extends Mesh {
-	//------------------------------------------------------------------
-	// Instance data
-	//------------------------------------------------------------------
+	private VertexBuffer[] aVertexBufferArray937;
+	private float[] weights;
+	public float m_baseWeight;
 
-	private VertexBuffer[] targets;
+	public MorphingMesh(VertexBuffer var1, VertexBuffer[] var2, IndexBuffer var3, Appearance var4) {
+		super(var1, var3, var4);
+		if (var2 == null) {
+			throw new NullPointerException();
+		} else {
+			this.aVertexBufferArray937 = new VertexBuffer[var2.length];
 
-	static private IndexBuffer[] tempTrianglesArray;
-	static private Appearance[] tempAppearanceArray;
+			for (int var5 = var2.length - 1; var5 >= 0; --var5) {
+				if (var2[var5] == null) {
+					throw new NullPointerException();
+				}
 
-	static private IndexBuffer tempTriangles;
-	static private Appearance tempAppearance;
+				if (var2[var5].getVertexCount() == 0) {
+					throw new IllegalArgumentException("targets is empty");
+				}
 
-	//------------------------------------------------------------------
-	// Constructor(s)
-	//------------------------------------------------------------------
+				this.aVertexBufferArray937[var5] = var2[var5];
+				this.addReference(this.aVertexBufferArray937[var5]);
+			}
 
-	public MorphingMesh(
-			VertexBuffer base,
-			VertexBuffer[] targets,
-			IndexBuffer triangles,
-			Appearance appearance) {
-		super(createHandle(base, targets, triangles, appearance));
-		this.targets = new VertexBuffer[targets.length];
-		System.arraycopy(targets, 0, this.targets, 0, targets.length);
-	}
-
-	public MorphingMesh(
-			VertexBuffer base,
-			VertexBuffer[] targets,
-			IndexBuffer[] triangles,
-			Appearance[] appearances) {
-		super(createHandle(base, targets, triangles, appearances));
-		this.targets = new VertexBuffer[targets.length];
-		System.arraycopy(targets, 0, this.targets, 0, targets.length);
-	}
-
-	/**
-	 */
-	MorphingMesh(long handle) {
-		super(handle);
-		targets = new VertexBuffer[_getMorphTargetCount(handle)];
-		for (int i = 0; i < targets.length; i++) {
-			targets[i] = (VertexBuffer) getInstance(_getMorphTarget(handle, i));
+			this.weights = new float[this.aVertexBufferArray937.length];
+			this.m_baseWeight = 1.0F;
 		}
 	}
 
-	public VertexBuffer getMorphTarget(int index) {
-		return targets[index];
+	public MorphingMesh(VertexBuffer var1, VertexBuffer[] var2, IndexBuffer[] var3, Appearance[] var4) {
+		super(var1, var3, var4);
+		this.aVertexBufferArray937 = new VertexBuffer[var2.length];
+
+		for (int var5 = var2.length - 1; var5 >= 0; --var5) {
+			if (var2[var5] == null) {
+				throw new NullPointerException();
+			}
+
+			if (var2[var5].getVertexCount() == 0) {
+				throw new IllegalArgumentException("targets is empty");
+			}
+
+			this.aVertexBufferArray937[var5] = var2[var5];
+			this.addReference(this.aVertexBufferArray937[var5]);
+		}
+
+		this.weights = new float[this.aVertexBufferArray937.length];
+		this.m_baseWeight = 1.0F;
+	}
+
+	protected Object3D duplicateObject() {
+		MorphingMesh var1;
+		(var1 = (MorphingMesh) super.duplicateObject()).weights = (float[]) this.weights.clone();
+		var1.aVertexBufferArray937 = (VertexBuffer[]) this.aVertexBufferArray937.clone();
+		return var1;
+	}
+
+	public VertexBuffer getMorphTarget(int var1) {
+		if (var1 >= 0 && var1 < this.aVertexBufferArray937.length) {
+			return this.aVertexBufferArray937[var1];
+		} else {
+			throw new IndexOutOfBoundsException();
+		}
 	}
 
 	public int getMorphTargetCount() {
-		return _getMorphTargetCount(handle);
+		return this.aVertexBufferArray937.length;
 	}
 
-	public void setWeights(float[] weights) {
-		_setWeights(handle, weights);
-	}
+	public void setWeights(float[] var1) {
+		if (var1 == null) {
+			throw new NullPointerException();
+		} else if (var1.length < this.weights.length) {
+			throw new IllegalArgumentException();
+		} else {
+			this.m_baseWeight = 1.0F;
 
-	public void getWeights(float[] weights) {
-		_getWeights(handle, weights);
-	}
-
-	//------------------------------------------------------------------
-	// Private methods
-	//------------------------------------------------------------------
-
-	static long createHandle(VertexBuffer base,
-							VertexBuffer[] targets,
-							IndexBuffer triangles,
-							Appearance appearance) {
-
-		tempTriangles = triangles;
-		tempAppearance = appearance;
-
-		verifyParams(base, triangles);
-
-		long[] hTargets = new long[targets.length];
-		long[] hTriangles;
-		long[] hAppearances = null;
-
-		for (int i = 0; i < targets.length; i++) {
-			hTargets[i] = targets[i].handle;
-		}
-
-		hTriangles = new long[1];
-		hTriangles[0] = triangles.handle;
-
-		if (appearance != null) {
-			hAppearances = new long[1];
-			hAppearances[0] = appearance.handle;
-		}
-
-		long ret = _ctor(Interface.getHandle(),
-				base.handle,
-				hTargets,
-				hTriangles,
-				hAppearances);
-
-		tempTriangles = null;
-		tempAppearance = null;
-
-		return ret;
-	}
-
-	static long createHandle(VertexBuffer base,
-							VertexBuffer[] targets,
-							IndexBuffer[] triangles,
-							Appearance[] appearances) {
-
-		tempTrianglesArray = triangles;
-		tempAppearanceArray = appearances;
-
-
-		verifyParams(base, triangles, appearances);
-
-		long[] hTargets = new long[targets.length];
-		long[] hTriangles;
-		long[] hAppearances = null;
-
-		for (int i = 0; i < targets.length; i++) {
-			hTargets[i] = targets[i].handle;
-		}
-
-		hTriangles = new long[triangles.length];
-
-		if (appearances != null) {
-			hAppearances = new long[appearances.length];
-		}
-
-		for (int i = 0; i < triangles.length; i++) {
-			hTriangles[i] = triangles[i].handle;
-
-			if (hAppearances != null) {
-				hAppearances[i] = appearances[i] != null ? appearances[i].handle : 0;
+			for (int var2 = 0; var2 < this.weights.length; ++var2) {
+				this.weights[var2] = var1[var2];
+				this.m_baseWeight -= var1[var2];
 			}
+
 		}
-
-		long ret = _ctor(Interface.getHandle(),
-				base.handle,
-				hTargets,
-				hTriangles,
-				hAppearances);
-
-		tempTrianglesArray = null;
-		tempAppearanceArray = null;
-
-		return ret;
-
 	}
 
-	// Native methods
-	private static native long _ctor(long hInstance,
-									long handle,
-									long[] hTargets,
-									long[] hTriangles,
-									long[] hAppearances);
+	public void getWeights(float[] var1) {
+		if (var1 == null) {
+			throw new NullPointerException();
+		} else if (var1.length < this.weights.length) {
+			throw new IllegalArgumentException();
+		} else {
+			System.arraycopy(this.weights, 0, var1, 0, this.weights.length);
+		}
+	}
 
-	private static native void _setWeights(long handle, float[] weights);
+	protected void updateProperty(int property, float[] values) {
+		switch (property) {
+			case 266:
+				this.m_baseWeight = 1.0F;
 
-	private static native void _getWeights(long handle, float[] weights);
+				for (int var3 = 0; var3 < this.weights.length; ++var3) {
+					if (var3 < values.length) {
+						this.weights[var3] = values[var3];
+						this.m_baseWeight -= values[var3];
+					} else {
+						this.weights[var3] = 0.0F;
+					}
+				}
 
-	private static native long _getMorphTarget(long handle, int index);
+				return;
+			default:
+				super.updateProperty(property, values);
+		}
+	}
 
-	private static native int _getMorphTargetCount(long handle);
+	protected boolean rayIntersect(int scope, float[] ray, RayIntersection ri, Transform transform) {
+		MeshMorph.getInstance().getMorphedVertexBuffer(this);
+		MeshMorph.getInstance().clearCache();
+		return super.rayIntersect(scope, ray, ri, transform, MeshMorph.getInstance().morphed);
+	}
+
+	public float getBaseWeight() {
+		return m_baseWeight;
+	}
 }

@@ -1,144 +1,137 @@
-/*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
-
 package javax.microedition.m3g;
 
-public class Background extends Object3D {
-	//------------------------------------------------------------------
-	// Static data
-	//------------------------------------------------------------------
+import kemulator.m3g.utils.G3DUtils;
 
+public class Background extends Object3D {
 	public static final int BORDER = 32;
 	public static final int REPEAT = 33;
-
-	//------------------------------------------------------------------
-	// Instance data
-	//------------------------------------------------------------------
-
-	private Image2D image;
-
-	//------------------------------------------------------------------
-	// Constructors
-	//------------------------------------------------------------------
+	private boolean colorClear = true;
+	private boolean depthClear = true;
+	private int color = 0;
+	private Image2D image = null;
+	private int imageModeX;
+	private int imageModeY;
+	private int cropX;
+	private int cropY;
+	private int cropWidth;
+	private int cropHeight;
 
 	public Background() {
-		super(_ctor(Interface.getHandle()));
+		this.imageModeX = this.imageModeY = 32;
 	}
 
-	/**
-	 */
-	Background(long handle) {
-		super(handle);
-		image = (Image2D) getInstance(_getImage(handle));
-	}
-
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
-
-	public void setColor(int ARGB) {
-		_setColor(handle, ARGB);
-	}
-
-	public int getColor() {
-		return _getColor(handle);
-	}
-
-	public void setImage(Image2D image) {
-		_setImage(handle, image != null ? image.handle : 0);
-		this.image = image;
-	}
-
-	public Image2D getImage() {
-		return image;
-	}
-
-	public void setImageMode(int modeX, int modeY) {
-		_setImageMode(handle, modeX, modeY);
-	}
-
-	public int getImageModeX() {
-		return _getImageMode(handle, Defs.GET_MODEX);
-	}
-
-	public int getImageModeY() {
-		return _getImageMode(handle, Defs.GET_MODEY);
-	}
-
-	public void setColorClearEnable(boolean enable) {
-		_enable(handle, Defs.SETGET_COLORCLEAR, enable);
-	}
-
-	public void setDepthClearEnable(boolean enable) {
-		_enable(handle, Defs.SETGET_DEPTHCLEAR, enable);
+	public void setColorClearEnable(boolean var1) {
+		this.colorClear = var1;
 	}
 
 	public boolean isColorClearEnabled() {
-		return _isEnabled(handle, Defs.SETGET_COLORCLEAR);
+		return this.colorClear;
+	}
+
+	public void setDepthClearEnable(boolean var1) {
+		this.depthClear = var1;
 	}
 
 	public boolean isDepthClearEnabled() {
-		return _isEnabled(handle, Defs.SETGET_DEPTHCLEAR);
+		return this.depthClear;
 	}
 
-	public void setCrop(int cropX, int cropY, int width, int height) {
-		_setCrop(handle, cropX, cropY, width, height);
+	public void setColor(int var1) {
+		this.color = var1;
+	}
+
+	public int getColor() {
+		return this.color;
+	}
+
+	public void setImage(Image2D var1) {
+		if (var1 != null && var1.getFormat() != Image2D.RGB && var1.getFormat() != Image2D.RGBA) {
+			throw new IllegalArgumentException();
+		} else {
+			this.removeReference(this.image);
+			this.image = var1;
+			this.addReference(this.image);
+			if (var1 != null) {
+				this.cropX = 0;
+				this.cropY = 0;
+				this.cropWidth = var1.getWidth();
+				this.cropHeight = var1.getHeight();
+			}
+
+		}
+	}
+
+	public Image2D getImage() {
+		return this.image;
+	}
+
+	public void setImageMode(int var1, int var2) {
+		if (var1 != 32 && var1 != 33) {
+			throw new IllegalArgumentException();
+		} else if (var2 != 32 && var2 != 33) {
+			throw new IllegalArgumentException();
+		} else {
+			this.imageModeX = var1;
+			this.imageModeY = var2;
+		}
+	}
+
+	public int getImageModeX() {
+		return this.imageModeX;
+	}
+
+	public int getImageModeY() {
+		return this.imageModeY;
+	}
+
+	public void setCrop(int var1, int var2, int var3, int var4) {
+		if (var3 >= 0 && var4 >= 0) {
+			this.cropX = var1;
+			this.cropY = var2;
+			this.cropWidth = var3;
+			this.cropHeight = var4;
+		} else {
+			throw new IllegalArgumentException();
+		}
 	}
 
 	public int getCropX() {
-		return _getCrop(handle, Defs.GET_CROPX);
+		return this.cropX;
 	}
 
 	public int getCropY() {
-		return _getCrop(handle, Defs.GET_CROPY);
+		return this.cropY;
 	}
 
 	public int getCropWidth() {
-		return _getCrop(handle, Defs.GET_CROPWIDTH);
+		return this.cropWidth;
 	}
 
 	public int getCropHeight() {
-		return _getCrop(handle, Defs.GET_CROPHEIGHT);
+		return this.cropHeight;
 	}
 
-	//------------------------------------------------------------------
-	// Private methods
-	//------------------------------------------------------------------
+	protected void updateProperty(int var1, float[] var2) {
+		switch (var1) {
+			case 256:
+				this.color = this.color & 16777215 | G3DUtils.getIntColor(var2) & -16777216;
+				return;
+			case 257:
+			default:
+				super.updateProperty(var1, var2);
+				break;
+			case 258:
+				this.color = this.color & -16777216 | G3DUtils.getIntColor(var2) & 16777215;
+				return;
+			case 259:
+				this.cropX = G3DUtils.round(var2[0]);
+				this.cropY = G3DUtils.round(var2[1]);
+				if (var2.length > 2) {
+					this.cropWidth = Math.max(G3DUtils.round(var2[2]), 0);
+					this.cropHeight = Math.max(G3DUtils.round(var2[3]), 0);
+					return;
+				}
+		}
 
-	// Native functions
-	private static native long _ctor(long hInterface);
-
-	private static native void _setColor(long handle, int ARGB);
-
-	private static native int _getColor(long handle);
-
-	private static native void _setImage(long handle, long hImage);
-
-	private static native long _getImage(long handle);
-
-	private static native void _setImageMode(long handle, int modeX, int modeY);
-
-	private static native int _getImageMode(long handle, int which);
-
-	private static native void _enable(long handle, int which, boolean enable);
-
-	private static native boolean _isEnabled(long handle, int which);
-
-	private static native void _setCrop(long handle, int cropX, int cropY, int width, int height);
-
-	private static native int _getCrop(long handle, int which);
+	}
 }

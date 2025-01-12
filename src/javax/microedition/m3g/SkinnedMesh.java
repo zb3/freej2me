@@ -1,189 +1,191 @@
-/*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
-
 package javax.microedition.m3g;
 
+import java.util.Hashtable;
+import java.util.Vector;
+
+import kemulator.m3g.gles2.Emulator3D;
+import kemulator.m3g.impl.BoneTransform;
+import kemulator.m3g.impl.MeshMorph;
+
 public class SkinnedMesh extends Mesh {
-	//------------------------------------------------------------------
-	// Instance data
-	//------------------------------------------------------------------
+	Group skeleton;
 
-	private Group skeleton;
+	public Vector<BoneTransform> boneTransList;
+	public int[] vtxBones; //0 - no bone, 1+ - bone from list
+	public int[] vtxWeights;
 
-	static private IndexBuffer[] tempTrianglesArray;
-	static private Appearance[] tempAppearanceArray;
+	public SkinnedMesh(VertexBuffer vertices, IndexBuffer submesh, Appearance appearance, Group skeleton) {
+		super(vertices, submesh, appearance);
+		if (skeleton == null) {
+			throw new NullPointerException();
+		} else if (skeleton instanceof World || skeleton.getParent() != null) {
+			throw new IllegalArgumentException();
+		}
 
-	static private IndexBuffer tempTriangles;
-	static private Appearance tempAppearance;
-
-
-	//------------------------------------------------------------------
-	// Constructor(s)
-	//------------------------------------------------------------------
-
-	public SkinnedMesh(VertexBuffer vertices,
-					   IndexBuffer[] triangles,
-					   Appearance[] appearances,
-					   Group skeleton) {
-		super(createHandle(vertices, triangles, appearances, skeleton));
-		skeleton.setParent(this);
 		this.skeleton = skeleton;
+		this.skeleton.parent = this;
+		this.addReference(this.skeleton);
+		this.boneTransList = new Vector();
+
+		vtxBones = new int[vertices.getVertexCount() * Emulator3D.MaxTransformsPerVertex];
+		vtxWeights = new int[vertices.getVertexCount() * Emulator3D.MaxTransformsPerVertex];
 	}
 
-	public SkinnedMesh(VertexBuffer vertices,
-					   IndexBuffer triangles,
-					   Appearance appearance,
-					   Group skeleton) {
-		super(createHandle(vertices, triangles, appearance, skeleton));
-		skeleton.setParent(this);
+	public SkinnedMesh(VertexBuffer vertices, IndexBuffer[] submeshes, Appearance[] appearances, Group skeleton) {
+		super(vertices, submeshes, appearances);
+		if (skeleton == null) {
+			throw new NullPointerException();
+		} else if (skeleton instanceof World || skeleton.getParent() != null) {
+			throw new IllegalArgumentException();
+		}
+
 		this.skeleton = skeleton;
-	}
+		this.skeleton.parent = this;
+		this.addReference(this.skeleton);
+		this.boneTransList = new Vector();
 
-	/**
-	 */
-	SkinnedMesh(long handle) {
-		super(handle);
-		skeleton = (Group) getInstance(_getSkeleton(handle));
-	}
-
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
-
-	public void addTransform(Node bone,
-							 int weight,
-							 int firstVertex,
-							 int numVertices) {
-		_addTransform(handle,
-				bone != null ? bone.handle : 0,
-				weight,
-				firstVertex,
-				numVertices);
+		vtxBones = new int[vertices.getVertexCount() * Emulator3D.MaxTransformsPerVertex];
+		vtxWeights = new int[vertices.getVertexCount() * Emulator3D.MaxTransformsPerVertex];
 	}
 
 	public Group getSkeleton() {
-		return skeleton;
+		return this.skeleton;
 	}
 
-	// M3G 1.1 Maintenance release getters
+	protected Object3D duplicateObject() {
+		SkinnedMesh clone = (SkinnedMesh) super.duplicateObject();
 
-	public void getBoneTransform(Node bone, Transform transform) {
-		_getBoneTransform(handle, bone.handle, transform.matrix);
-	}
+		Group newSkeleton = (Group) clone.getSkeleton().duplicateObject();
+		clone.removeReference(clone.skeleton);
+		clone.addReference(newSkeleton);
+		clone.skeleton = newSkeleton;
+		newSkeleton.parent = clone;
 
-	public int getBoneVertices(Node bone, int[] indices, float[] weights) {
-		return _getBoneVertices(handle, bone.handle, indices, weights);
-	}
+		Hashtable<Node, Node> oldToNewBone = new Hashtable();
+		getOldToNewBonesMapping(oldToNewBone, skeleton, newSkeleton);
 
-	//------------------------------------------------------------------
-	// Private methods
-	//------------------------------------------------------------------
+		clone.boneTransList = new Vector();
 
-	static long createHandle(VertexBuffer vertices,
-							IndexBuffer[] triangles,
-							Appearance[] appearances,
-							Group skeleton) {
+		for (int i = 0; i < boneTransList.size(); i++) {
+			BoneTransform oldBoneTrans = boneTransList.elementAt(i);
+			BoneTransform newBoneTrans = new BoneTransform(oldToNewBone.get(oldBoneTrans.bone), oldBoneTrans.toBoneTrans);
 
-		tempTrianglesArray = triangles;
-		tempAppearanceArray = appearances;
-
-		verifyParams(vertices, triangles, appearances);
-
-		if (skeleton == null) {
-			throw new NullPointerException();
+			clone.boneTransList.add(newBoneTrans);
 		}
 
-		if (skeleton.getParent() != null || skeleton instanceof World) {
-			throw new IllegalArgumentException();
-		}
+		clone.vtxBones = vtxBones.clone();
+		clone.vtxWeights = vtxWeights.clone();
 
-		long[] hTri = new long[triangles.length];
-		long[] hApp = new long[triangles.length];
-		for (int i = 0; i < triangles.length; i++) {
-			hTri[i] = triangles[i].handle;
-			if (appearances != null && i < appearances.length) {
-				hApp[i] = appearances[i] != null ? appearances[i].handle : 0;
+		return clone;
+	}
+
+	private void getOldToNewBonesMapping(Hashtable map, Node oldNode, Node newNode) {
+		map.put(oldNode, newNode);
+
+		if (oldNode instanceof Group) {
+			Group oldGroup = (Group) oldNode;
+			Group newGroup = (Group) newNode;
+
+			for (int i = 0; i < oldGroup.getChildCount(); i++) {
+				Node oldChild = oldGroup.getChild(i);
+				Node newChild = newGroup.getChild(i);
+
+				getOldToNewBonesMapping(map, oldChild, newChild);
 			}
+		} else if (oldNode instanceof SkinnedMesh) {
+			Group oldSkeleton = ((SkinnedMesh) oldNode).getSkeleton();
+			Group newSkeleton = ((SkinnedMesh) newNode).getSkeleton();
+
+			getOldToNewBonesMapping(map, oldSkeleton, newSkeleton);
 		}
-		long ret = _ctor(Interface.getHandle(),
-				vertices.handle,
-				hTri,
-				hApp,
-				skeleton.handle);
-
-		tempTrianglesArray = triangles;
-		tempAppearanceArray = appearances;
-
-		return ret;
 	}
 
-	static long createHandle(VertexBuffer vertices,
-							IndexBuffer triangles,
-							Appearance appearance,
-							Group skeleton) {
-
-		tempTriangles = triangles;
-		tempAppearance = appearance;
-
-		verifyParams(vertices, triangles);
-
-		if (skeleton == null) {
+	public void addTransform(Node bone, int weight, int firstVertex, int numVertices) {
+		if (bone == null) {
 			throw new NullPointerException();
-		}
-		if (skeleton.getParent() != null || skeleton instanceof World) {
+		} else if (bone != skeleton && !bone.isDescendantOf(skeleton)) {
+			throw new IllegalArgumentException();
+		} else if (weight > 0 && numVertices > 0) {
+			if (firstVertex < 0 && firstVertex + numVertices > 65535) {
+				throw new IndexOutOfBoundsException();
+			}
+
+			BoneTransform boneTrans = null;
+			int boneTransId = -1;
+
+			for (int i = 0; i < boneTransList.size(); i++) {
+				BoneTransform tmpBoneTrans = boneTransList.elementAt(i);
+
+				if (tmpBoneTrans.bone == bone) {
+					boneTrans = tmpBoneTrans;
+					boneTransId = i;
+					break;
+				}
+			}
+
+			if (boneTrans == null) {
+				Transform toBoneTrans = new Transform();
+				if (!getTransformTo(bone, toBoneTrans)) {
+					throw new ArithmeticException();
+				}
+
+				boneTrans = new BoneTransform(bone, toBoneTrans);
+				boneTransList.add(boneTrans);
+				boneTransId = boneTransList.size() - 1;
+			}
+
+			for (int i = firstVertex; i < firstVertex + numVertices; i++) {
+				//find bone slot with minimal weight
+				int minWeight = Integer.MAX_VALUE;
+				int selSlot = -1;
+
+				for (int slot = 0; slot < Emulator3D.MaxTransformsPerVertex; slot++) {
+					int slotWeight = vtxWeights[i * Emulator3D.MaxTransformsPerVertex + slot];
+
+					if (slotWeight < minWeight) {
+						minWeight = slotWeight;
+						selSlot = slot;
+
+						if (slotWeight == 0) break;
+					}
+				}
+
+				//selected slot weight should be less than current bone weight
+				if (minWeight > weight) selSlot = -1;
+
+				if (selSlot != -1) {
+					vtxBones[i * Emulator3D.MaxTransformsPerVertex + selSlot] = boneTransId + 1;
+					vtxWeights[i * Emulator3D.MaxTransformsPerVertex + selSlot] = weight;
+				}
+			}
+
+			bone.setSkinnedMeshBone();
+		} else {
 			throw new IllegalArgumentException();
 		}
-		long[] hTri = {triangles.handle};
-		long[] hApp = {appearance != null ? appearance.handle : 0};
-		long ret = _ctor(Interface.getHandle(),
-				vertices.handle,
-				hTri,
-				hApp,
-				skeleton.handle);
-
-		tempTriangles = null;
-		tempAppearance = null;
-
-		return ret;
 	}
 
-	// Native methods
-	private native static long _ctor(long hInstance,
-									long hVertices,
-									long[] hTriangles,
-									long[] hAppearances,
-									long hSkeleton);
+	protected void alignment(Node reference) {
+		super.alignment(reference);
+		skeleton.alignment(reference);
+	}
 
-	private native static void _addTransform(long handle,
-											 long hBone,
-											 int weight,
-											 int firstVertex,
-											 int numVertices);
+	protected boolean rayIntersect(int scope, float[] ray, RayIntersection ri, Transform transform) {
+		MeshMorph.getInstance().getMorphedVertexBuffer(this);
+		MeshMorph.getInstance().clearCache();
+		return super.rayIntersect(scope, ray, ri, transform, MeshMorph.getInstance().morphed) ||
+				skeleton.rayIntersect(scope, ray, ri, transform);
+	}
 
-	private native static long _getSkeleton(long handle);
+	public Vector getTransforms() {
+		return boneTransList;
+	}
 
-	// M3G 1.1 Maintenance release getters
-	private native static void _getBoneTransform(long handle,
-												 long hBone,
-												 byte[] transform);
+	public int[] getVerticesBones() {
+		return vtxBones;
+	}
 
-	private native static int _getBoneVertices(long handle,
-											   long hBone,
-											   int[] indices,
-											   float[] weights);
-
+	public int[] getVerticesWeights() {
+		return vtxWeights;
+	}
 }

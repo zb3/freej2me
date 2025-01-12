@@ -1,110 +1,191 @@
-/*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
-
 package javax.microedition.m3g;
 
+import kemulator.m3g.gles2.Emulator3D;
+import kemulator.m3g.utils.G3DUtils;
+import kemulator.m3g.utils.Vector4f;
+
 public class VertexBuffer extends Object3D {
-	//------------------------------------------------------------------
-	// Instance data
-	//------------------------------------------------------------------
 
-	private VertexArray positions;
-	private VertexArray normals;
-	private VertexArray colors;
-	private VertexArray[] texCoords;
+	private int vertexCount = 0;
+	private VertexArray positions = null;
+	private VertexArray normals = null;
+	private VertexArray[] uvms;
+	private VertexArray colors = null;
 
-	//------------------------------------------------------------------
-	// Constructors
-	//------------------------------------------------------------------
+	private int defaultColor = -1;
+
+	private float[] posScaleBias;
+	private float[][] uvScaleBias;
+
+	private int arraysCount = 0;
 
 	public VertexBuffer() {
-		super(_ctor(Interface.getHandle()));
+		this.uvms = new VertexArray[Emulator3D.NumTextureUnits];
+		this.posScaleBias = new float[]{1, 0, 0, 0};
+		this.uvScaleBias = new float[Emulator3D.NumTextureUnits][4];
 	}
 
-	/**
-	 */
-	VertexBuffer(long handle) {
-		super(handle);
+	protected Object3D duplicateObject() {
+		VertexBuffer clone = (VertexBuffer) super.duplicateObject();
+		clone.uvms = (VertexArray[]) uvms.clone();
+		clone.posScaleBias = (float[]) posScaleBias.clone();
+		clone.uvScaleBias = new float[Emulator3D.NumTextureUnits][4];
 
-		positions = (VertexArray) getInstance(_getArray(handle, Defs.GET_POSITIONS, null));
-		normals = (VertexArray) getInstance(_getArray(handle, Defs.GET_NORMALS, null));
-		colors = (VertexArray) getInstance(_getArray(handle, Defs.GET_COLORS, null));
-
-		texCoords = new VertexArray[Defs.NUM_TEXTURE_UNITS];
-		for (int i = 0; i < Defs.NUM_TEXTURE_UNITS; ++i) {
-			texCoords[i] =
-					(VertexArray) getInstance(_getArray(handle, Defs.GET_TEXCOORDS0 + i, null));
+		for (int i = 0; i < Emulator3D.NumTextureUnits; ++i) {
+			clone.uvScaleBias[i] = (float[]) uvScaleBias[i].clone();
 		}
-	}
 
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
+		return clone;
+	}
 
 	public int getVertexCount() {
-		return _getVertexCount(handle);
+		return vertexCount;
 	}
 
-	public void setPositions(VertexArray positions, float scale, float[] bias) {
-		_setVertices(handle,
-				(positions != null) ? positions.handle : 0,
-				scale,
-				bias);
-		this.positions = positions;
-	}
+	public void setPositions(VertexArray newPoses, float scale, float[] bias) {
+		if (newPoses != null && newPoses.getComponentCount() != 3) {
+			throw new IllegalArgumentException();
+		} else if (newPoses != null && bias != null && bias.length < 3) {
+			throw new IllegalArgumentException();
+		} else if (newPoses != null && vertexCount != 0 && newPoses.getVertexCount() != vertexCount) {
+			throw new IllegalArgumentException();
+		} else {
+			removeReference(positions);
 
-	public void setTexCoords(int index, VertexArray texCoords, float scale, float[] bias) {
-		_setTexCoords(handle,
-				index,
-				texCoords != null ? texCoords.handle : 0,
-				scale,
-				bias);
+			if (newPoses != null) {
+				if (positions == null) arraysCount++;
 
-		if (this.texCoords == null) {
-			this.texCoords = new VertexArray[Defs.NUM_TEXTURE_UNITS];
+				vertexCount = newPoses.getVertexCount();
+				positions = newPoses;
+
+				posScaleBias[0] = scale;
+				if (bias != null) {
+					System.arraycopy(bias, 0, posScaleBias, 1, 3);
+				} else {
+					posScaleBias[1] = 0.0F;
+					posScaleBias[2] = 0.0F;
+					posScaleBias[3] = 0.0F;
+				}
+			} else if (positions != null) {
+				positions = null;
+				arraysCount--;
+				vertexCount = arraysCount > 0 ? vertexCount : 0;
+			}
+
+			addReference(positions);
 		}
-		this.texCoords[index] = texCoords;
 	}
 
-	public void setNormals(VertexArray normals) {
-		_setNormals(handle, normals != null ? normals.handle : 0);
-		this.normals = normals;
+	public void setTexCoords(int index, VertexArray newUvm, float scale, float[] bias) {
+		if (newUvm != null && newUvm.getComponentCount() != 2 && newUvm.getComponentCount() != 3) {
+			throw new IllegalArgumentException();
+		} else if (newUvm != null && vertexCount != 0 && newUvm.getVertexCount() != vertexCount) {
+			throw new IllegalArgumentException();
+		} else if (newUvm != null && bias != null && bias.length < newUvm.getComponentCount()) {
+			throw new IllegalArgumentException();
+		} else if (index >= 0 && index < Emulator3D.NumTextureUnits) {
+			removeReference(uvms[index]);
+
+			if (newUvm != null) {
+				if (uvms[index] == null) arraysCount++;
+
+				vertexCount = newUvm.getVertexCount();
+				uvms[index] = newUvm;
+
+				uvScaleBias[index][0] = scale;
+				uvScaleBias[index][1] = 0.0F;
+				uvScaleBias[index][2] = 0.0F;
+				uvScaleBias[index][3] = 0.0F;
+				if (bias != null) {
+					System.arraycopy(bias, 0, uvScaleBias[index], 1, newUvm.getComponentCount());
+				}
+			} else if (uvms[index] != null) {
+				uvms[index] = null;
+				arraysCount--;
+				vertexCount = arraysCount > 0 ? vertexCount : 0;
+			}
+
+			addReference(uvms[index]);
+		} else {
+			throw new IndexOutOfBoundsException();
+		}
 	}
 
-	public void setColors(VertexArray colors) {
-		_setColors(handle, colors != null ? colors.handle : 0);
-		this.colors = colors;
+	public void setNormals(VertexArray newNorms) {
+		if (newNorms != null && newNorms.getComponentCount() != 3) {
+			throw new IllegalArgumentException();
+		} else if (newNorms != null && vertexCount != 0 && newNorms.getVertexCount() != vertexCount) {
+			throw new IllegalArgumentException();
+		} else {
+			removeReference(normals);
+
+			if (newNorms != null) {
+				if (normals == null) arraysCount++;
+
+				vertexCount = newNorms.getVertexCount();
+				normals = newNorms;
+			} else if (normals != null) {
+				normals = null;
+				arraysCount--;
+				vertexCount = arraysCount > 0 ? vertexCount : 0;
+			}
+
+			addReference(normals);
+		}
+	}
+
+	public void setColors(VertexArray newCols) {
+		if (newCols != null && newCols.getComponentType() != 1) {
+			throw new IllegalArgumentException();
+		} else if (newCols != null && newCols.getComponentCount() != 3 && newCols.getComponentCount() != 4) {
+			throw new IllegalArgumentException();
+		} else if (newCols != null && vertexCount != 0 && newCols.getVertexCount() != vertexCount) {
+			throw new IllegalArgumentException();
+		} else {
+			removeReference(colors);
+
+			if (newCols != null) {
+				if (colors == null) arraysCount++;
+
+				vertexCount = newCols.getVertexCount();
+				colors = newCols;
+			} else if (colors != null) {
+				colors = null;
+				arraysCount--;
+				vertexCount = arraysCount > 0 ? vertexCount : 0;
+			}
+
+			addReference(colors);
+		}
 	}
 
 	public VertexArray getPositions(float[] scaleBias) {
-		/* Get scale and bias with native getter */
-		_getArray(handle, Defs.GET_POSITIONS, scaleBias);
-		return positions;
+		if (scaleBias != null && scaleBias.length < 4) {
+			throw new IllegalArgumentException();
+		} else {
+			if (positions != null && scaleBias != null) {
+				System.arraycopy(posScaleBias, 0, scaleBias, 0, 4);
+			}
+
+			return positions;
+		}
 	}
 
 	public VertexArray getTexCoords(int index, float[] scaleBias) {
-		/* Index has to be checked here due to the native getter input params */
-		if (index < 0 || index >= Defs.NUM_TEXTURE_UNITS) {
+		if (index >= 0 && index < Emulator3D.NumTextureUnits) {
+
+			if (uvms[index] != null && scaleBias != null) {
+				if (scaleBias.length < uvms[index].getComponentCount() + 1) {
+					throw new IllegalArgumentException();
+				}
+
+				System.arraycopy(uvScaleBias[index], 0, scaleBias, 0, uvms[index].getComponentCount() + 1);
+			}
+
+			return uvms[index];
+		} else {
 			throw new IndexOutOfBoundsException();
 		}
-
-		/* Get scale and bias with native getter */
-		_getArray(handle, Defs.GET_TEXCOORDS0 + index, scaleBias);
-		return texCoords != null ? texCoords[index] : null;
 	}
 
 	public VertexArray getNormals() {
@@ -115,34 +196,120 @@ public class VertexBuffer extends Object3D {
 		return colors;
 	}
 
-	public void setDefaultColor(int ARGB) {
-		_setDefaultColor(handle, ARGB);
+	public void setDefaultColor(int col) {
+		defaultColor = col;
 	}
 
 	public int getDefaultColor() {
-		return _getDefaultColor(handle);
+		return defaultColor;
 	}
 
-	//------------------------------------------------------------------
-	// Private methods
-	//------------------------------------------------------------------
+	protected void updateProperty(int property, float[] value) {
+		switch (property) {
+			case AnimationTrack.ALPHA:
+				defaultColor &= 0xffffff;
+				defaultColor |= G3DUtils.getIntColor(value) & 0xff000000;
+				return;
+			case AnimationTrack.COLOR:
+				defaultColor &= 0xff000000;
+				defaultColor |= G3DUtils.getIntColor(value) & 0xffffff;
+				return;
+			default:
+				super.updateProperty(property, value);
+		}
+	}
 
-	// Native methods
-	private static native long _ctor(long hInterface);
+	protected boolean getNormalVertex(int vertexIndex, Vector4f vec) {
+		if (normals == null) {
+			return false;
+		} else {
+			float nx, ny, nz;
 
-	private static native void _setColors(long hBuffer, long hArray);
+			if (normals.getComponentType() == 1) {
+				byte[] tmpVec = new byte[3];
+				normals.get(vertexIndex, 1, tmpVec);
 
-	private static native void _setNormals(long hBuffer, long hArray);
+				nx = tmpVec[0];
+				ny = tmpVec[1];
+				nz = tmpVec[2];
+			} else {
+				short[] tmpVec = new short[3];
+				normals.get(vertexIndex, 1, tmpVec);
 
-	private static native void _setTexCoords(long hBuffer, int unit, long hArray, float scale, float[] bias);
+				nx = tmpVec[0];
+				ny = tmpVec[1];
+				nz = tmpVec[2];
+			}
 
-	private static native void _setVertices(long hBuffer, long hArray, float scale, float[] bias);
+			vec.set(nx, ny, nz, 1.0F);
+			return true;
+		}
+	}
 
-	private static native void _setDefaultColor(long hBuffer, int ARGB);
+	protected void getVertex(int vertexIndex, Vector4f vec) {
+		float x, y, z;
 
-	private static native int _getDefaultColor(long hBuffer);
+		if (this.positions.getComponentType() == 1) {
+			byte[] tmpVec = new byte[3];
+			positions.get(vertexIndex, 1, tmpVec);
 
-	private static native long _getArray(long hBuffer, int which, float[] scaleBias);
+			x = tmpVec[0];
+			y = tmpVec[1];
+			z = tmpVec[2];
+		} else {
+			short[] tmpVec = new short[3];
+			positions.get(vertexIndex, 1, tmpVec);
 
-	private static native int _getVertexCount(long hBuffer);
+			x = tmpVec[0];
+			y = tmpVec[1];
+			z = tmpVec[2];
+		}
+
+		x *= posScaleBias[0];
+		y *= posScaleBias[0];
+		z *= posScaleBias[0];
+
+		x += posScaleBias[1];
+		y += posScaleBias[2];
+		z += posScaleBias[3];
+
+		vec.set(x, y, z, 1.0F);
+	}
+
+	protected boolean getTexVertex(int vertexIndex, int texSlot, Vector4f vec) {
+		if (uvms[texSlot] == null) {
+			return false;
+		} else {
+			float x, y, z;
+
+			int componentCount = this.uvms[texSlot].getComponentCount();
+
+			if (uvms[texSlot].getComponentType() == 1) {
+				byte[] tmpVec = new byte[componentCount];
+				uvms[texSlot].get(vertexIndex, 1, tmpVec);
+
+				x = tmpVec[0];
+				y = tmpVec[1];
+				z = componentCount == 3 ? (float) tmpVec[2] : 0.0F;
+			} else {
+				short[] tmpVec = new short[componentCount];
+				uvms[texSlot].get(vertexIndex, 1, tmpVec);
+
+				x = tmpVec[0];
+				y = tmpVec[1];
+				z = componentCount == 3 ? (float) tmpVec[2] : 0.0F;
+			}
+
+			x *= uvScaleBias[texSlot][0];
+			y *= uvScaleBias[texSlot][0];
+			z *= uvScaleBias[texSlot][0];
+
+			x += uvScaleBias[texSlot][1];
+			y += uvScaleBias[texSlot][2];
+			z += uvScaleBias[texSlot][3];
+
+			vec.set(x, y, z, 1.0F);
+			return true;
+		}
+	}
 }

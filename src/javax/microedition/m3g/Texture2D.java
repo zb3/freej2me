@@ -1,27 +1,9 @@
-/*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
-
 package javax.microedition.m3g;
 
-public class Texture2D extends Transformable {
-	//------------------------------------------------------------------
-	// Static data
-	//------------------------------------------------------------------
+import kemulator.m3g.gles2.Emulator3D;
+import kemulator.m3g.utils.G3DUtils;
 
+public class Texture2D extends Transformable {
 	public static final int FILTER_BASE_LEVEL = 208;
 	public static final int FILTER_LINEAR = 209;
 	public static final int FILTER_NEAREST = 210;
@@ -32,109 +14,117 @@ public class Texture2D extends Transformable {
 	public static final int FUNC_REPLACE = 228;
 	public static final int WRAP_CLAMP = 240;
 	public static final int WRAP_REPEAT = 241;
-
-	//------------------------------------------------------------------
-	// Instance data
-	//------------------------------------------------------------------
-
 	private Image2D image;
+	private int wrappingS;
+	private int wrappingT;
+	private int levelFilter;
+	private int imageFilter;
+	private int blending;
+	private int blendColor;
 
-	//------------------------------------------------------------------
-	// Constructor(s)
-	//------------------------------------------------------------------
-
-	public Texture2D(final Image2D image) {
-		super(_ctor(Interface.getHandle(), image != null ? image.handle : 0));
-		this.image = image;
+	public Texture2D(Image2D var1) {
+		this.setImage(var1);
+		this.wrappingS = WRAP_REPEAT;
+		this.wrappingT = WRAP_REPEAT;
+		this.levelFilter = FILTER_BASE_LEVEL;
+		this.imageFilter = FILTER_NEAREST;
+		this.blending = FUNC_MODULATE;
+		this.blendColor = 0;
 	}
 
-	/**
-	 */
-	Texture2D(long handle) {
-		super(handle);
-		image = (Image2D) getInstance(_getImage(handle));
+	private static boolean isPowerOfTwo(int var0) {
+		return (var0 & var0 - 1) == 0;
 	}
 
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
-
-	public void setImage(final Image2D image) {
-		_setImage(handle, image != null ? image.handle : 0);
-		this.image = image;
+	public void setImage(Image2D var1) {
+		if (var1 == null) {
+			throw new NullPointerException();
+		} else {
+			int var2 = var1.getWidth();
+			int var3 = var1.getHeight();
+			if (isPowerOfTwo(var2) && isPowerOfTwo(var3)) {
+				if (var2 <= Emulator3D.MaxTextureDimension && var3 <= Emulator3D.MaxTextureDimension) {
+					this.removeReference(this.image);
+					this.image = var1;
+					this.addReference(this.image);
+				} else {
+					throw new IllegalArgumentException("the width or height of image exceeds the MaxTextureDimension :" + Emulator3D.MaxTextureDimension);
+				}
+			} else {
+				throw new IllegalArgumentException("the width or height of image is not a positive power of two");
+			}
+		}
 	}
 
 	public Image2D getImage() {
-		return image;
+		return this.image;
 	}
 
-	public void setFiltering(int levelFilter, int imageFilter) {
-		_setFiltering(handle, levelFilter, imageFilter);
-	}
-
-	public void setWrapping(int wrapS, int wrapT) {
-		_setWrapping(handle, wrapS, wrapT);
-	}
-
-	public int getWrappingS() {
-		return _getWrappingS(handle);
-	}
-
-	public int getWrappingT() {
-		return _getWrappingT(handle);
-	}
-
-	public void setBlending(int func) {
-		_setBlending(handle, func);
-	}
-
-	public int getBlending() {
-		return _getBlending(handle);
-	}
-
-	public void setBlendColor(int RGB) {
-		_setBlendColor(handle, RGB);
-	}
-
-	public int getBlendColor() {
-		return _getBlendColor(handle);
-	}
-
-	// M3G 1.1 Maintenance release getters
-
-	public int getImageFilter() {
-		return _getImageFilter(handle);
+	public void setFiltering(int var1, int var2) {
+		if (var1 != 208 && var1 != 209 && var1 != 210) {
+			throw new IllegalArgumentException();
+		} else if (var2 != 209 && var2 != 210) {
+			throw new IllegalArgumentException();
+		} else {
+			this.levelFilter = var1;
+			this.imageFilter = var2;
+		}
 	}
 
 	public int getLevelFilter() {
-		return _getLevelFilter(handle);
+		return this.levelFilter;
 	}
 
-	// Native methods
-	private native static long _ctor(long hInterface, long imageHandle);
+	public int getImageFilter() {
+		return this.imageFilter;
+	}
 
-	private native static void _setImage(long handle, long imageHandle);
+	public void setWrapping(int var1, int var2) {
+		if (var1 != 240 && var1 != 241) {
+			throw new IllegalArgumentException();
+		} else if (var2 != 240 && var2 != 241) {
+			throw new IllegalArgumentException();
+		} else {
+			this.wrappingS = var1;
+			this.wrappingT = var2;
+		}
+	}
 
-	private native static long _getImage(long handle);
+	public int getWrappingS() {
+		return this.wrappingS;
+	}
 
-	private native static void _setFiltering(long handle, int levelFilter, int imageFilter);
+	public int getWrappingT() {
+		return this.wrappingT;
+	}
 
-	private native static void _setWrapping(long handle, int wrapS, int wrapT);
+	public void setBlending(int var1) {
+		if (var1 >= 224 && var1 <= 228) {
+			this.blending = var1;
+		} else {
+			throw new IllegalArgumentException();
+		}
+	}
 
-	private native static int _getWrappingS(long handle);
+	public int getBlending() {
+		return this.blending;
+	}
 
-	private native static int _getWrappingT(long handle);
+	public void setBlendColor(int var1) {
+		this.blendColor = var1;
+	}
 
-	private native static void _setBlending(long handle, int func);
+	public int getBlendColor() {
+		return this.blendColor;
+	}
 
-	private native static int _getBlending(long handle);
-
-	private native static void _setBlendColor(long handle, int RGB);
-
-	private native static int _getBlendColor(long handle);
-
-	// M3G 1.1 Maintenance release getters
-	private native static int _getImageFilter(long handle);
-
-	private native static int _getLevelFilter(long handle);
+	protected void updateProperty(int property, float[] values) {
+		switch (property) {
+			case 258:
+				this.blendColor = G3DUtils.getIntColor(values);
+				return;
+			default:
+				super.updateProperty(property, values);
+		}
+	}
 }

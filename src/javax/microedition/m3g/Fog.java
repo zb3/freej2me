@@ -1,88 +1,83 @@
-/*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
-
 package javax.microedition.m3g;
+
+import kemulator.m3g.utils.G3DUtils;
 
 public class Fog extends Object3D {
 	public static final int EXPONENTIAL = 80;
 	public static final int LINEAR = 81;
+	private int mode = 81;
+	private float density = 1.0F;
+	private float near = 0.0F;
+	private float far = 1.0F;
+	private int color = 0;
 
-	public Fog() {
-		super(_ctor(Interface.getHandle()));
-	}
-
-	/**
-	 */
-	Fog(long handle) {
-		super(handle);
-	}
-
-	public void setMode(int mode) {
-		_setMode(handle, mode);
+	public void setMode(int var1) {
+		if (var1 != 80 && var1 != 81) {
+			throw new IllegalArgumentException();
+		} else {
+			this.mode = var1;
+		}
 	}
 
 	public int getMode() {
-		return _getMode(handle);
+		return this.mode;
 	}
 
-	public void setLinear(float near, float far) {
-		_setLinear(handle, near, far);
+	public void setLinear(float var1, float var2) {
+		this.near = var1;
+		this.far = var2;
 	}
 
 	public float getNearDistance() {
-		return _getDistance(handle, Defs.GET_NEAR);
+		return this.near;
 	}
 
 	public float getFarDistance() {
-		return _getDistance(handle, Defs.GET_FAR);
+		return this.far;
 	}
 
-	public void setDensity(float density) {
-		_setDensity(handle, density);
+	public void setDensity(float var1) {
+		if (var1 < 0.0F) {
+			throw new IllegalArgumentException();
+		} else {
+			this.density = var1;
+		}
 	}
 
 	public float getDensity() {
-		return _getDensity(handle);
+		return this.density;
 	}
 
-	public void setColor(int RGB) {
-		_setColor(handle, RGB);
+	public void setColor(int var1) {
+		this.color = var1;
 	}
 
 	public int getColor() {
-		return _getColor(handle);
+		return this.color;
 	}
 
-	// Native methods
-	private static native long _ctor(long hInterface);
-
-	private static native void _setMode(long handle, int mode);
-
-	private static native int _getMode(long handle);
-
-	private static native void _setLinear(long handle, float near, float far);
-
-	private static native float _getDistance(long handle, int which);
-
-	private static native void _setDensity(long handle, float density);
-
-	private static native float _getDensity(long handle);
-
-	private static native void _setColor(long handle, int RGB);
-
-	private static native int _getColor(long handle);
+	protected void updateProperty(int var1, float[] var2) {
+		switch (var1) {
+			case 258:
+				this.color = G3DUtils.getIntColor(var2);
+				return;
+			case 259:
+			case 261:
+			case 262:
+			case 264:
+			case 265:
+			case 266:
+			default:
+				super.updateProperty(var1, var2);
+				return;
+			case 260:
+				this.density = G3DUtils.limitPositive(var2[0]);
+				return;
+			case 263:
+				this.far = var2[0];
+				return;
+			case 267:
+				this.near = var2[0];
+		}
+	}
 }

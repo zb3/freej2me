@@ -20,7 +20,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 
 class Loader {
 	private static final int BMP_FILE_HEADER_SIZE = 14;
@@ -123,10 +122,9 @@ class Loader {
 			throw new RuntimeException("Unexpected vertexFormat: " + vertexFormat);
 		}
 		loader.clearCache();
-		((Buffer)model.originalVertices).rewind();
 
 		if (normalFormat != 0) {
-			FloatBuffer normals = BufferUtils.createFloatBuffer(numVertices * 3);
+			float[] normals = new float[numVertices * 3];
 			if (normalFormat == 1) {
 				try {
 					loader.readNormalsV1(normals);
@@ -144,11 +142,10 @@ class Loader {
 			} else {
 				throw new RuntimeException("Unsupported normalFormat: " + normalFormat);
 			}
-			((Buffer)normals).rewind();
 			model.originalNormals = normals;
 			int len = numVertices * 3 + 3;
-			model.normals = BufferUtils.createFloatBuffer(len);
-			model.normals.put(--len, 1.0f);
+			model.normals = new float[len];
+			model.normals[len-1] = 1.0f;
 		}
 		loader.clearCache();
 
@@ -335,7 +332,9 @@ class Loader {
 		int paletteOffset = BMP_FILE_HEADER_SIZE + dibHeaderSize;
 
 		TextureData textureData = new TextureData(width, height);
-		ByteBuffer raster = textureData.getRaster();
+		byte[] raster = textureData.getRaster();
+		int rasterIdx = 0;
+
 		int remainder = width % 4;
 		int stride = remainder == 0 ? width : width + 4 - remainder;
 		if (reversed) {
@@ -346,7 +345,11 @@ class Loader {
 					byte b = data[p++];
 					byte g = data[p++];
 					byte r = data[p];
-					raster.put(r).put(g).put(b).put((byte) (idx == 0 ? 0 : 0xff));
+
+					raster[rasterIdx++] = r;
+					raster[rasterIdx++] = g;
+					raster[rasterIdx++] = b;
+					raster[rasterIdx++] = (byte) (idx == 0 ? 0 : 0xff);
 				}
 			}
 		} else {
@@ -357,7 +360,11 @@ class Loader {
 					byte b = data[p++];
 					byte g = data[p++];
 					byte r = data[p];
-					raster.put(r).put(g).put(b).put((byte) (idx == 0 ? 0 : 0xff));
+
+					raster[rasterIdx++] = r;
+					raster[rasterIdx++] = g;
+					raster[rasterIdx++] = b;
+					raster[rasterIdx++] = (byte) (idx == 0 ? 0 : 0xff);
 				}
 			}
 		}
@@ -365,37 +372,37 @@ class Loader {
 		return textureData;
 	}
 
-	private void readVerticesV1(FloatBuffer vertices) throws IOException {
-		while (vertices.hasRemaining()) {
-			vertices.put(readShort());
+	private void readVerticesV1(float[] vertices) throws IOException {
+		for (int t=0; t<vertices.length; t++) {
+			vertices[t] = readShort();
 		}
 	}
 
-	private void readVerticesV2(FloatBuffer vertices) throws IOException {
-		while (vertices.hasRemaining()) {
+	private void readVerticesV2(float[] vertices) throws IOException {
+		for (int vp=0; vp<vertices.length;) {
 			int chunk = readUBits(8);
 			int type = chunk >> 6;
 			int size = SIZES[type];
 			int count = (chunk & 0x3F) + 1;
-			if (count > vertices.remaining()) {
+			if (count > vertices.length-vp) {
 				throw new IOException("Vertex data largest numVertices param");
 			}
 			for (int i = 0; i < count; i++) {
-				vertices.put(readBits(size));
-				vertices.put(readBits(size));
-				vertices.put(readBits(size));
+				vertices[vp++] = readBits(size);
+				vertices[vp++] = readBits(size);
+				vertices[vp++] = readBits(size);
 			}
 		}
 	}
 
-	private void readNormalsV1(FloatBuffer normals) throws IOException {
-		while (normals.hasRemaining()) {
-			normals.put(readShort());
+	private void readNormalsV1(float[] normals) throws IOException {
+		for (int t=0; t<normals.length; t++) {
+			normals[t] = readShort();
 		}
 	}
 
-	private void readNormalsV2(FloatBuffer normals) throws IOException {
-		for (int i = 0, len = normals.capacity() / 3; i < len; i++) {
+	private void readNormalsV2(float[] normals) throws IOException {
+		for (int i = 0; i < normals.length; i+=3) {
 			int x = readUBits(7);
 			int y;
 			int z;
@@ -413,9 +420,10 @@ class Loader {
 				z = dq > 0 ? (int) Math.round(Math.sqrt(dq)) : 0;
 				if (sign == 1) z = -z;
 			}
-			normals.put(x);
-			normals.put(y);
-			normals.put(z);
+
+			normals[i + 0] = x;
+			normals[i + 1] = y;
+			normals[i + 2] = z;
 		}
 	}
 

@@ -31,7 +31,7 @@ public class Effect3D {
 
 	public Effect3D() {
 		shading = NORMAL_SHADING;
-		isTransparency = true;
+		isTransparency = false; // zb3: verified using semc with drawCommandList
 	}
 
 	public Effect3D(Light light, int shading, boolean isEnableTrans, Texture tex) {

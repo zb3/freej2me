@@ -16,13 +16,14 @@
 
 package ru.woesss.j2me.micro3d;
 
+import static pl.zb3.freej2me.bridge.gles2.GLES2.Constants.*;
+
 import com.mascotcapsule.micro3d.v3.Graphics3D;
 
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
+import pl.zb3.freej2me.bridge.gles2.GLES2;
 
 
-abstract class Program extends ClassWithNatives {
+abstract class Program {
 	public static final String SHADER_BASE_PATH = "m3d_shaders/";
 	static Tex tex;
 	static Color color;
@@ -44,23 +45,7 @@ abstract class Program extends ClassWithNatives {
 	Program(String vertexShader, String fragmentShader) {
 		id = createProgram(vertexShader, fragmentShader);
 		getLocations();
-		Render.checkGlError("getLocations");
 	}
-
-	native int _loadShader(boolean fragment, String source);
-	native void _glUseProgram(int program);
-	native void _glDeleteProgram(int program);
-	static native void _glReleaseShaderCompiler();
-	native int _glGetShaderLocation(int pid, boolean uniform, String name);
-	native int _doCreateProgram(int vertexId, int fragmentId);
-	native void _glUniform1i(int id, int a);
-	native void _glUniform1f(int id, float a);
-	native void _glUniform2f(int id, float a, float b);
-	native void _glUniform3f(int id, float a, float b, float c);
-	native void _glVertexAttrib3f(int id, float a, float b, float c);
-	native void _bindMatrices(int uMatrix, int uNormalMatrix, float[] mvp, float[] mv);
-	native void _bindTexture2D(int no, int tid);
-	native void _unbindTexture2D();
 
 	static void create() {
 		if (isCreated) return;
@@ -68,18 +53,13 @@ abstract class Program extends ClassWithNatives {
 		color = new Color();
 		simple = new Simple();
 		sprite = new Sprite();
-		_glReleaseShaderCompiler();
 	}
 
 	private int createProgram(String vertexShader, String fragmentShader) {
 		String vertexShaderCode = processShader(loadShaderCode(vertexShader));
 		String fragmentShaderCode = processShader(loadShaderCode(fragmentShader));
 
-		int vertexId = _loadShader(false, vertexShaderCode);
-		int fragmentId = _loadShader(true, fragmentShaderCode);
-
-		int program = _doCreateProgram(vertexId, fragmentId);             // create empty OpenGL Program
-		Render.checkGlError("glLinkProgram");
+		int program = GLES2.createProgram(vertexShaderCode, fragmentShaderCode);
 		return program;
 	}
 
@@ -92,7 +72,7 @@ abstract class Program extends ClassWithNatives {
 	}
 
 	void use() {
-		_glUseProgram(id);
+		GLES2.useProgram(id);
 	}
 
 	protected abstract void getLocations();
@@ -107,22 +87,21 @@ abstract class Program extends ClassWithNatives {
 	}
 
 	void delete() {
-		_glDeleteProgram(id);
-		Render.checkGlError("program delete");
+		GLES2.deleteProgram(id);
 	}
 
 	void setLight(Light light) {
 		if (light == null) {
-			_glUniform1f(uAmbIntensity, -1.0f);
+			GLES2.uniform1f(uAmbIntensity, -1.0f);
 			return;
 		}
-		_glUniform1f(uAmbIntensity, MathUtil.clamp(light.ambIntensity, 0, 4096) * MathUtil.TO_FLOAT);
-		_glUniform1f(uDirIntensity, MathUtil.clamp(light.dirIntensity, 0, 16384) * MathUtil.TO_FLOAT);
+		GLES2.uniform1f(uAmbIntensity, MathUtil.clamp(light.ambIntensity, 0, 4096) * MathUtil.TO_FLOAT);
+		GLES2.uniform1f(uDirIntensity, MathUtil.clamp(light.dirIntensity, 0, 16384) * MathUtil.TO_FLOAT);
 		float x = light.x;
 		float y = light.y;
 		float z = light.z;
 		float rlf = -1.0f / (float) Math.sqrt(x * x + y * y + z * z);
-		_glUniform3f(uLightDir, x * rlf, y * rlf, z * rlf);
+		GLES2.uniform3f(uLightDir, x * rlf, y * rlf, z * rlf);
 	}
 
 	static final class Color extends Program {
@@ -139,52 +118,55 @@ abstract class Program extends ClassWithNatives {
 
 		@Override
 		protected void getLocations() {
-			aPosition = _glGetShaderLocation(id, false, "aPosition");
-			aNormal = _glGetShaderLocation(id, false, "aNormal");
-			aColorData = _glGetShaderLocation(id, false, "aColorData");
-			aMaterial = _glGetShaderLocation(id, false, "aMaterial");
-			uMatrix = _glGetShaderLocation(id, true, "uMatrix");
-			uNormalMatrix = _glGetShaderLocation(id, true, "uNormalMatrix");
-			uAmbIntensity = _glGetShaderLocation(id, true, "uAmbIntensity");
-			uDirIntensity = _glGetShaderLocation(id, true, "uDirIntensity");
-			uLightDir = _glGetShaderLocation(id, true, "uLightDir");
-			uSphereSize = _glGetShaderLocation(id, true, "uSphereSize");
-			uToonThreshold = _glGetShaderLocation(id, true, "uToonThreshold");
-			uToonHigh = _glGetShaderLocation(id, true, "uToonHigh");
-			uToonLow = _glGetShaderLocation(id, true, "uToonLow");
+
+			aPosition = GLES2.getAttribLocation(id, "aPosition");
+			aNormal = GLES2.getAttribLocation(id, "aNormal");
+			aColorData = GLES2.getAttribLocation(id, "aColorData");
+			aMaterial = GLES2.getAttribLocation(id, "aMaterial");
+
+			uMatrix = GLES2.getUniformLocation(id, "uMatrix");
+			uNormalMatrix = GLES2.getUniformLocation(id, "uNormalMatrix");
+			uAmbIntensity = GLES2.getUniformLocation(id, "uAmbIntensity");
+			uDirIntensity = GLES2.getUniformLocation(id, "uDirIntensity");
+			uLightDir = GLES2.getUniformLocation(id, "uLightDir");
+			uSphereSize = GLES2.getUniformLocation(id, "uSphereSize");
+			uToonThreshold = GLES2.getUniformLocation(id, "uToonThreshold");
+			uToonHigh = GLES2.getUniformLocation(id, "uToonHigh");
+			uToonLow = GLES2.getUniformLocation(id, "uToonLow");
 			use();
-			_glUniform1i(_glGetShaderLocation(id, true, "uSphereUnit"), 2);
+			GLES2.uniform1i(GLES2.getUniformLocation(id, "uSphereUnit"), 2);
 		}
 
-		void setColor(ByteBuffer rgb) {
-			((Buffer)rgb).rewind();
-			float r = (rgb.get() & 0xff) / 255.0f;
-			float g = (rgb.get() & 0xff) / 255.0f;
-			float b = (rgb.get() & 0xff) / 255.0f;
-			_glVertexAttrib3f(aColorData, r, g, b);
+		void setColor(byte[] rgb) {
+			float r = (rgb[0] & 0xff) / 255.0f;
+			float g = (rgb[1] & 0xff) / 255.0f;
+			float b = (rgb[2] & 0xff) / 255.0f;
+			GLES2.vertexAttrib3f(aColorData, r, g, b);
 		}
 
 		void setToonShading(int attrs, int threshold, int high, int low) {
 			if ((attrs & Graphics3D.ENV_ATTR_TOON_SHADING) != 0) {
-				_glUniform1f(uToonThreshold, threshold / 255.0f);
-				_glUniform1f(uToonHigh, high / 255.0f);
-				_glUniform1f(uToonLow, low / 255.0f);
+				GLES2.uniform1f(uToonThreshold, threshold / 255.0f);
+				GLES2.uniform1f(uToonHigh, high / 255.0f);
+				GLES2.uniform1f(uToonLow, low / 255.0f);
 			} else {
-				_glUniform1f(uToonThreshold, -1.0f);
+				GLES2.uniform1f(uToonThreshold, -1.0f);
 			}
 		}
 
 		void bindMatrices(float[] mvp, float[] mv) {
-			_bindMatrices(uMatrix, uNormalMatrix, mvp, mv);
+			GLES2.uniformMatrix4fv(uMatrix, false, mvp);
+			GLES2.uniformMatrix3fv(uNormalMatrix, false, mv);
 		}
 
 		void setSphere(TextureImpl sphere) {
 			if (sphere != null) {
 				int id = sphere.getId();
-				_bindTexture2D(2, id);
-				_glUniform2f(uSphereSize, sphere.getWidth(), sphere.getHeight());
+				GLES2.activeTexture(GL_TEXTURE2);
+    			GLES2.bindTexture(GL_TEXTURE_2D, id);
+				GLES2.uniform2f(uSphereSize, sphere.getWidth(), sphere.getHeight());
 			} else {
-				_glUniform2f(uSphereSize, -1, -1);
+				GLES2.uniform2f(uSphereSize, -1, -1);
 			}
 		}
 	}
@@ -199,10 +181,10 @@ abstract class Program extends ClassWithNatives {
 		}
 
 		protected void getLocations() {
-			aPosition = _glGetShaderLocation(id, false, "a_position");
-			aTexture = _glGetShaderLocation(id, false, "a_texcoord0");
+			aPosition = GLES2.getAttribLocation(id, "a_position");
+			aTexture = GLES2.getAttribLocation(id, "a_texcoord0");
 			use();
-			_glUniform1i(_glGetShaderLocation(id, true, "sampler0"), 1);
+			GLES2.uniform1i(GLES2.getUniformLocation(id, "sampler0"), 1);
 		}
 	}
 
@@ -228,57 +210,61 @@ abstract class Program extends ClassWithNatives {
 		}
 
 		protected void getLocations() {
-			aPosition = _glGetShaderLocation(id, false, "aPosition");
-			aNormal = _glGetShaderLocation(id, false, "aNormal");
-			aColorData = _glGetShaderLocation(id, false, "aColorData");
-			aMaterial = _glGetShaderLocation(id, false, "aMaterial");
-			uTexSize = _glGetShaderLocation(id, true, "uTexSize");
-			uSphereSize = _glGetShaderLocation(id, true, "uSphereSize");
-			uMatrix = _glGetShaderLocation(id, true, "uMatrix");
-			uNormalMatrix = _glGetShaderLocation(id, true, "uNormalMatrix");
-			uAmbIntensity = _glGetShaderLocation(id, true, "uAmbIntensity");
-			uDirIntensity = _glGetShaderLocation(id, true, "uDirIntensity");
-			uLightDir = _glGetShaderLocation(id, true, "uLightDir");
-			uToonThreshold = _glGetShaderLocation(id, true, "uToonThreshold");
-			uToonHigh = _glGetShaderLocation(id, true, "uToonHigh");
-			uToonLow = _glGetShaderLocation(id, true, "uToonLow");
+			aPosition = GLES2.getAttribLocation(id, "aPosition");
+			aNormal = GLES2.getAttribLocation(id, "aNormal");
+			aColorData = GLES2.getAttribLocation(id, "aColorData");
+			aMaterial = GLES2.getAttribLocation(id, "aMaterial");
+
+			uTexSize = GLES2.getUniformLocation(id, "uTexSize");
+			uSphereSize = GLES2.getUniformLocation(id, "uSphereSize");
+			uMatrix = GLES2.getUniformLocation(id, "uMatrix");
+			uNormalMatrix = GLES2.getUniformLocation(id, "uNormalMatrix");
+			uAmbIntensity = GLES2.getUniformLocation(id, "uAmbIntensity");
+			uDirIntensity = GLES2.getUniformLocation(id, "uDirIntensity");
+			uLightDir = GLES2.getUniformLocation(id, "uLightDir");
+			uToonThreshold = GLES2.getUniformLocation(id, "uToonThreshold");
+			uToonHigh = GLES2.getUniformLocation(id, "uToonHigh");
+			uToonLow = GLES2.getUniformLocation(id, "uToonLow");
 			use();
-			_glUniform1i(_glGetShaderLocation(id, true, "uTextureUnit"), 0);
-			_glUniform1i(_glGetShaderLocation(id, true, "uSphereUnit"), 2);
+			GLES2.uniform1i(GLES2.getUniformLocation(id, "uTextureUnit"), 0);
+			GLES2.uniform1i(GLES2.getUniformLocation(id, "uSphereUnit"), 2);
 		}
 
 		void setTex(TextureImpl tex) {
 			if (tex != null) {
 				int id = tex.getId();
-				_bindTexture2D(0, id);
-				_glUniform2f(uTexSize, tex.getWidth(), tex.getHeight());
+				GLES2.activeTexture(GL_TEXTURE0);
+    			GLES2.bindTexture(GL_TEXTURE_2D, id);
+				GLES2.uniform2f(uTexSize, tex.getWidth(), tex.getHeight());
 			} else {
-				_glUniform2f(uTexSize, 256, 256);
-				_unbindTexture2D();
+				GLES2.uniform2f(uTexSize, 256, 256);
+				GLES2.bindTexture(GL_TEXTURE_2D, 0);
 			}
 		}
 
 		void setToonShading(int attrs, int threshold, int high, int low) {
 			if ((attrs & Graphics3D.ENV_ATTR_TOON_SHADING) != 0) {
-				_glUniform1f(uToonThreshold, threshold / 255.0f);
-				_glUniform1f(uToonHigh, high / 255.0f);
-				_glUniform1f(uToonLow, low / 255.0f);
+				GLES2.uniform1f(uToonThreshold, threshold / 255.0f);
+				GLES2.uniform1f(uToonHigh, high / 255.0f);
+				GLES2.uniform1f(uToonLow, low / 255.0f);
 			} else {
-				_glUniform1f(uToonThreshold, -1.0f);
+				GLES2.uniform1f(uToonThreshold, -1.0f);
 			}
 		}
 
 		void bindMatrices(float[] mvp, float[] mv) {
-			_bindMatrices(uMatrix, uNormalMatrix, mvp, mv);
+			GLES2.uniformMatrix4fv(uMatrix, false, mvp);
+			GLES2.uniformMatrix3fv(uNormalMatrix, false, mv);
 		}
 
 		void setSphere(TextureImpl sphere) {
 			if (sphere != null) {
 				int id = sphere.getId();
-				_bindTexture2D(2, id);
-				_glUniform2f(uSphereSize, sphere.getWidth(), sphere.getHeight());
+				GLES2.activeTexture(GL_TEXTURE2);
+    			GLES2.bindTexture(GL_TEXTURE_2D, id);
+				GLES2.uniform2f(uSphereSize, sphere.getWidth(), sphere.getHeight());
 			} else {
-				_glUniform2f(uSphereSize, -1, -1);
+				GLES2.uniform2f(uSphereSize, -1, -1);
 			}
 		}
 	}
@@ -302,18 +288,20 @@ abstract class Program extends ClassWithNatives {
 		}
 
 		protected void getLocations() {
-			aPosition = _glGetShaderLocation(id, false, "aPosition");
-			aColorData = _glGetShaderLocation(id, false, "aColorData");
-			uTexSize = _glGetShaderLocation(id, true, "uTexSize");
-			uIsTransparency = _glGetShaderLocation(id, true, "uIsTransparency");
+			aPosition = GLES2.getAttribLocation(id, "aPosition");
+			aColorData = GLES2.getAttribLocation(id, "aColorData");
+
+			uTexSize = GLES2.getUniformLocation(id, "uTexSize");
+			uIsTransparency = GLES2.getUniformLocation(id, "uIsTransparency");
 			use();
-			_glUniform1i(_glGetShaderLocation(id, true, "uTextureUnit"), 0);
+			GLES2.uniform1i(GLES2.getUniformLocation(id, "uTextureUnit"), 0);
 		}
 
 		void setTexture(TextureImpl texture) {
 			int id = texture.getId();
-			_bindTexture2D(0, id);
-			_glUniform2f(uTexSize, texture.getWidth(), texture.getHeight());
+			GLES2.activeTexture(GL_TEXTURE0);
+    		GLES2.bindTexture(GL_TEXTURE_2D, id);
+			GLES2.uniform2f(uTexSize, texture.getWidth(), texture.getHeight());
 		}
 	}
 }

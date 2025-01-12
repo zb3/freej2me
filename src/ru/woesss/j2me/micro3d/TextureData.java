@@ -16,22 +16,18 @@
 
 package ru.woesss.j2me.micro3d;
 
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-
 class TextureData {
-	private final ByteBuffer raster;
+	private final byte[] raster;
 	final int width;
 	final int height;
 
 	TextureData(int width, int height) {
-		this.raster = BufferUtils.createByteBuffer(width * height * 4);
+		this.raster = new byte[width * height * 4];
 		this.width = width;
 		this.height = height;
 	}
 
-	ByteBuffer getRaster() {
-		((Buffer)raster).rewind();
+	byte[] getRaster() {
 		return raster;
 	}
 }

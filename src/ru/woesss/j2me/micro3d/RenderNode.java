@@ -16,9 +16,6 @@
 
 package ru.woesss.j2me.micro3d;
 
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-
 abstract class RenderNode {
 	final float[] viewMatrix = new float[12];
 	final float[] projMatrix = new float[16];
@@ -55,16 +52,16 @@ abstract class RenderNode {
 
 	static final class FigureNode extends RenderNode {
 		TextureImpl[] textures;
-		final FloatBuffer vertices;
+		final float[] vertices;
 		final FigureImpl figure;
-		final FloatBuffer normals;
+		final float[] normals;
 
 		FigureNode(Render render, FigureImpl figure) {
 			this.figure = figure;
 			Model model = figure.model;
-			vertices = BufferUtils.createFloatBuffer(model.vertexArrayCapacity);
+			vertices = new float[model.vertexArrayCapacity];
 			if (model.originalNormals != null) {
-				normals = BufferUtils.createFloatBuffer(model.vertexArrayCapacity);
+				normals = new float[model.vertexArrayCapacity];
 			} else {
 				normals = null;
 			}
@@ -104,15 +101,15 @@ abstract class RenderNode {
 
 	static final class PrimitiveNode extends RenderNode {
 		final int command;
-		final FloatBuffer vertices;
-		final FloatBuffer normals;
-		final ByteBuffer texCoords;
-		final ByteBuffer colors;
+		final float[] vertices;
+		final float[] normals;
+		final byte[] texCoords;
+		final byte[] colors;
 		final TextureImpl texture;
 
 		PrimitiveNode(Render render, int command,
-					  FloatBuffer vertices, FloatBuffer normals,
-					  ByteBuffer texCoords, ByteBuffer colors) {
+					  float[] vertices, float[] normals,
+					  byte[] texCoords, byte[] colors) {
 			setData(render);
 			Render.Environment env = render.env;
 			this.texture = env.getTexture();

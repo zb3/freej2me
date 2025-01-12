@@ -17,9 +17,6 @@
 package ru.woesss.j2me.micro3d;
 
 import java.io.IOException;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.Stack;
 
@@ -119,17 +116,17 @@ public class FigureImpl {
 	}
 
 	private void fillTexCoordBuffer() {
-		ByteBuffer buffer = model.texCoordArray;
-		((Buffer)buffer).rewind();
+		int tcPos = 0;
 		for (Model.Polygon poly : model.polygonsT) {
-			buffer.put(poly.texCoords);
+			System.arraycopy(poly.texCoords, 0, model.texCoordArray, tcPos, poly.texCoords.length);
+			tcPos += poly.texCoords.length;
 			poly.texCoords = null;
 		}
 		for (Model.Polygon poly : model.polygonsC) {
-			buffer.put(poly.texCoords);
+			System.arraycopy(poly.texCoords, 0, model.texCoordArray, tcPos, poly.texCoords.length);
+			tcPos += poly.texCoords.length;
 			poly.texCoords = null;
 		}
-		((Buffer)buffer).rewind();
 	}
 
 	public final void dispose() {
@@ -168,7 +165,7 @@ public class FigureImpl {
 	private void applyPattern() {
 		int[] indexArray = model.indices;
 		int pos = 0;
-		int invalid = model.vertices.capacity() / 3 - 1;
+		int invalid = model.vertices.length / 3 - 1;
 		for (Model.Polygon p : model.polygonsT) {
 			int[] indices = p.indices;
 			int length = indices.length;
@@ -213,7 +210,7 @@ public class FigureImpl {
 
 	synchronized void prepareBuffers() {
 		if (model.vertexArray == null) {
-			model.vertexArray = BufferUtils.createFloatBuffer(model.vertexArrayCapacity);
+			model.vertexArray = new float[model.vertexArrayCapacity];
 		}
 		Utils.fillBuffer(model.vertexArray, model.vertices, model.indices);
 
@@ -221,7 +218,7 @@ public class FigureImpl {
 			return;
 		}
 		if (model.normalsArray == null) {
-			model.normalsArray = BufferUtils.createFloatBuffer(model.vertexArrayCapacity);
+			model.normalsArray = new float[model.vertexArrayCapacity];
 		}
 		Utils.fillBuffer(model.normalsArray, model.normals, model.indices);
 	}
@@ -236,7 +233,7 @@ public class FigureImpl {
 		applyBoneAction(actTable.actions[action], frame < 0 ? 0 : frame);
 	}
 
-	synchronized void fillBuffers(FloatBuffer vertices, FloatBuffer normals) {
+	synchronized void fillBuffers(float[] vertices, float[] normals) {
 		Utils.fillBuffer(vertices, model.vertices, model.indices);
 		if (normals != null) {
 			Utils.fillBuffer(normals, model.normals, model.indices);

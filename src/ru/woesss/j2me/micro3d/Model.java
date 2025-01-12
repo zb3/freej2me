@@ -17,22 +17,21 @@
 package ru.woesss.j2me.micro3d;
 
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 
 class Model {
 	final int numPatterns;
 	final boolean hasPolyC;
 	final boolean hasPolyT;
 
-	FloatBuffer vertexArray;
-	FloatBuffer normalsArray;
-	final ByteBuffer texCoordArray;
-	final FloatBuffer originalVertices;
-	FloatBuffer normals;
-	FloatBuffer originalNormals;
+	float[] vertexArray;
+	float[] normalsArray;
+	final byte[] texCoordArray;
+	final float[] originalVertices;
+	float[] normals;
+	float[] originalNormals;
 	final Polygon[] polygonsC;
 	final Polygon[] polygonsT;
-	final FloatBuffer vertices;
+	final float[] vertices;
 	final int vertexArrayCapacity;
 	final int[][][] subMeshesLengthsT;
 	final int[][] subMeshesLengthsC;
@@ -53,11 +52,11 @@ class Model {
 		polygonsT = new Polygon[polyT3 + polyT4];
 		hasPolyT = polyT3 + polyT4 > 0;
 		hasPolyC = polyC3 + polyC4 > 0;
-		texCoordArray = BufferUtils.createByteBuffer(numVertices * 5);
-		originalVertices = BufferUtils.createFloatBuffer(vertices * 3);
+		texCoordArray = new byte[numVertices * 5];
+		originalVertices = new float[vertices * 3];
 		int i = vertices * 3 + 3;
-		this.vertices = BufferUtils.createFloatBuffer(i);
-		this.vertices.put(--i, Float.POSITIVE_INFINITY);
+		this.vertices = new float[i];
+		this.vertices[i-1] = Float.POSITIVE_INFINITY;
 		bones = BufferUtils.createByteBuffer(numBones * (12 + 2) * 4);
 	}
 

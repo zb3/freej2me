@@ -16,20 +16,18 @@
 
 package ru.woesss.j2me.micro3d;
 
+import static pl.zb3.freej2me.bridge.gles2.GLES2.Constants.*;
+
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
-public final class TextureImpl extends ClassWithNatives {
-	static int sLastId;
+import pl.zb3.freej2me.bridge.gles2.GLES2;
+import pl.zb3.freej2me.bridge.gles2.TextureHolder;
 
+public final class TextureImpl implements TextureHolder {
 	final TextureData image;
 	private final boolean isMutable;
 
-	int mTexId = -1;
-
-	private native boolean _glIsTexture(int id);
-	private native int _glGenTextureId(int biggerThan);
-	private native void _loadToGl(int texId, int width, int height, boolean filter, ByteBuffer data);
+	int mTexId = 0;
 
 	public TextureImpl() {
 		image = new TextureData(256, 256);
@@ -86,6 +84,9 @@ public final class TextureImpl extends ClassWithNatives {
 	}
 
 	public void dispose() {
+		if (mTexId != 0) {
+			Render.getRender().textureResourceManager.resetHolder(this);
+		}
 	}
 
 	public boolean isMutable() {
@@ -93,12 +94,18 @@ public final class TextureImpl extends ClassWithNatives {
 	}
 
 	int getId() {
-		if (!_glIsTexture(mTexId)) {
-			generateId();
+		if (mTexId == 0) {
+			mTexId = GLES2.createTexture();
+			Render.getRender().textureResourceManager.registerHolder(this, mTexId);
 		} else if (!isMutable) {
 			return mTexId;
 		}
+
+		// for "mutable" we always refresh this, albeit this seems to be used only by the
+		// untested motorola iden api
+
 		loadToGL();
+
 		return mTexId;
 	}
 
@@ -110,24 +117,23 @@ public final class TextureImpl extends ClassWithNatives {
 		return image.height;
 	}
 
-	private void generateId() {
-		synchronized (TextureImpl.class) {
-			sLastId = mTexId = _glGenTextureId(sLastId);
-		}
-		Render.checkGlError("glGenTextures");
-	}
 
 	private void loadToGL() {
 		boolean filter = Boolean.getBoolean("micro3d.v3.texture.filter");
-		_loadToGl(mTexId, image.width, image.height, filter, image.getRaster());
+
+		GLES2.activeTexture(GL_TEXTURE0);
+		GLES2.bindTexture(GL_TEXTURE_2D, mTexId);
+
+		GLES2.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter ? GL_LINEAR : GL_NEAREST);
+		GLES2.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter ? GL_LINEAR : GL_NEAREST);
+		GLES2.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		GLES2.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		GLES2.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.getRaster());
+		GLES2.bindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	@Override
-	protected void finalize() throws Throwable {
-		try {
-			dispose();
-		} finally {
-			super.finalize();
-		}
+	public void clearId() {
+		mTexId = 0;
 	}
 }

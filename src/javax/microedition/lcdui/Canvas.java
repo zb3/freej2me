@@ -249,7 +249,6 @@ public abstract class Canvas extends Displayable
 	}
 
 	private void paintCommandsBar() {
-		System.out.println("koko: paintin bar");
 		if (fullscreen) {
 			return;
 		}

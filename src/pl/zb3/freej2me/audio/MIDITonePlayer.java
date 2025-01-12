@@ -39,7 +39,7 @@ public class MIDITonePlayer extends MIDIPlayer implements ToneControl
 	public MIDITonePlayer(InputStream stream)
 	{
 		this();
-        
+
 		try {
 			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 			int nRead;
@@ -65,7 +65,7 @@ public class MIDITonePlayer extends MIDIPlayer implements ToneControl
     @Override
 	public void setSequence(byte[] sequence) {
         if (midi == null) return;
-		
+
         try {
 			ToneSequence tone = new ToneSequence(sequence);
 			tone.process();

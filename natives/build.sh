@@ -26,7 +26,8 @@ mkdir -p temp/$variant/build
 mkdir -p "dist/$variant/deps"
 
 
-projects=(ffmpeg ffaudio angle wrangle m3g micro3d)
+projects=(ffmpeg ffaudio angle wrangle gles2bridge)
+
 [ -n "$one_project" ] && projects=($one_project)
 
 set -e
@@ -40,7 +41,7 @@ else
     jni_platform=linux
     [[ $variant == "windows-"* ]] && jni_platform=win32
     [[ $variant == "macos-"* ]] && jni_platform=darwin
-    
+
     mkdir -p temp/$variant/prefix/java_platform_include
     cp projects/jni_headers/$jni_platform/* temp/$variant/prefix/java_platform_include
 
@@ -56,7 +57,7 @@ else
 
     shopt -s nullglob
     deps_to_copy=(temp/$variant/prefix/lib/*.{so,dll,dylib})
-    
+
     [ -n "$deps_to_copy" ] && cp -r "${deps_to_copy[@]}" dist/$variant/deps
 
     # HACK: this works because winpthreads are only needed by "main" libraries

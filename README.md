@@ -14,8 +14,8 @@ Currently it has:
 ## DISCLAIMER/TODO
 While the J2ME API is fairly limited, any JAR loaded into this emulator can do **everything** on your system, and those distributing various J2ME JARs today are well aware of the fact that emulators exist.
 That's why it's highly recommended to run this in a sandboxed environment, the emulator itself provides no sandbox at this time, sorry.
-(TODO: linux docker container setup)
 
+UPDATE: Try [freej2me-web](https://github.com/zb3/freej2me-web) which runs right in your browser! It doesn't suffer from the security weakness described above.
 
 ## Let's play!
 
